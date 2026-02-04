@@ -1,0 +1,472 @@
+import { Metadata } from 'next';
+import Link from 'next/link';
+import { getAllQuiz } from '@/lib/quiz-service';
+import { getStats } from '@/lib/wordpress';
+import { getCourseStatsByTestType } from '@/lib/course-service';
+import QuizCard from '@/components/Quiz/QuizCard';
+import DisplayAd from '@/components/Ads/DisplayAd';
+import { SITE_NAME, SITE_DESCRIPTION } from '@/lib/constants';
+import { formatNumber } from '@/lib/utils';
+import AnimatedShapes from '@/components/Layout/AnimatedShapes';
+import BackgroundPattern from '@/components/Layout/BackgroundPattern';
+
+export const metadata: Metadata = {
+  title: 'Home',
+  description: SITE_DESCRIPTION,
+};
+
+export const revalidate = 3600; // Revalider toutes les heures
+
+export default async function HomePage() {
+  const [quizs, stats, courseStats] = await Promise.all([
+    getAllQuiz(),
+    getStats(),
+    getCourseStatsByTestType(),
+  ]);
+
+  // Afficher les 6 premiers quiz en vedette
+  const featuredQuizs = quizs.slice(0, 6);
+
+  return (
+    <div className="w-full">
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-20 md:py-32 overflow-hidden">
+        {/* Pattern de fond avec lignes ondulées */}
+        <div className="absolute inset-0 opacity-20">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="wave-pattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+                <path d="M0,50 Q25,30 50,50 T100,50" stroke="#9ca3af" strokeWidth="1" fill="none" opacity="0.3"/>
+                <circle cx="25" cy="30" r="2" fill="#9ca3af" opacity="0.3"/>
+                <circle cx="50" cy="50" r="2" fill="#9ca3af" opacity="0.3"/>
+                <circle cx="75" cy="30" r="2" fill="#9ca3af" opacity="0.3"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#wave-pattern)" />
+          </svg>
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-5xl mx-auto text-center">
+            {/* Titre principal avec couleurs différentes */}
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight">
+              <span className="bg-gradient-to-r from-purple-800 to-purple-900 bg-clip-text text-transparent">
+                Free Math Practice
+              </span>
+              <br />
+              <span className="bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent">
+                Problems
+              </span>
+              <br />
+              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                for All Standardized
+              </span>
+              <br />
+              <span className="bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">
+                Exams
+              </span>
+            </h1>
+            
+            {/* Sous-titre avec examens en couleurs */}
+            <p className="text-xl md:text-2xl text-gray-800 mb-8 max-w-4xl mx-auto leading-relaxed">
+              Practice math for the{' '}
+              <span className="text-blue-600 font-bold">ACT</span>,{' '}
+              <span className="text-pink-600 font-bold">SAT</span>,{' '}
+              <span className="text-red-500 font-bold">AP</span>,{' '}
+              <span className="text-blue-500 font-bold">GRE</span>,{' '}
+              <span className="text-blue-700 font-bold">GMAT</span>, and more —{' '}
+              <span className="text-emerald-600 font-bold">completely free!</span>
+            </p>
+
+            {/* Boîte d'information blanche */}
+            <div className="max-w-4xl mx-auto mb-10">
+              <div className="bg-white rounded-2xl p-8 md:p-10 shadow-lg">
+                <p className="text-lg md:text-xl text-gray-700 leading-relaxed">
+                  <span className="font-semibold text-gray-900">The School of Mathematics</span> is a free online platform offering high-quality math practice problems for standardized exams in the United States. Improve your skills and prepare for any major math test with{' '}
+                  <span className="font-bold text-blue-600">thousands of exam-style questions</span>.
+                </p>
+              </div>
+            </div>
+            
+            {/* Boutons d'action */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link
+                href="/quiz"
+                className="inline-flex items-center gap-2 px-10 py-5 text-lg font-semibold bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+              >
+                <span>Start Practicing</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+              <Link
+                href="/about-us"
+                className="inline-flex items-center gap-2 px-10 py-5 text-lg font-semibold bg-white text-gray-900 rounded-xl hover:bg-gray-50 border-2 border-gray-300 transition-all duration-300 shadow-md hover:shadow-lg"
+              >
+                Learn More
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Standardized Tests Section */}
+      <section className="relative py-20 bg-gradient-to-br from-white via-gray-50 to-white overflow-hidden">
+        <AnimatedShapes variant="section" count={6} intensity="medium" />
+        <BackgroundPattern variant="grid" opacity={0.08} />
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+              {/* ACT Card */}
+              <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-8 shadow-2xl border border-white/40 hover:shadow-3xl hover:scale-105 transition-all duration-300 group">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
+                    ACT
+                  </h3>
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent mb-2">
+                  {formatNumber(courseStats.act)}
+                </div>
+                <div className="text-gray-600 font-semibold mb-6">Courses Available</div>
+                <Link
+                  href="/quiz"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
+                >
+                  Practicing
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </Link>
+              </div>
+
+              {/* SAT Card */}
+              <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-8 shadow-2xl border border-white/40 hover:shadow-3xl hover:scale-105 transition-all duration-300 group">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                    SAT
+                  </h3>
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-2">
+                  {formatNumber(courseStats.sat)}
+                </div>
+                <div className="text-gray-600 font-semibold mb-6">Courses Available</div>
+                <Link
+                  href="/quiz"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-teal-600 text-white rounded-xl hover:from-blue-700 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
+                >
+                  Practicing
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </Link>
+              </div>
+
+              {/* PSAT/NMSQT Card */}
+              <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-8 shadow-2xl border border-white/40 hover:shadow-3xl hover:scale-105 transition-all duration-300 group">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-pink-800 bg-clip-text text-transparent">
+                    PSAT/NMSQT
+                  </h3>
+                  <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="text-5xl font-bold bg-gradient-to-r from-pink-600 to-pink-800 bg-clip-text text-transparent mb-2">
+                  {formatNumber(courseStats.psat)}
+                </div>
+                <div className="text-gray-600 font-semibold mb-6">Courses Available</div>
+                <Link
+                  href="/quiz"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-xl hover:from-pink-700 hover:to-rose-700 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
+                >
+                  Practicing
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+
+            {/* General Statistics Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-8 shadow-2xl border border-white/40 hover:shadow-3xl hover:scale-105 transition-all duration-300">
+                <div className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent mb-2">
+                  {formatNumber(stats.total_quiz)}
+                </div>
+                <div className="text-gray-600 font-semibold">Available Quizzes</div>
+              </div>
+              <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-8 shadow-2xl border border-white/40 hover:shadow-3xl hover:scale-105 transition-all duration-300">
+                <div className="text-5xl font-bold bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent mb-2">
+                  {formatNumber(stats.total_questions)}
+                </div>
+                <div className="text-gray-600 font-semibold">Practice Questions</div>
+              </div>
+              <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-8 shadow-2xl border border-white/40 hover:shadow-3xl hover:scale-105 transition-all duration-300">
+                <div className="text-5xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">
+                  {formatNumber(stats.total_categories)}
+                </div>
+                <div className="text-gray-600 font-semibold">Categories</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How The School of Mathematics Helps You Score Higher Section */}
+      <section className="relative py-20 bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 overflow-hidden">
+        <AnimatedShapes variant="section" count={6} intensity="medium" />
+        <BackgroundPattern variant="grid" opacity={0.1} />
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent mb-6">
+                How The School of Mathematics Helps You Score Higher
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="text-center p-8 rounded-3xl backdrop-blur-xl bg-white/70 hover:bg-white/90 shadow-2xl border border-white/30 hover:shadow-3xl hover:scale-105 transition-all duration-300 group">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg transform group-hover:rotate-6 transition-transform duration-300">
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-4">Practice Real Exam Questions</h3>
+                <p className="text-gray-700 leading-relaxed">
+                  Solve ACT, SAT, AP, and GCSE-style math problems written to match real test difficulty and format.
+                </p>
+              </div>
+
+              <div className="text-center p-8 rounded-3xl backdrop-blur-xl bg-white/70 hover:bg-white/90 shadow-2xl border border-white/30 hover:shadow-3xl hover:scale-105 transition-all duration-300 group">
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg transform group-hover:rotate-6 transition-transform duration-300">
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-4">Understand What Matters</h3>
+                <p className="text-gray-700 leading-relaxed">
+                  Each problem focuses on high-frequency exam concepts, not random math theory.
+                </p>
+              </div>
+
+              <div className="text-center p-8 rounded-3xl backdrop-blur-xl bg-white/70 hover:bg-white/90 shadow-2xl border border-white/30 hover:shadow-3xl hover:scale-105 transition-all duration-300 group">
+                <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg transform group-hover:rotate-6 transition-transform duration-300">
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-4">Train Like Test Day</h3>
+                <p className="text-gray-700 leading-relaxed">
+                  Timed practice helps you build speed, accuracy, and confidence under real exam conditions.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Students Use The School of Mathematics Section */}
+      <section className="relative py-20 bg-gradient-to-br from-slate-50 via-violet-50 to-rose-50 overflow-hidden">
+        <AnimatedShapes variant="floating" count={7} intensity="medium" />
+        <BackgroundPattern variant="circular" opacity={0.12} />
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-900 via-violet-900 to-rose-900 bg-clip-text text-transparent mb-6">
+                Why Students Use The School of Mathematics
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="backdrop-blur-xl bg-white/80 p-8 rounded-3xl shadow-2xl border border-white/40 hover:shadow-3xl hover:scale-105 transition-all duration-300 group">
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-3">Exam-Accurate Math Practice</h3>
+                <p className="text-gray-700 leading-relaxed">
+                  Solve ACT, SAT, AP, and GCSE-style math problems written to match real test difficulty and format.
+                </p>
+              </div>
+
+              <div className="backdrop-blur-xl bg-white/80 p-8 rounded-3xl shadow-2xl border border-white/40 hover:shadow-3xl hover:scale-105 transition-all duration-300 group">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-3">Difficulty That Matches the Test</h3>
+                <p className="text-gray-700 leading-relaxed">
+                  Each problem focuses on high-frequency exam concepts, not random math theory.
+                </p>
+              </div>
+
+              <div className="backdrop-blur-xl bg-white/80 p-8 rounded-3xl shadow-2xl border border-white/40 hover:shadow-3xl hover:scale-105 transition-all duration-300 group">
+                <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-3">Concept-Focused Learning</h3>
+                <p className="text-gray-700 leading-relaxed">
+                  Each problem targets one core concept. Prepared eases. No gimmicks.
+                </p>
+              </div>
+
+              <div className="backdrop-blur-xl bg-white/80 p-8 rounded-3xl shadow-2xl border border-white/40 hover:shadow-3xl hover:scale-105 transition-all duration-300 group">
+                <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-3">Unlimited Free Practice</h3>
+                <p className="text-gray-700 leading-relaxed">
+                  All Major Math Exams in One Place. No paying or waiting. Practice under real exam conditions.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Success Story Section */}
+      <section className="relative py-20 bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 overflow-hidden">
+        <AnimatedShapes variant="gradient" count={5} intensity="low" />
+        <BackgroundPattern variant="waves" opacity={0.1} />
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-4xl mx-auto">
+            <div className="backdrop-blur-xl bg-gradient-to-br from-white/90 to-amber-50/50 p-12 rounded-3xl shadow-2xl border border-amber-200/30">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-amber-900 via-yellow-800 to-orange-800 bg-clip-text text-transparent mb-4">
+                  From Struggling Student to Math Master
+                </h2>
+                <div className="flex items-center justify-center gap-2 text-gray-700 mb-6 backdrop-blur-sm bg-white/40 rounded-xl px-6 py-3 inline-block">
+                  <svg className="w-6 h-6 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  <span className="font-bold text-lg bg-gradient-to-r from-amber-700 to-orange-700 bg-clip-text text-transparent">5.0 Rating</span>
+                </div>
+              </div>
+              <blockquote className="text-xl md:text-2xl text-gray-800 italic mb-6 text-center leading-relaxed backdrop-blur-sm bg-white/40 rounded-2xl p-8">
+                &ldquo;{SITE_NAME} made a big difference in my life. It allowed me to adequately prepare for mathematics exams and receive excellent scores. As a result, I was able to build confidence and excel in my studies.&rdquo;
+              </blockquote>
+              <div className="text-center">
+                <p className="font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">- Sarah M., Mathematics Student</p>
+                <Link href="/about-us" className="text-gray-700 hover:text-gray-900 mt-4 inline-block font-semibold backdrop-blur-sm bg-white/40 rounded-xl px-6 py-2 hover:bg-white/60 transition-all duration-300">
+                  Read More Success Stories →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Choose If You Are Section */}
+      <section className="relative py-20 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 overflow-hidden">
+        <AnimatedShapes variant="section" count={6} intensity="medium" />
+        <BackgroundPattern variant="dots" opacity={0.12} />
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-emerald-900 via-teal-900 to-cyan-900 bg-clip-text text-transparent mb-6">
+                Choose {SITE_NAME} If You Are:
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[
+                { title: 'Just Getting Started', desc: 'Follow a clear path to better scores with our science-backed tools that help you learn faster.' },
+                { title: 'At a Plateau', desc: 'Find areas where you need improvement with our analytics so you can focus on what matters most.' },
+                { title: 'Busy', desc: 'Stay on track — even when life gets hectic — with our study tools that adapt to your schedule.' },
+                { title: '"Not A Good Test Taker"', desc: 'Learn to outsmart tricky questions with targeted practice and proven strategies.' },
+                { title: 'Retaking the Exam', desc: 'Pinpoint and correct past problem areas with focused practice and personalized feedback.' },
+                { title: 'Stressed By the Clock', desc: 'Practice with our timer feature to stay calm and focused, giving you the best shot at a high score.' },
+              ].map((item, index) => (
+                <div key={index} className="backdrop-blur-xl bg-white/80 p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 border border-white/40 hover:scale-105 hover:bg-white/90">
+                  <h3 className="text-lg font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-3">{item.title}</h3>
+                  <p className="text-gray-700 leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Quizzes Section */}
+      <section className="relative py-20 bg-gradient-to-br from-white via-indigo-50 to-purple-50 overflow-hidden">
+        <AnimatedShapes variant="floating" count={7} intensity="medium" />
+        <BackgroundPattern variant="grid" opacity={0.1} />
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-center justify-between mb-12">
+              <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-900 via-purple-900 to-pink-900 bg-clip-text text-transparent">
+                Featured Quizzes
+              </h2>
+              <Link
+                href="/quiz"
+                className="backdrop-blur-xl bg-white/80 hover:bg-white/90 text-gray-900 hover:text-gray-700 font-semibold text-lg flex items-center gap-2 group px-6 py-3 rounded-xl border border-white/40 hover:border-white/60 shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                View All
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            </div>
+
+            {featuredQuizs.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {featuredQuizs.map((quiz, index) => (
+                  <QuizCard key={quiz.id} quiz={quiz} index={index} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16 backdrop-blur-xl bg-white/60 rounded-3xl shadow-2xl border border-white/40">
+                <div className="text-6xl mb-4">📚</div>
+                <p className="text-gray-700 text-lg font-semibold">No quizzes available at the moment.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="relative py-20 bg-gradient-to-br from-gray-900 via-indigo-900 to-purple-900 text-white overflow-hidden">
+        <AnimatedShapes variant="luxury" count={8} intensity="high" />
+        <BackgroundPattern variant="luxury" opacity={0.15} color="white" />
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">
+              Ready to Excel in Mathematics?
+            </h2>
+            <p className="text-xl text-gray-200 mb-8 max-w-2xl mx-auto backdrop-blur-sm bg-white/10 rounded-2xl p-6">
+              Join thousands of students who are improving their math skills and building confidence with our comprehensive practice platform.
+            </p>
+            <Link
+              href="/quiz"
+              className="inline-flex items-center gap-3 px-10 py-5 text-lg font-semibold bg-gradient-to-r from-white to-gray-100 text-gray-900 rounded-2xl hover:from-gray-100 hover:to-white transition-all duration-300 shadow-2xl hover:shadow-3xl hover:scale-105 transform"
+            >
+              <span>Get Started Now</span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
