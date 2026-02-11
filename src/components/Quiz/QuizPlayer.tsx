@@ -439,7 +439,7 @@ export default function QuizPlayer({ quiz }: QuizPlayerProps) {
       quizResults.percentage,
       quizResults.timeSpent
     );
-  }, [questions, selectedAnswers, startTime, quiz, quizTimeRemaining]);
+  }, [questions, selectedAnswers, startTime, quiz, quizTimeRemaining, totalQuestions]);
 
   // Gérer le timer global du quiz
   useEffect(() => {

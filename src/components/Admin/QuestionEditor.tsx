@@ -41,7 +41,8 @@ export default function QuestionEditor({ question, index, onUpdate, onDelete }: 
       setLocalQuestion(question);
       questionIdRef.current = question.id;
     }
-  }, [question.id]); // Seulement dépendre de l'ID, pas de toute la question
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [question.id]); // Seulement dépendre de l'ID, pas de toute la question pour éviter les boucles infinies
 
   const updateQuestion = useCallback((updates: Partial<Question>) => {
     setLocalQuestion((prev) => {
