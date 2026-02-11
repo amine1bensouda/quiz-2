@@ -439,7 +439,9 @@ export default function QuizPlayer({ quiz }: QuizPlayerProps) {
       quizResults.percentage,
       quizResults.timeSpent
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questions, selectedAnswers, startTime, quiz, quizTimeRemaining, totalQuestions]);
+  // Note: correctAnswer est une variable locale dans le forEach, pas besoin dans les dépendances
 
   // Gérer le timer global du quiz
   useEffect(() => {
