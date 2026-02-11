@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     const cookieStore = await cookies();
     
     // Sur Vercel, utiliser secure: true car HTTPS est toujours activé
-    const isProduction = process.env.VERCEL || process.env.NODE_ENV === 'production';
+    const isProduction = Boolean(process.env.VERCEL) || process.env.NODE_ENV === 'production';
     
     cookieStore.set('session_token', sessionToken, {
       httpOnly: true,
