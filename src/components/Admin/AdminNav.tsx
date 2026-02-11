@@ -16,7 +16,7 @@ export default function AdminNav() {
       router.push('/admin/login');
       router.refresh();
     } catch (error) {
-      console.error('Erreur déconnexion:', error);
+      console.error('Logout error:', error);
     } finally {
       setLoggingOut(false);
     }
@@ -24,9 +24,9 @@ export default function AdminNav() {
 
   const navItems = [
     { href: '/admin', label: 'Dashboard', icon: '📊' },
-    { href: '/admin/courses', label: 'Cours', icon: '📚' },
+    { href: '/admin/courses', label: 'Courses', icon: '📚' },
     { href: '/admin/modules', label: 'Modules', icon: '📦' },
-    { href: '/admin/quizzes', label: 'Quiz', icon: '📝' },
+    { href: '/admin/quizzes', label: 'Quizzes', icon: '📝' },
   ];
 
   return (
@@ -62,14 +62,14 @@ export default function AdminNav() {
               href="/"
               className="text-gray-600 hover:text-gray-900 font-medium"
             >
-              Voir le site
+              View Site
             </Link>
             <button
               onClick={handleLogout}
               disabled={loggingOut}
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 font-medium"
             >
-              {loggingOut ? 'Déconnexion...' : 'Déconnexion'}
+              {loggingOut ? 'Logging out...' : 'Logout'}
             </button>
           </div>
         </div>

@@ -27,6 +27,18 @@ export default async function HomePage() {
   // Afficher les 6 premiers quiz en vedette
   const featuredQuizs = quizs.slice(0, 6);
 
+  // Calculer le nombre de cartes de cours à afficher
+  const courseCardsCount = [
+    courseStats.act.count > 0,
+    courseStats.sat.count > 0,
+    courseStats.psat.count > 0,
+  ].filter(Boolean).length;
+
+  // Déterminer les classes de la grille en fonction du nombre de cartes
+  const gridColsClass = courseCardsCount === 3 ? 'md:grid-cols-3' : 
+                        courseCardsCount === 2 ? 'md:grid-cols-2' : 
+                        'md:grid-cols-1';
+
   return (
     <div className="w-full">
       {/* Hero Section */}
@@ -116,88 +128,96 @@ export default async function HomePage() {
         <BackgroundPattern variant="grid" opacity={0.08} />
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            {courseCardsCount > 0 && (
+              <div className={`grid grid-cols-1 ${gridColsClass} gap-8 mb-12`}>
               {/* ACT Card */}
-              <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-8 shadow-2xl border border-white/40 hover:shadow-3xl hover:scale-105 transition-all duration-300 group">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
-                    ACT
-                  </h3>
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
+              {courseStats.act.count > 0 && (
+                <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-8 shadow-2xl border border-white/40 hover:shadow-3xl hover:scale-105 transition-all duration-300 group">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
+                      ACT
+                    </h3>
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
                   </div>
+                  <div className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent mb-2">
+                    {formatNumber(courseStats.act.count)}
+                  </div>
+                  <div className="text-gray-600 font-semibold mb-6">Courses Available</div>
+                  <Link
+                    href={courseStats.act.slug ? `/quiz/course/${courseStats.act.slug}` : '/quiz'}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
+                  >
+                    Practicing
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </Link>
                 </div>
-                <div className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent mb-2">
-                  {formatNumber(courseStats.act)}
-                </div>
-                <div className="text-gray-600 font-semibold mb-6">Courses Available</div>
-                <Link
-                  href="/quiz"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
-                >
-                  Practicing
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </Link>
-              </div>
+              )}
 
               {/* SAT Card */}
-              <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-8 shadow-2xl border border-white/40 hover:shadow-3xl hover:scale-105 transition-all duration-300 group">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-                    SAT
-                  </h3>
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
+              {courseStats.sat.count > 0 && (
+                <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-8 shadow-2xl border border-white/40 hover:shadow-3xl hover:scale-105 transition-all duration-300 group">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                      SAT
+                    </h3>
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
                   </div>
+                  <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-2">
+                    {formatNumber(courseStats.sat.count)}
+                  </div>
+                  <div className="text-gray-600 font-semibold mb-6">Courses Available</div>
+                  <Link
+                    href={courseStats.sat.slug ? `/quiz/course/${courseStats.sat.slug}` : '/quiz'}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-teal-600 text-white rounded-xl hover:from-blue-700 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
+                  >
+                    Practicing
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </Link>
                 </div>
-                <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-2">
-                  {formatNumber(courseStats.sat)}
-                </div>
-                <div className="text-gray-600 font-semibold mb-6">Courses Available</div>
-                <Link
-                  href="/quiz"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-teal-600 text-white rounded-xl hover:from-blue-700 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
-                >
-                  Practicing
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </Link>
-              </div>
+              )}
 
               {/* PSAT/NMSQT Card */}
-              <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-8 shadow-2xl border border-white/40 hover:shadow-3xl hover:scale-105 transition-all duration-300 group">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-pink-800 bg-clip-text text-transparent">
-                    PSAT/NMSQT
-                  </h3>
-                  <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
+              {courseStats.psat.count > 0 && (
+                <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-8 shadow-2xl border border-white/40 hover:shadow-3xl hover:scale-105 transition-all duration-300 group">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-pink-800 bg-clip-text text-transparent">
+                      PSAT/NMSQT
+                    </h3>
+                    <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
                   </div>
+                  <div className="text-5xl font-bold bg-gradient-to-r from-pink-600 to-pink-800 bg-clip-text text-transparent mb-2">
+                    {formatNumber(courseStats.psat.count)}
+                  </div>
+                  <div className="text-gray-600 font-semibold mb-6">Courses Available</div>
+                  <Link
+                    href={courseStats.psat.slug ? `/quiz/course/${courseStats.psat.slug}` : '/quiz'}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-xl hover:from-pink-700 hover:to-rose-700 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
+                  >
+                    Practicing
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </Link>
                 </div>
-                <div className="text-5xl font-bold bg-gradient-to-r from-pink-600 to-pink-800 bg-clip-text text-transparent mb-2">
-                  {formatNumber(courseStats.psat)}
-                </div>
-                <div className="text-gray-600 font-semibold mb-6">Courses Available</div>
-                <Link
-                  href="/quiz"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-xl hover:from-pink-700 hover:to-rose-700 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
-                >
-                  Practicing
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </Link>
+              )}
               </div>
-            </div>
+            )}
 
             {/* General Statistics Row */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

@@ -6,9 +6,9 @@ export async function POST(request: NextRequest) {
     await logoutAdmin();
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Erreur déconnexion admin:', error);
+    console.error('Admin logout error:', error);
     return NextResponse.json(
-      { error: 'Erreur serveur' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }

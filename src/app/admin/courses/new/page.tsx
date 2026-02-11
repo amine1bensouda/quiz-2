@@ -5,9 +5,9 @@ export default function NewCoursePage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-          Créer un nouveau cours
+          Create New Course
         </h1>
-        <p className="text-gray-600">Remplissez le formulaire pour créer un nouveau cours</p>
+        <p className="text-gray-600">Fill out the form to create a new course</p>
       </div>
       <CourseForm />
     </div>

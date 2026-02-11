@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import RichTextEditor from './RichTextEditor';
 
 interface CourseFormData {
   id?: string;
@@ -61,7 +62,7 @@ export default function CourseForm({ initialData }: CourseFormProps) {
         ...(formData.status && { status: formData.status }),
       };
 
-      console.log('📤 Envoi des données:', { url, method, payload });
+      console.log('📤 Sending data:', { url, method, payload });
 
       const response = await fetch(url, {
         method,
@@ -73,19 +74,19 @@ export default function CourseForm({ initialData }: CourseFormProps) {
         router.push('/admin/courses');
         router.refresh();
       } else {
-        let errorMessage = 'Erreur lors de la sauvegarde';
+        let errorMessage = 'Error saving';
         try {
           const data = await response.json();
           errorMessage = data.error || data.details || errorMessage;
-          console.error('Erreur API:', data);
+          console.error('API Error:', data);
         } catch (e) {
-          errorMessage = `Erreur HTTP ${response.status}: ${response.statusText}`;
+          errorMessage = `HTTP Error ${response.status}: ${response.statusText}`;
         }
         alert(errorMessage);
       }
     } catch (error: any) {
-      console.error('Erreur sauvegarde:', error);
-      alert(`Erreur: ${error.message || 'Une erreur est survenue lors de la sauvegarde'}`);
+      console.error('Save error:', error);
+      alert(`Error: ${error.message || 'An error occurred while saving'}`);
     } finally {
       setLoading(false);
     }
@@ -95,11 +96,11 @@ export default function CourseForm({ initialData }: CourseFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Informations du cours</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Course Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Titre *
+                Title *
               </label>
               <input
                 type="text"
@@ -127,28 +128,26 @@ export default function CourseForm({ initialData }: CourseFormProps) {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Description
               </label>
-              <textarea
+              <RichTextEditor
                 value={formData.description}
-                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Description du cours..."
+                onChange={(value) => setFormData((prev) => ({ ...prev, description: value }))}
+                placeholder="Enter course description..."
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Statut
+                Status
               </label>
               <select
                 value={formData.status}
                 onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value as 'published' | 'draft' }))}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               >
-                <option value="draft">📝 Brouillon</option>
-                <option value="published">✅ Publié</option>
+                <option value="draft">📝 Draft</option>
+                <option value="published">✅ Published</option>
               </select>
               <p className="mt-1 text-xs text-gray-500">
-                Les cours en brouillon ne sont pas visibles publiquement
+                Draft courses are not publicly visible
               </p>
             </div>
           </div>
@@ -161,14 +160,14 @@ export default function CourseForm({ initialData }: CourseFormProps) {
           onClick={() => router.back()}
           className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
         >
-          Annuler
+          Cancel
         </button>
         <button
           type="submit"
           disabled={loading || !formData.title || !formData.slug}
           className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Enregistrement...' : initialData ? 'Mettre à jour' : 'Créer le cours'}
+          {loading ? 'Saving...' : initialData ? 'Update' : 'Create Course'}
         </button>
       </div>
     </form>

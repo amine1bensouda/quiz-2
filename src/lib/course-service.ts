@@ -107,7 +107,7 @@ export async function getCourseBySlug(slug: string) {
 }
 
 /**
- * Récupère le nombre de cours publiés par type de test
+ * Récupère le nombre de cours publiés par type de test et retourne les slugs pour les liens
  */
 export async function getCourseStatsByTestType() {
   try {
@@ -119,40 +119,52 @@ export async function getCourseStatsByTestType() {
         title: true,
         slug: true,
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
 
-    // Compter les cours par type de test en fonction du titre ou slug
-    const actCount = courses.filter(
+    // Filtrer les cours par type de test en fonction du titre ou slug
+    const actCourses = courses.filter(
       (course) =>
         course.title.toLowerCase().includes('act') ||
         course.slug.toLowerCase().includes('act')
-    ).length;
+    );
 
-    const satCount = courses.filter(
+    const satCourses = courses.filter(
       (course) =>
         (course.title.toLowerCase().includes('sat') &&
           !course.title.toLowerCase().includes('psat')) ||
         (course.slug.toLowerCase().includes('sat') &&
           !course.slug.toLowerCase().includes('psat'))
-    ).length;
+    );
 
-    const psatCount = courses.filter(
+    const psatCourses = courses.filter(
       (course) =>
         course.title.toLowerCase().includes('psat') ||
         course.slug.toLowerCase().includes('psat')
-    ).length;
+    );
 
     return {
-      act: actCount,
-      sat: satCount,
-      psat: psatCount,
+      act: {
+        count: actCourses.length,
+        slug: actCourses.length > 0 ? actCourses[0].slug : null,
+      },
+      sat: {
+        count: satCourses.length,
+        slug: satCourses.length > 0 ? satCourses[0].slug : null,
+      },
+      psat: {
+        count: psatCourses.length,
+        slug: psatCourses.length > 0 ? psatCourses[0].slug : null,
+      },
     };
   } catch (error) {
     console.error('Erreur getCourseStatsByTestType:', error);
     return {
-      act: 0,
-      sat: 0,
-      psat: 0,
+      act: { count: 0, slug: null },
+      sat: { count: 0, slug: null },
+      psat: { count: 0, slug: null },
     };
   }
 }

@@ -76,10 +76,23 @@ export default async function QuizPage({ params }: PageProps) {
   }
 
   const title = stripHtml(quiz.title.rendered);
-  const description = stripHtml(quiz.excerpt?.rendered || '');
-  const difficulty = quiz.acf?.niveau_difficulte || 'Medium';
-  const duration = quiz.acf?.duree_estimee || 10;
+  const description = quiz.excerpt?.rendered || '';
+  const difficulty = quiz.acf?.niveau_difficulte;
+  const duration = quiz.acf?.duree_estimee;
   const questionCount = quiz.acf?.nombre_questions || 0;
+  
+  // Compter le nombre de métadonnées à afficher
+  const metadataCount = [
+    duration && duration > 0,
+    questionCount > 0,
+    difficulty,
+    quiz.acf?.categorie,
+  ].filter(Boolean).length;
+  
+  const gridColsClass = metadataCount === 1 ? 'grid-cols-1' : 
+                        metadataCount === 2 ? 'grid-cols-2' : 
+                        metadataCount === 3 ? 'grid-cols-2 md:grid-cols-3' : 
+                        'grid-cols-2 md:grid-cols-4';
 
   const breadcrumbItems = [
     { name: 'Home', url: SITE_URL },
@@ -125,46 +138,56 @@ export default async function QuizPage({ params }: PageProps) {
 
             <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-200">
               {description && (
-                <p className="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed">{description}</p>
+                <div 
+                  className="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed prose prose-lg max-w-none"
+                  dangerouslySetInnerHTML={{ __html: description }}
+                />
               )}
 
               {/* Métadonnées modernisées */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                  <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+              {metadataCount > 0 && (
+              <div className={`grid ${gridColsClass} gap-4`}>
+                {duration && duration > 0 && (
+                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500 font-medium">Duration</div>
+                      <div className="text-sm font-bold text-gray-900">{formatDuration(duration)}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-xs text-gray-500 font-medium">Duration</div>
-                    <div className="text-sm font-bold text-gray-900">{formatDuration(duration)}</div>
-                  </div>
-                </div>
+                )}
 
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                  <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                {questionCount > 0 && (
+                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500 font-medium">Questions</div>
+                      <div className="text-sm font-bold text-gray-900">{questionCount}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-xs text-gray-500 font-medium">Questions</div>
-                    <div className="text-sm font-bold text-gray-900">{questionCount}</div>
-                  </div>
-                </div>
+                )}
 
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                  <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                {difficulty && (
+                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500 font-medium">Level</div>
+                      <div className="text-sm font-bold text-gray-900">{difficulty}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-xs text-gray-500 font-medium">Level</div>
-                    <div className="text-sm font-bold text-gray-900">{difficulty}</div>
-                  </div>
-                </div>
+                )}
 
                 {quiz.acf?.categorie && (
                   <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
@@ -180,6 +203,7 @@ export default async function QuizPage({ params }: PageProps) {
                   </div>
                 )}
               </div>
+              )}
             </div>
           </div>
 

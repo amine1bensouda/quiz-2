@@ -3,7 +3,8 @@ import { prisma } from '@/lib/db';
 import QuizForm from '@/components/Admin/QuizForm';
 
 export default async function EditQuizPage({ params }: { params: { id: string } }) {
-  const quiz = await prisma.quiz.findUnique({
+  // Essayer d'abord par ID, puis par slug si l'ID ne fonctionne pas
+  let quiz = await prisma.quiz.findUnique({
     where: { id: params.id },
     include: {
       module: {
@@ -21,6 +22,28 @@ export default async function EditQuizPage({ params }: { params: { id: string } 
       },
     },
   });
+
+  // Si pas trouvé par ID, essayer par slug
+  if (!quiz) {
+    quiz = await prisma.quiz.findUnique({
+      where: { slug: params.id },
+      include: {
+        module: {
+          include: {
+            course: true,
+          },
+        },
+        questions: {
+          include: {
+            answers: true,
+          },
+          orderBy: {
+            order: 'asc',
+          },
+        },
+      },
+    });
+  }
 
   if (!quiz) {
     notFound();
@@ -64,9 +87,9 @@ export default async function EditQuizPage({ params }: { params: { id: string } 
     <div className="space-y-6">
       <div>
         <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-          Modifier le quiz
+          Edit Quiz
         </h1>
-        <p className="text-gray-600">Modifiez les informations du quiz</p>
+        <p className="text-gray-600">Modify quiz information</p>
       </div>
       <QuizForm initialData={quizData} />
     </div>

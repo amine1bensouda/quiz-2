@@ -24,11 +24,11 @@ export default function DeleteCourseButton({ courseId, courseTitle }: DeleteCour
         router.refresh();
       } else {
         const data = await response.json();
-        alert(data.error || 'Erreur lors de la suppression');
+        alert(data.error || 'Error deleting');
       }
     } catch (error) {
-      console.error('Erreur suppression:', error);
-      alert('Erreur lors de la suppression');
+      console.error('Delete error:', error);
+      alert('Error deleting');
     } finally {
       setIsDeleting(false);
       setShowConfirm(false);
@@ -38,19 +38,19 @@ export default function DeleteCourseButton({ courseId, courseTitle }: DeleteCour
   if (showConfirm) {
     return (
       <div className="flex items-center space-x-2">
-        <span className="text-sm text-gray-600">Confirmer?</span>
+        <span className="text-sm text-gray-600">Confirm?</span>
         <button
           onClick={handleDelete}
           disabled={isDeleting}
           className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium disabled:opacity-50"
         >
-          {isDeleting ? 'Suppression...' : 'Oui'}
+          {isDeleting ? 'Deleting...' : 'Yes'}
         </button>
         <button
           onClick={() => setShowConfirm(false)}
           className="px-3 py-1 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors text-sm font-medium"
         >
-          Non
+          No
         </button>
       </div>
     );
@@ -60,9 +60,9 @@ export default function DeleteCourseButton({ courseId, courseTitle }: DeleteCour
     <button
       onClick={() => setShowConfirm(true)}
       className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
-      title={`Supprimer "${courseTitle}"`}
+      title={`Delete "${courseTitle}"`}
     >
-      Supprimer
+      Delete
     </button>
   );
 }

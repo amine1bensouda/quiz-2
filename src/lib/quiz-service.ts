@@ -216,21 +216,50 @@ export async function getAllCategories(): Promise<Category[]> {
  * Convertit un quiz Prisma au format Quiz attendu par le frontend
  */
 export function convertPrismaQuizToQuiz(prismaQuiz: any): Quiz {
-  const questions = prismaQuiz.questions.map((q: any) => ({
-    id: q.id,
-    texte_question: q.text,
-    type_question: q.type === 'true_false' ? 'VraiFaux' : 'QCM',
-    explication: q.explanation || '',
-    points: q.points,
-    temps_limite: q.timeLimit || undefined,
-    reponses: q.answers
-      .sort((a: any, b: any) => a.order - b.order)
-      .map((a: any) => ({
-        texte: a.text,
-        correcte: a.isCorrect,
-        explication: a.explanation || '',
-      })),
-  }));
+  const questions = prismaQuiz.questions.map((q: any, index: number) => {
+    // Vérifier que les réponses existent
+    const answers = q.answers || [];
+    
+    if (answers.length === 0) {
+      console.warn(`⚠️ Question ${index + 1} (ID: ${q.id}, ${q.text?.substring(0, 50)}...) n'a pas de réponses`);
+      console.warn('   Structure complète de la question:', {
+        id: q.id,
+        text: q.text,
+        type: q.type,
+        answersCount: answers.length,
+        hasAnswers: !!q.answers,
+        questionKeys: Object.keys(q),
+      });
+    }
+    
+    const convertedQuestion = {
+      id: q.id,
+      texte_question: q.text || '',
+      type_question: q.type === 'true_false' ? 'VraiFaux' : (q.type === 'text_input' ? 'TexteLibre' : 'QCM'),
+      explication: q.explanation || '',
+      points: q.points,
+      temps_limite: q.timeLimit || undefined,
+      reponses: answers
+        .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
+        .map((a: any) => ({
+          texte: a.text || '',
+          correcte: a.isCorrect || false,
+          explication: a.explanation || '',
+        })),
+    };
+    
+    // Log pour déboguer
+    if (index < 3) {
+      console.log(`📝 Question ${index + 1} convertie:`, {
+        id: convertedQuestion.id,
+        texte_question: convertedQuestion.texte_question?.substring(0, 50),
+        reponsesCount: convertedQuestion.reponses.length,
+        type: convertedQuestion.type_question,
+      });
+    }
+    
+    return convertedQuestion;
+  });
 
   // Convertir l'ID string (cuid) en number pour compatibilité avec le type Quiz
   // On utilise un hash simple de la string pour obtenir un number

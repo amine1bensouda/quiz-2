@@ -72,9 +72,11 @@ export default function QuizListPage() {
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-indigo-900 via-purple-900 to-pink-900 bg-clip-text text-transparent mb-6 leading-tight">
             All Quizzes
           </h1>
-          <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto backdrop-blur-sm bg-white/40 rounded-2xl p-6 inline-block">
-            {totalQuizzes} quiz{totalQuizzes !== 1 ? 'zes' : ''} available to test your knowledge and improve your mathematics skills
-          </p>
+          {!loading && (
+            <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto backdrop-blur-sm bg-white/40 rounded-2xl p-6 inline-block">
+              {totalQuizzes} quiz{totalQuizzes !== 1 ? 'zes' : ''} available to test your knowledge and improve your mathematics skills
+            </p>
+          )}
         </div>
 
         {/* Publicité */}
@@ -84,7 +86,7 @@ export default function QuizListPage() {
           <div className="text-center py-20">
             <div className="inline-block backdrop-blur-xl bg-white/80 rounded-3xl shadow-2xl p-12 border border-white/40">
               <div className="text-6xl mb-6 animate-spin">⏳</div>
-              <p className="text-gray-700 text-lg">Chargement...</p>
+              <p className="text-gray-700 text-lg">Loading...</p>
             </div>
           </div>
         ) : courses.length > 0 ? (

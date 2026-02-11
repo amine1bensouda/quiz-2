@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import RichTextEditor from './RichTextEditor';
 
 interface Course {
   id: string;
@@ -48,7 +49,7 @@ export default function ModuleForm({ initialData, defaultCourseId }: ModuleFormP
         setCourses(data);
       }
     } catch (error) {
-      console.error('Erreur récupération cours:', error);
+      console.error('Error fetching courses:', error);
     }
   };
 
@@ -90,11 +91,11 @@ export default function ModuleForm({ initialData, defaultCourseId }: ModuleFormP
         router.refresh();
       } else {
         const data = await response.json();
-        alert(data.error || 'Erreur lors de la sauvegarde');
+        alert(data.error || 'Error saving');
       }
     } catch (error) {
-      console.error('Erreur sauvegarde:', error);
-      alert('Erreur lors de la sauvegarde');
+      console.error('Save error:', error);
+      alert('Error saving');
     } finally {
       setLoading(false);
     }
@@ -104,11 +105,11 @@ export default function ModuleForm({ initialData, defaultCourseId }: ModuleFormP
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Informations du module</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Module Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Titre *
+                Title *
               </label>
               <input
                 type="text"
@@ -134,7 +135,7 @@ export default function ModuleForm({ initialData, defaultCourseId }: ModuleFormP
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Cours *
+                Course *
               </label>
               <select
                 required
@@ -142,7 +143,7 @@ export default function ModuleForm({ initialData, defaultCourseId }: ModuleFormP
                 onChange={(e) => setFormData((prev) => ({ ...prev, courseId: e.target.value }))}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               >
-                <option value="">Sélectionner un cours</option>
+                <option value="">Select a course</option>
                 {courses.map((course) => (
                   <option key={course.id} value={course.id}>
                     {course.title}
@@ -151,13 +152,13 @@ export default function ModuleForm({ initialData, defaultCourseId }: ModuleFormP
               </select>
               {courses.length === 0 && (
                 <p className="text-sm text-gray-500 mt-1">
-                  Aucun cours disponible. <a href="/admin/courses/new" className="text-indigo-600 hover:text-indigo-800">Créer un cours</a>
+                  No courses available. <a href="/admin/courses/new" className="text-indigo-600 hover:text-indigo-800">Create a course</a>
                 </p>
               )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Ordre
+                Order
               </label>
               <input
                 type="number"
@@ -171,12 +172,10 @@ export default function ModuleForm({ initialData, defaultCourseId }: ModuleFormP
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Description
               </label>
-              <textarea
+              <RichTextEditor
                 value={formData.description}
-                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Description du module..."
+                onChange={(value) => setFormData((prev) => ({ ...prev, description: value }))}
+                placeholder="Enter module description..."
               />
             </div>
           </div>
@@ -189,14 +188,14 @@ export default function ModuleForm({ initialData, defaultCourseId }: ModuleFormP
           onClick={() => router.back()}
           className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
         >
-          Annuler
+          Cancel
         </button>
         <button
           type="submit"
           disabled={loading || !formData.title || !formData.slug || !formData.courseId}
           className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Enregistrement...' : initialData ? 'Mettre à jour' : 'Créer le module'}
+          {loading ? 'Saving...' : initialData ? 'Update' : 'Create Module'}
         </button>
       </div>
     </form>

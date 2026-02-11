@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import type { QuizResults, Quiz } from '@/lib/types';
+import type { QuizResults, Quiz, Question } from '@/lib/types';
 import { getAllQuiz } from '@/lib/wordpress';
 import { SITE_URL } from '@/lib/constants';
 import { trackSocialShare, trackSimilarQuizClick } from '@/lib/analytics';
@@ -15,6 +15,7 @@ interface ResultsProps {
   minimumScore?: number;
   quizId?: number;
   category?: string;
+  questions?: Question[];
 }
 
 export default function Results({
@@ -24,6 +25,7 @@ export default function Results({
   minimumScore = 70,
   quizId,
   category,
+  questions = [],
 }: ResultsProps) {
   const [similarQuizs, setSimilarQuizs] = useState<Quiz[]>([]);
   const [user, setUser] = useState<any>(null);
@@ -130,6 +132,17 @@ export default function Results({
             <p className="text-sm text-gray-500 mt-1 font-medium">
               {quizTitle}
             </p>
+            {/* Message si le temps est écoulé */}
+            {results.timeExpired && (
+              <div className="mt-4 bg-orange-50 border-2 border-orange-300 rounded-xl p-4 inline-block">
+                <div className="flex items-center gap-2 text-orange-800">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="font-semibold">Time expired! The quiz was automatically closed.</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Score principal avec animation */}
@@ -259,6 +272,22 @@ export default function Results({
               </div>
             </div>
           )}
+
+          {/* Bouton pour voir la correction */}
+          {questions.length > 0 && (
+            <div className="mb-8">
+              <Link
+                href={`/quiz/${quizSlug}/correction`}
+                className="w-full px-6 py-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-all transform hover:scale-105 shadow-md flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                View Full Correction
+              </Link>
+            </div>
+          )}
+
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-4">

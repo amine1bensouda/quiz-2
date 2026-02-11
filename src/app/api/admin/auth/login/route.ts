@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
 
     if (!password) {
       return NextResponse.json(
-        { error: 'Mot de passe requis' },
+        { error: 'Password required' },
         { status: 400 }
       );
     }
@@ -18,14 +18,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true });
     } else {
       return NextResponse.json(
-        { error: 'Mot de passe incorrect' },
+        { error: 'Incorrect password' },
         { status: 401 }
       );
     }
   } catch (error: any) {
-    console.error('Erreur authentification admin:', error);
-    return NextResponse.json(
-      { error: 'Erreur serveur' },
+      console.error('Admin authentication error:', error);
+      return NextResponse.json(
+        { error: 'Server error' },
       { status: 500 }
     );
   }

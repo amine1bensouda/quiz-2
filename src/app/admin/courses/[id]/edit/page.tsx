@@ -31,9 +31,9 @@ export default async function EditCoursePage({
     <div className="space-y-6">
       <div>
         <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-          Modifier le cours
+          Edit Course
         </h1>
-        <p className="text-gray-600">Modifiez les informations du cours</p>
+        <p className="text-gray-600">Modify course information</p>
       </div>
       <CourseForm initialData={courseData} />
     </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import QuestionEditor from './QuestionEditor';
+import RichTextEditor from './RichTextEditor';
 
 interface Course {
   id: string;
@@ -74,9 +75,9 @@ export default function QuizForm({ initialData }: QuizFormProps) {
     moduleId: '',
     description: '',
     excerpt: '',
-    duration: 10,
-    difficulty: 'Moyen',
-    passingGrade: 70,
+    duration: undefined,
+    difficulty: undefined,
+    passingGrade: undefined,
     randomizeOrder: false,
     maxQuestions: undefined,
     featuredImageUrl: '',
@@ -97,7 +98,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
         setCourses(data);
       }
     } catch (error) {
-      console.error('Erreur récupération cours:', error);
+      console.error('Error fetching courses:', error);
     }
   };
 
@@ -109,7 +110,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
         setModules(data);
       }
     } catch (error) {
-      console.error('Erreur récupération modules:', error);
+      console.error('Error fetching modules:', error);
     }
   };
 
@@ -126,20 +127,20 @@ export default function QuizForm({ initialData }: QuizFormProps) {
         setCourses([...courses, course]);
         setNewCourse({ title: '', slug: '', description: '' });
         setShowCreateCourse(false);
-        alert('Cours créé avec succès !');
+        alert('Course created successfully!');
       } else {
         const data = await response.json();
-        alert(data.error || 'Erreur lors de la création du cours');
+        alert(data.error || 'Error creating course');
       }
     } catch (error) {
-      console.error('Erreur création cours:', error);
-      alert('Erreur lors de la création du cours');
+      console.error('Error creating course:', error);
+      alert('Error creating course');
     }
   };
 
   const handleCreateModule = async () => {
     if (!newModule.courseId) {
-      alert('Veuillez sélectionner un cours');
+      alert('Please select a course');
       return;
     }
 
@@ -156,14 +157,14 @@ export default function QuizForm({ initialData }: QuizFormProps) {
         setFormData((prev) => ({ ...prev, moduleId: moduleItem.id }));
         setNewModule({ title: '', slug: '', courseId: '', description: '', order: 0 });
         setShowCreateModule(false);
-        alert('Module créé avec succès !');
+        alert('Module created successfully!');
       } else {
         const data = await response.json();
-        alert(data.error || 'Erreur lors de la création du module');
+        alert(data.error || 'Error creating module');
       }
     } catch (error) {
-      console.error('Erreur création module:', error);
-      alert('Erreur lors de la création du module');
+      console.error('Error creating module:', error);
+      alert('Error creating module');
     }
   };
 
@@ -206,6 +207,11 @@ export default function QuizForm({ initialData }: QuizFormProps) {
 
   const handleUpdateQuestion = (index: number, question: Question) => {
     setFormData((prev) => {
+      const currentQuestion = prev.questions[index];
+      // Vérifier si la question a vraiment changé pour éviter les re-renders inutiles
+      if (currentQuestion && JSON.stringify(currentQuestion) === JSON.stringify(question)) {
+        return prev; // Pas de changement, retourner l'état précédent
+      }
       const newQuestions = [...prev.questions];
       newQuestions[index] = question;
       return { ...prev, questions: newQuestions };
@@ -235,6 +241,10 @@ export default function QuizForm({ initialData }: QuizFormProps) {
         body: JSON.stringify({
           ...formData,
           moduleId: formData.moduleId || null,
+          duration: formData.duration || null,
+          difficulty: formData.difficulty || null,
+          passingGrade: formData.passingGrade || null,
+          maxQuestions: formData.maxQuestions || null,
           questions: formData.questions.map((q, qIndex) => ({
             ...q,
             order: qIndex,
@@ -270,7 +280,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Titre *
+                Title *
               </label>
               <input
                 type="text"
@@ -278,7 +288,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
                 value={formData.title}
                 onChange={(e) => handleTitleChange(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Ex: Algèbre de base"
+                placeholder="Ex: Basic Algebra"
               />
             </div>
             <div>
@@ -291,7 +301,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
                 value={formData.slug}
                 onChange={(e) => setFormData((prev) => ({ ...prev, slug: e.target.value }))}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="ex: algebre-de-base"
+                placeholder="ex: basic-algebra"
               />
             </div>
             <div className="md:col-span-2">
@@ -310,7 +320,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
                   }}
                   className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
                 >
-                  ➕ {courses.length === 0 ? 'Créer un cours' : 'Créer un module'}
+                  ➕ {courses.length === 0 ? 'Create a course' : 'Create a module'}
                 </button>
               </div>
               <select
@@ -318,7 +328,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
                 onChange={(e) => setFormData((prev) => ({ ...prev, moduleId: e.target.value }))}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               >
-                <option value="">Aucun module</option>
+                <option value="">No module</option>
                 {modules.map((module) => (
                   <option key={module.id} value={module.id}>
                     {module.course.title} - {module.title}
@@ -352,12 +362,11 @@ export default function QuizForm({ initialData }: QuizFormProps) {
                       onChange={(e) => setNewCourse({ ...newCourse, slug: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                     />
-                    <textarea
-                      placeholder="Description (optionnel)"
+                    <RichTextEditor
                       value={newCourse.description}
-                      onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      onChange={(value) => setNewCourse({ ...newCourse, description: value })}
+                      placeholder="Enter course description (optional)..."
+                      className="text-sm"
                     />
                     <div className="flex gap-2">
                       <button
@@ -385,14 +394,14 @@ export default function QuizForm({ initialData }: QuizFormProps) {
               {/* Formulaire de création de module */}
               {showCreateModule && (
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <h3 className="font-semibold text-gray-900 mb-3">Créer un nouveau module</h3>
+                  <h3 className="font-semibold text-gray-900 mb-3">Create a new module</h3>
                   <div className="space-y-3">
                     <select
                       value={newModule.courseId}
                       onChange={(e) => setNewModule({ ...newModule, courseId: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                     >
-                      <option value="">Sélectionner un cours</option>
+                      <option value="">Select a course</option>
                       {courses.map((course) => (
                         <option key={course.id} value={course.id}>
                           {course.title}
@@ -401,7 +410,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
                     </select>
                     <input
                       type="text"
-                      placeholder="Titre du module"
+                      placeholder="Module title"
                       value={newModule.title}
                       onChange={(e) => {
                         const title = e.target.value;
@@ -426,7 +435,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
                         onClick={handleCreateModule}
                         className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
                       >
-                        Créer
+                        Create
                       </button>
                       <button
                         type="button"
@@ -436,7 +445,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
                         }}
                         className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 text-sm font-medium"
                       >
-                        Annuler
+                        Cancel
                       </button>
                     </div>
                   </div>
@@ -447,24 +456,20 @@ export default function QuizForm({ initialData }: QuizFormProps) {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Description
               </label>
-              <textarea
+              <RichTextEditor
                 value={formData.description}
-                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Description du quiz..."
+                onChange={(value) => setFormData((prev) => ({ ...prev, description: value }))}
+                placeholder="Enter quiz description..."
               />
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Résumé
+                Excerpt
               </label>
-              <textarea
+              <RichTextEditor
                 value={formData.excerpt}
-                onChange={(e) => setFormData((prev) => ({ ...prev, excerpt: e.target.value }))}
-                rows={2}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Résumé court..."
+                onChange={(value) => setFormData((prev) => ({ ...prev, excerpt: value }))}
+                placeholder="Enter quiz excerpt..."
               />
             </div>
           </div>
@@ -472,51 +477,54 @@ export default function QuizForm({ initialData }: QuizFormProps) {
 
         {/* Paramètres */}
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Paramètres</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Settings</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Durée (minutes)
+                Duration (minutes) <span className="text-gray-400 font-normal">(optional)</span>
               </label>
               <input
                 type="number"
                 min="1"
-                value={formData.duration}
-                onChange={(e) => setFormData((prev) => ({ ...prev, duration: parseInt(e.target.value) || 10 }))}
+                value={formData.duration || ''}
+                onChange={(e) => setFormData((prev) => ({ ...prev, duration: e.target.value ? parseInt(e.target.value) : undefined }))}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                placeholder="Leave empty for no limit"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Difficulté
+                Difficulty <span className="text-gray-400 font-normal">(optional)</span>
               </label>
               <select
-                value={formData.difficulty}
-                onChange={(e) => setFormData((prev) => ({ ...prev, difficulty: e.target.value }))}
+                value={formData.difficulty || ''}
+                onChange={(e) => setFormData((prev) => ({ ...prev, difficulty: e.target.value || undefined }))}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               >
-                <option value="Facile">Facile</option>
-                <option value="Moyen">Moyen</option>
-                <option value="Difficile">Difficile</option>
+                <option value="">Not specified</option>
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
                 <option value="Expert">Expert</option>
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Note de passage (%)
+                Passing Grade (%) <span className="text-gray-400 font-normal">(optional)</span>
               </label>
               <input
                 type="number"
                 min="0"
                 max="100"
-                value={formData.passingGrade}
-                onChange={(e) => setFormData((prev) => ({ ...prev, passingGrade: parseInt(e.target.value) || 70 }))}
+                value={formData.passingGrade || ''}
+                onChange={(e) => setFormData((prev) => ({ ...prev, passingGrade: e.target.value ? parseInt(e.target.value) : undefined }))}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                placeholder="Leave empty for no minimum"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Questions max
+                Max Questions <span className="text-gray-400 font-normal">(optional)</span>
               </label>
               <input
                 type="number"
@@ -524,7 +532,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
                 value={formData.maxQuestions || ''}
                 onChange={(e) => setFormData((prev) => ({ ...prev, maxQuestions: e.target.value ? parseInt(e.target.value) : undefined }))}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Toutes"
+                placeholder="Leave empty for all questions"
               />
             </div>
             <div className="md:col-span-2">
@@ -548,7 +556,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
                 className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
               />
               <label htmlFor="randomizeOrder" className="ml-2 text-sm font-medium text-gray-700">
-                Ordre aléatoire des questions
+                Randomize question order
               </label>
             </div>
           </div>
@@ -564,13 +572,13 @@ export default function QuizForm({ initialData }: QuizFormProps) {
             onClick={handleAddQuestion}
             className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
           >
-            ➕ Ajouter une question
+            ➕ Add Question
           </button>
         </div>
 
         {formData.questions.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
-            <p>Aucune question. Cliquez sur "Ajouter une question" pour commencer.</p>
+            <p>No questions. Click "Add Question" to get started.</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -594,14 +602,14 @@ export default function QuizForm({ initialData }: QuizFormProps) {
           onClick={() => router.back()}
           className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
         >
-          Annuler
+          Cancel
         </button>
         <button
           type="submit"
           disabled={loading || !formData.title || !formData.slug}
           className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Enregistrement...' : initialData ? 'Mettre à jour' : 'Créer le quiz'}
+          {loading ? 'Saving...' : initialData ? 'Update' : 'Create Quiz'}
         </button>
       </div>
     </form>

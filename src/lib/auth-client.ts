@@ -35,9 +35,12 @@ export async function getCurrentUser(): Promise<User | null> {
     });
 
     if (response.ok) {
-      const data = await response.json();
-      currentUserCache = data.user;
-      return data.user;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json();
+        currentUserCache = data.user;
+        return data.user;
+      }
     }
 
     currentUserCache = null;
@@ -70,8 +73,28 @@ export async function register(email: string, password: string, name: string): P
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Registration failed');
+    let errorMessage = 'Registration failed';
+    try {
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const error = await response.json();
+        errorMessage = error.error || errorMessage;
+        
+        // Messages d'erreur plus clairs pour l'utilisateur
+        if (errorMessage.includes('Database connection')) {
+          errorMessage = 'Service temporairement indisponible. Veuillez réessayer dans quelques instants.';
+        } else if (errorMessage.includes('already registered')) {
+          errorMessage = 'Cet email est déjà enregistré. Connectez-vous ou utilisez un autre email.';
+        }
+      } else {
+        const text = await response.text();
+        errorMessage = text || errorMessage;
+      }
+    } catch (e) {
+      // Si la réponse n'est pas du JSON valide, utiliser le message par défaut
+      errorMessage = `Registration failed (${response.status} ${response.statusText})`;
+    }
+    throw new Error(errorMessage);
   }
 
   const data = await response.json();
@@ -93,8 +116,28 @@ export async function login(email: string, password: string): Promise<User> {
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Login failed');
+    let errorMessage = 'Login failed';
+    try {
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const error = await response.json();
+        errorMessage = error.error || errorMessage;
+        
+        // Messages d'erreur plus clairs pour l'utilisateur
+        if (errorMessage.includes('Database connection')) {
+          errorMessage = 'Service temporairement indisponible. Veuillez réessayer dans quelques instants.';
+        } else if (errorMessage.includes('Invalid email or password')) {
+          errorMessage = 'Email ou mot de passe incorrect.';
+        }
+      } else {
+        const text = await response.text();
+        errorMessage = text || errorMessage;
+      }
+    } catch (e) {
+      // Si la réponse n'est pas du JSON valide, utiliser le message par défaut
+      errorMessage = `Login failed (${response.status} ${response.statusText})`;
+    }
+    throw new Error(errorMessage);
   }
 
   const data = await response.json();

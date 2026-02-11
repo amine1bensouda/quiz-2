@@ -1,246 +1,172 @@
-# Guide de Déploiement - Hostinger
-
-Ce guide vous explique comment déployer votre application Next.js sur Hostinger.
+# Guide de déploiement sur Vercel
 
 ## 📋 Prérequis
 
-- Compte Hostinger avec accès SSH
-- WordPress déjà installé sur `admin.votresite.com`
-- Node.js 18+ installé sur le serveur (vérifier avec `node --version`)
+- Compte GitHub avec le repository du projet
+- Compte Vercel (gratuit disponible)
+- Base de données PostgreSQL (Vercel Postgres, Supabase, ou autre)
 
-## 🔧 Configuration Initiale
+## 🚀 Étapes de déploiement
 
-### 1. Connexion SSH
-
-```bash
-ssh u123456789@votresite.com
-# Entrer le mot de passe fourni par Hostinger
-```
-
-### 2. Navigation vers le dossier web
+### 1. Préparer le code pour GitHub
 
 ```bash
-cd /home/u123456789/public_html
+# Vérifier l'état des fichiers
+git status
+
+# Ajouter tous les fichiers modifiés
+git add .
+
+# Créer un commit
+git commit -m "feat: ajout des fonctionnalités de quiz avec Prisma, LaTeX, et admin panel"
+
+# Pousser vers GitHub
+git push origin main
 ```
 
-### 3. Installation de Node.js (si nécessaire)
+### 2. Configurer Vercel
 
-Si Node.js n'est pas installé, utilisez NodeSource :
+1. **Connecter GitHub à Vercel**
+   - Allez sur [vercel.com](https://vercel.com)
+   - Cliquez sur "Add New Project"
+   - Sélectionnez votre repository GitHub
+   - Autorisez Vercel à accéder au repository
 
-```bash
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
+2. **Configuration du projet**
+   - Framework Preset : Next.js (détecté automatiquement)
+   - Root Directory : `./` (racine)
+   - Build Command : `npm run build` (par défaut)
+   - Output Directory : `.next` (par défaut)
+   - Install Command : `npm install` (par défaut)
+
+### 3. Variables d'environnement sur Vercel
+
+Dans les paramètres du projet Vercel, ajoutez ces variables :
+
+#### Variables requises
+
+```
+DATABASE_URL=postgresql://user:password@host:5432/dbname?schema=public
+NEXT_PUBLIC_SITE_URL=https://your-domain.vercel.app
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=your-hashed-password
 ```
 
-## 🚀 Installation de l'Application
+#### Variables optionnelles
 
-### 1. Cloner ou transférer les fichiers
-
-Si vous avez déjà les fichiers localement :
-
-```bash
-# Depuis votre machine locale
-scp -r quizz/ u123456789@votresite.com:/home/u123456789/public_html/
 ```
-
-Ou créer directement sur le serveur :
-
-```bash
-cd /home/u123456789/public_html
-# Créer le dossier
-mkdir nextjs-app
-cd nextjs-app
-```
-
-### 2. Installer les dépendances
-
-```bash
-npm install
-```
-
-### 3. Configurer les variables d'environnement
-
-Créer le fichier `.env.local` :
-
-```bash
-nano .env.local
-```
-
-Contenu :
-
-```env
 WORDPRESS_API_URL=https://admin.votresite.com
-NEXT_PUBLIC_SITE_URL=https://www.votresite.com
 NEXT_PUBLIC_ADSENSE_CLIENT_ID=ca-pub-XXXXXXXXXX
 NEXT_REVALIDATE_TIME=3600
+NODE_ENV=production
 ```
 
-Sauvegarder avec `Ctrl+X`, puis `Y`, puis `Enter`.
-
-## 🏗️ Build de Production
-
-### 1. Build de l'application
+**Note** : Pour `ADMIN_PASSWORD`, vous devez utiliser un hash bcrypt. Vous pouvez générer un hash avec :
 
 ```bash
-npm run build
+node -e "const bcrypt = require('bcrypt'); bcrypt.hash('your-password', 10).then(hash => console.log(hash));"
 ```
 
-Cette commande va :
-- Générer toutes les pages statiques
-- Optimiser les images
-- Créer les fichiers de production dans `.next/`
+### 4. Base de données PostgreSQL
 
-### 2. Vérifier le build
+#### Option 1 : Vercel Postgres (recommandé)
+
+1. Dans votre projet Vercel, allez dans l'onglet "Storage"
+2. Cliquez sur "Create Database" → "Postgres"
+3. Créez la base de données
+4. Copiez la variable `POSTGRES_URL` et ajoutez-la comme `DATABASE_URL` dans les variables d'environnement
+
+#### Option 2 : Supabase (gratuit)
+
+1. Créez un compte sur [supabase.com](https://supabase.com)
+2. Créez un nouveau projet
+3. Allez dans Settings → Database
+4. Copiez la "Connection string" (URI)
+5. Ajoutez-la comme `DATABASE_URL` dans Vercel
+
+#### Option 3 : Autre fournisseur PostgreSQL
+
+Utilisez n'importe quel fournisseur PostgreSQL (Railway, Neon, etc.) et ajoutez l'URL de connexion comme `DATABASE_URL`.
+
+### 5. Migrer la base de données
+
+Une fois la base de données configurée, vous devez exécuter les migrations Prisma :
 
 ```bash
-npm start
+# En local, avec la DATABASE_URL de production
+npx prisma migrate deploy
 ```
 
-Tester sur `http://votresite.com:3000` (si le port est ouvert)
-
-## 🌐 Configuration du Domaine
-
-### Option 1 : Utiliser le port 3000 (non recommandé)
-
-Si Hostinger permet d'ouvrir des ports personnalisés, vous pouvez utiliser PM2 pour gérer le processus.
-
-### Option 2 : Reverse Proxy avec Apache (Recommandé)
-
-Configurer Apache pour rediriger vers Next.js :
-
-1. **Créer un fichier de configuration Apache**
+Ou via Vercel CLI :
 
 ```bash
-sudo nano /etc/apache2/sites-available/nextjs.conf
+# Installer Vercel CLI
+npm i -g vercel
+
+# Se connecter
+vercel login
+
+# Lier le projet
+vercel link
+
+# Exécuter les migrations
+vercel env pull .env.local
+npx prisma migrate deploy
 ```
 
-2. **Configuration (si Next.js tourne sur localhost:3000)**
+### 6. Déploiement
 
-```apache
-<VirtualHost *:80>
-    ServerName www.votresite.com
-    ServerAlias votresite.com
+1. Vercel déploiera automatiquement à chaque push sur `main`
+2. Vous pouvez aussi déclencher un déploiement manuel depuis le dashboard Vercel
+3. Le build inclura automatiquement `prisma generate` grâce au script `postinstall`
 
-    ProxyPreserveHost On
-    ProxyPass / http://localhost:3000/
-    ProxyPassReverse / http://localhost:3000/
-</VirtualHost>
-```
+### 7. Vérification post-déploiement
 
-3. **Activer le site**
+1. Vérifiez que le site fonctionne : `https://your-project.vercel.app`
+2. Testez l'admin panel : `https://your-project.vercel.app/admin/login`
+3. Vérifiez les quiz : `https://your-project.vercel.app/quiz`
 
-```bash
-sudo a2enmod proxy
-sudo a2enmod proxy_http
-sudo a2ensite nextjs
-sudo systemctl restart apache2
-```
+## 🔧 Configuration avancée
 
-### Option 3 : Utiliser PM2 (Recommandé pour production)
+### Domaine personnalisé
 
-1. **Installer PM2**
+1. Dans Vercel, allez dans Settings → Domains
+2. Ajoutez votre domaine personnalisé
+3. Suivez les instructions pour configurer les DNS
 
-```bash
-npm install -g pm2
-```
+### Variables d'environnement par environnement
 
-2. **Démarrer l'application avec PM2**
+Vous pouvez définir des variables différentes pour :
+- Production
+- Preview (branches)
+- Development
 
-```bash
-cd /home/u123456789/public_html/nextjs-app
-pm2 start npm --name "quiz-platform" -- start
-pm2 save
-pm2 startup
-```
+Dans Settings → Environment Variables de Vercel.
 
-3. **Commandes PM2 utiles**
+## 🐛 Dépannage
 
-```bash
-pm2 list              # Voir les processus
-pm2 logs quiz-platform # Voir les logs
-pm2 restart quiz-platform # Redémarrer
-pm2 stop quiz-platform    # Arrêter
-```
+### Erreur de build Prisma
 
-## 🔄 Mise à Jour
+Si vous avez des erreurs liées à Prisma lors du build :
 
-Pour mettre à jour l'application :
+1. Vérifiez que `DATABASE_URL` est correctement configurée
+2. Vérifiez que `postinstall` est dans `package.json` : `"postinstall": "prisma generate"`
+3. Vérifiez que le schéma Prisma est valide : `npx prisma validate`
 
-```bash
-cd /home/u123456789/public_html/nextjs-app
-git pull  # Si vous utilisez Git
-# Ou transférer les nouveaux fichiers
-npm install  # Si de nouvelles dépendances
-npm run build
-pm2 restart quiz-platform
-```
+### Erreur de connexion à la base de données
 
-## 📊 Monitoring
+1. Vérifiez que `DATABASE_URL` est correcte
+2. Vérifiez que la base de données accepte les connexions depuis Vercel (whitelist IP)
+3. Pour Vercel Postgres, cela devrait fonctionner automatiquement
 
-### Vérifier les logs
+### Erreur de build Next.js
 
-```bash
-pm2 logs quiz-platform
-```
+1. Vérifiez les logs de build dans Vercel
+2. Testez le build localement : `npm run build`
+3. Vérifiez que toutes les dépendances sont dans `package.json`
 
-### Vérifier l'utilisation des ressources
+## 📚 Ressources
 
-```bash
-pm2 monit
-```
-
-## 🔒 Sécurité
-
-1. **Ne pas exposer le dossier `.next`** dans les fichiers publics
-2. **Protéger le fichier `.env.local`** (déjà dans `.gitignore`)
-3. **Configurer un firewall** si possible
-4. **Utiliser HTTPS** (certificat SSL via Hostinger)
-
-## ⚠️ Dépannage
-
-### L'application ne démarre pas
-
-```bash
-# Vérifier les logs
-pm2 logs quiz-platform --lines 50
-
-# Vérifier que le port 3000 est libre
-netstat -tulpn | grep 3000
-
-# Vérifier les variables d'environnement
-cat .env.local
-```
-
-### Erreur de connexion à WordPress
-
-- Vérifier que l'URL WordPress est correcte
-- Vérifier que CORS est configuré dans WordPress
-- Tester l'API : `curl https://admin.votresite.com/wp-json/wp/v2/quiz`
-
-### Pages 404
-
-- Vérifier que le build s'est bien passé
-- Vérifier que les slugs WordPress correspondent
-- Regénérer les pages : `npm run build`
-
-## 📝 Checklist de Déploiement
-
-- [ ] Node.js 18+ installé
-- [ ] Fichiers transférés sur le serveur
-- [ ] Dépendances installées (`npm install`)
-- [ ] Variables d'environnement configurées (`.env.local`)
-- [ ] Build réussi (`npm run build`)
-- [ ] Application démarrée avec PM2
-- [ ] Reverse proxy configuré (si nécessaire)
-- [ ] HTTPS activé
-- [ ] Test de l'application en production
-- [ ] Monitoring configuré
-
-## 🎯 Optimisations Post-Déploiement
-
-1. **Activer le cache CDN Hostinger** (si disponible)
-2. **Configurer la compression Gzip** (déjà dans Next.js)
-3. **Optimiser les images** (Sharp est déjà installé)
-4. **Configurer Google Analytics** (si souhaité)
-5. **Soumettre le sitemap à Google Search Console**
-
+- [Documentation Vercel](https://vercel.com/docs)
+- [Documentation Prisma](https://www.prisma.io/docs)
+- [Documentation Next.js](https://nextjs.org/docs)

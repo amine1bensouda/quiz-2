@@ -93,6 +93,7 @@ export interface QuizResults {
   percentage: number;
   passed: boolean;
   timeSpent: number;
+  timeExpired?: boolean; // Indique si le quiz a été fermé automatiquement à cause du temps
   answers: {
     questionId: number;
     selectedAnswer: string;

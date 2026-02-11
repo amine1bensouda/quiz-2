@@ -35,15 +35,15 @@ export default async function AdminCoursesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            Gestion des Cours
+            Course Management
           </h1>
-          <p className="text-gray-600">{courses.length} cours au total</p>
+          <p className="text-gray-600">{courses.length} courses total</p>
         </div>
         <Link
           href="/admin/courses/new"
           className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-lg"
         >
-          ➕ Nouveau Cours
+          ➕ New Course
         </Link>
       </div>
 
@@ -68,7 +68,7 @@ export default async function AdminCoursesPage() {
                           : 'bg-gray-100 text-gray-800'
                       }`}
                     >
-                      {course.status === 'published' ? '✅ Publié' : '📝 Brouillon'}
+                      {course.status === 'published' ? '✅ Published' : '📝 Draft'}
                     </span>
                   </div>
                   {course.description && (
@@ -88,7 +88,7 @@ export default async function AdminCoursesPage() {
                     href={`/admin/courses/${course.id}/edit`}
                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
                   >
-                    Modifier
+                    Edit
                   </Link>
                   <Link
                     href={`/admin/modules?courseId=${course.id}`}
@@ -100,10 +100,10 @@ export default async function AdminCoursesPage() {
                 </div>
               </div>
 
-              {/* Modules du cours */}
+              {/* Course Modules */}
               {course.modules.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3">Modules :</h3>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3">Modules:</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {course.modules.map((module) => (
                       <div
@@ -121,7 +121,7 @@ export default async function AdminCoursesPage() {
                             href={`/admin/modules/${module.id}/edit`}
                             className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
                           >
-                            Modifier
+                            Edit
                           </Link>
                         </div>
                       </div>
@@ -131,7 +131,7 @@ export default async function AdminCoursesPage() {
                     href={`/admin/modules/new?courseId=${course.id}`}
                     className="mt-3 inline-block text-sm text-indigo-600 hover:text-indigo-800 font-medium"
                   >
-                    ➕ Ajouter un module
+                    ➕ Add a module
                   </Link>
                 </div>
               )}
@@ -141,13 +141,13 @@ export default async function AdminCoursesPage() {
       ) : (
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center">
           <div className="text-6xl mb-4">📚</div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">Aucun cours</h3>
-          <p className="text-gray-600 mb-6">Commencez par créer votre premier cours</p>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">No courses</h3>
+          <p className="text-gray-600 mb-6">Start by creating your first course</p>
           <Link
             href="/admin/courses/new"
             className="inline-block px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium"
           >
-            Créer un cours
+            Create a course
           </Link>
         </div>
       )}
@@ -159,13 +159,13 @@ export default async function AdminCoursesPage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            Gestion des Cours
+            Course Management
           </h1>
         </div>
         <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-red-800 mb-2">Erreur de connexion</h2>
+          <h2 className="text-xl font-semibold text-red-800 mb-2">Connection Error</h2>
           <p className="text-red-600 mb-4">
-            Impossible de se connecter à la base de données. Vérifiez votre configuration.
+            Unable to connect to the database. Please check your configuration.
           </p>
           <details className="text-sm text-red-700">
             <summary className="cursor-pointer font-medium">Détails de l'erreur</summary>

@@ -27,9 +27,9 @@ export default async function EditModulePage({ params }: { params: { id: string 
     <div className="space-y-6">
       <div>
         <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-          Modifier le module
+          Edit Module
         </h1>
-        <p className="text-gray-600">Modifiez les informations du module</p>
+        <p className="text-gray-600">Modify module information</p>
       </div>
       <ModuleForm initialData={moduleData} />
     </div>

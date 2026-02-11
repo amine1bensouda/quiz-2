@@ -61,9 +61,9 @@ export default async function AdminDashboard() {
     <div className="space-y-8">
       <div>
         <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-          Tableau de bord
+          Dashboard
         </h1>
-        <p className="text-gray-600">Gérez vos quiz et questions</p>
+        <p className="text-gray-600">Manage your quizzes and questions</p>
       </div>
 
       {/* Statistiques */}
@@ -89,12 +89,12 @@ export default async function AdminDashboard() {
       {/* Quiz récents */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Quiz récents</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Recent Quizzes</h2>
           <Link
             href="/admin/quizzes/new"
             className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium"
           >
-            ➕ Nouveau Quiz
+            ➕ New Quiz
           </Link>
         </div>
 
@@ -107,7 +107,7 @@ export default async function AdminDashboard() {
               >
                 <div>
                   <h3 className="font-semibold text-gray-900">
-                    {quiz.title || 'Sans titre'}
+                    {quiz.title || 'No title'}
                   </h3>
                   <p className="text-sm text-gray-600">
                     Slug: {quiz.slug}
@@ -117,7 +117,7 @@ export default async function AdminDashboard() {
                   href={`/admin/quizzes/${quiz.id}/edit`}
                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
                 >
-                  Modifier
+                  Edit
                 </Link>
               </div>
             ))}
@@ -126,18 +126,18 @@ export default async function AdminDashboard() {
                 href="/admin/quizzes"
                 className="block text-center text-indigo-600 hover:text-indigo-800 font-medium py-2"
               >
-                Voir tous les quiz ({quizzes.length}) →
+                View all quizzes ({quizzes.length}) →
               </Link>
             )}
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-gray-600 mb-4">Aucun quiz pour le moment</p>
+            <p className="text-gray-600 mb-4">No quizzes yet</p>
             <Link
               href="/admin/quizzes/new"
               className="inline-block px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium"
             >
-              Créer votre premier quiz
+              Create your first quiz
             </Link>
           </div>
         )}
@@ -150,17 +150,17 @@ export default async function AdminDashboard() {
       <div className="space-y-8">
         <div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            Tableau de bord
+            Dashboard
           </h1>
-          <p className="text-gray-600">Gérez vos quiz et questions</p>
+          <p className="text-gray-600">Manage your quizzes and questions</p>
         </div>
         <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-red-800 mb-2">Erreur de connexion</h2>
+          <h2 className="text-xl font-semibold text-red-800 mb-2">Connection Error</h2>
           <p className="text-red-600 mb-4">
-            Impossible de se connecter à la base de données. Vérifiez votre configuration.
+            Unable to connect to the database. Please check your configuration.
           </p>
           <details className="text-sm text-red-700">
-            <summary className="cursor-pointer font-medium">Détails de l'erreur</summary>
+            <summary className="cursor-pointer font-medium">Error Details</summary>
             <pre className="mt-2 p-2 bg-red-100 rounded overflow-auto">{error.message}</pre>
           </details>
         </div>

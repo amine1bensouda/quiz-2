@@ -36,24 +36,24 @@ export default async function AdminModulesPage({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            Gestion des Modules
+            Module Management
           </h1>
           <p className="text-gray-600">
-            {modules.length} module{modules.length !== 1 ? 's' : ''} au total
-            {searchParams.courseId && ' pour ce cours'}
+            {modules.length} module{modules.length !== 1 ? 's' : ''} total
+            {searchParams.courseId && ' for this course'}
           </p>
         </div>
         <Link
           href={searchParams.courseId ? `/admin/modules/new?courseId=${searchParams.courseId}` : '/admin/modules/new'}
           className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-lg"
         >
-          ➕ Nouveau Module
+          ➕ New Module
         </Link>
       </div>
 
       {courses.length > 0 && (
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4">
-          <p className="text-sm font-medium text-gray-700 mb-2">Filtrer par cours :</p>
+          <p className="text-sm font-medium text-gray-700 mb-2">Filter by course:</p>
           <div className="flex flex-wrap gap-2">
             <Link
               href="/admin/modules"
@@ -63,7 +63,7 @@ export default async function AdminModulesPage({
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              Tous
+              All
             </Link>
             {courses.map((course) => (
               <Link
@@ -89,10 +89,10 @@ export default async function AdminModulesPage({
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Titre
+                    Title
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Cours
+                    Course
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Slug
@@ -101,7 +101,7 @@ export default async function AdminModulesPage({
                     Quiz
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Ordre
+                    Order
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Actions
@@ -141,7 +141,7 @@ export default async function AdminModulesPage({
                           href={`/admin/modules/${module.id}/edit`}
                           className="px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
                         >
-                          Modifier
+                          Edit
                         </Link>
                         <DeleteModuleButton moduleId={module.id} moduleTitle={module.title} />
                       </div>
@@ -155,13 +155,13 @@ export default async function AdminModulesPage({
       ) : (
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center">
           <div className="text-6xl mb-4">📦</div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">Aucun module</h3>
-          <p className="text-gray-600 mb-6">Commencez par créer votre premier module</p>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">No modules</h3>
+          <p className="text-gray-600 mb-6">Start by creating your first module</p>
           <Link
             href={searchParams.courseId ? `/admin/modules/new?courseId=${searchParams.courseId}` : '/admin/modules/new'}
             className="inline-block px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium"
           >
-            Créer un module
+            Create a module
           </Link>
         </div>
       )}

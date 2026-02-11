@@ -24,8 +24,8 @@ export default function PublishCourseButton({
     const newStatus = status === 'published' ? 'draft' : 'published';
     const confirmMessage =
       newStatus === 'published'
-        ? `Publier le cours "${courseTitle}" ?`
-        : `Mettre le cours "${courseTitle}" en brouillon ?`;
+        ? `Publish course "${courseTitle}"?`
+        : `Set course "${courseTitle}" to draft?`;
 
     if (!confirm(confirmMessage)) {
       return;
@@ -43,12 +43,12 @@ export default function PublishCourseButton({
       });
 
       if (!response.ok) {
-        let errorMessage = 'Erreur lors de la mise à jour';
+        let errorMessage = 'Error updating';
         try {
           const error = await response.json();
           errorMessage = error.error || error.details || errorMessage;
         } catch (e) {
-          errorMessage = `Erreur HTTP ${response.status}: ${response.statusText}`;
+          errorMessage = `HTTP Error ${response.status}: ${response.statusText}`;
         }
         throw new Error(errorMessage);
       }
@@ -57,8 +57,8 @@ export default function PublishCourseButton({
       setStatus(updatedCourse.status || newStatus);
       router.refresh();
     } catch (error: any) {
-      console.error('Erreur publication cours:', error);
-      alert(`Erreur: ${error.message || 'Une erreur est survenue lors de la mise à jour du cours'}`);
+      console.error('Course publish error:', error);
+      alert(`Error: ${error.message || 'An error occurred while updating the course'}`);
     } finally {
       setIsLoading(false);
     }
@@ -73,17 +73,17 @@ export default function PublishCourseButton({
           ? 'bg-green-600 text-white hover:bg-green-700'
           : 'bg-gray-400 text-white hover:bg-gray-500'
       } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-      title={status === 'published' ? 'Cliquer pour mettre en brouillon' : 'Cliquer pour publier'}
+      title={status === 'published' ? 'Click to set to draft' : 'Click to publish'}
     >
       {isLoading ? (
         <span className="flex items-center gap-2">
           <span className="animate-spin">⏳</span>
-          {status === 'published' ? 'Dépublication...' : 'Publication...'}
+          {status === 'published' ? 'Unpublishing...' : 'Publishing...'}
         </span>
       ) : status === 'published' ? (
-        '✅ Publié'
+        '✅ Published'
       ) : (
-        '📝 Brouillon'
+        '📝 Draft'
       )}
     </button>
   );

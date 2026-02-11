@@ -10,12 +10,13 @@ interface QuizCardProps {
 }
 
 export default function QuizCard({ quiz, index = 0 }: QuizCardProps) {
-  const difficulty = quiz.acf?.niveau_difficulte || 'Medium';
-  const difficultyConfig = DIFFICULTY_LEVELS[difficulty as keyof typeof DIFFICULTY_LEVELS] || DIFFICULTY_LEVELS.Medium;
-  const duration = quiz.acf?.duree_estimee || 10;
+  const difficulty = quiz.acf?.niveau_difficulte;
+  const difficultyConfig = difficulty ? (DIFFICULTY_LEVELS[difficulty as keyof typeof DIFFICULTY_LEVELS] || DIFFICULTY_LEVELS.Medium) : null;
+  const duration = quiz.acf?.duree_estimee;
   const questionCount = quiz.acf?.nombre_questions || 0;
 
   const getDifficultyStyles = () => {
+    if (!difficultyConfig) return '';
     switch (difficultyConfig.color) {
       case 'green':
         return 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-200';
@@ -55,12 +56,14 @@ export default function QuizCard({ quiz, index = 0 }: QuizCardProps) {
       
       <div className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <span
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border ${getDifficultyStyles()}`}
-          >
-            <span className="text-base">{difficultyConfig.icon}</span>
-            {difficultyConfig.label}
-          </span>
+          {difficultyConfig && (
+            <span
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border ${getDifficultyStyles()}`}
+            >
+              <span className="text-base">{difficultyConfig.icon}</span>
+              {difficultyConfig.label}
+            </span>
+          )}
           
           {!quiz.featured_media_url && quiz.acf?.categorie && (
             <span className="text-xs text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg font-medium">
@@ -74,9 +77,10 @@ export default function QuizCard({ quiz, index = 0 }: QuizCardProps) {
         </h3>
 
         {quiz.excerpt?.rendered && (
-          <p className="text-gray-600 text-sm mb-5 line-clamp-2 leading-relaxed">
-            {stripHtml(quiz.excerpt.rendered)}
-          </p>
+          <div 
+            className="text-gray-600 text-sm mb-5 line-clamp-2 leading-relaxed prose prose-sm max-w-none"
+            dangerouslySetInnerHTML={{ __html: quiz.excerpt.rendered }}
+          />
         )}
 
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
@@ -91,14 +95,16 @@ export default function QuizCard({ quiz, index = 0 }: QuizCardProps) {
                 {questionCount}
               </span>
             )}
-            <span className="flex items-center gap-1.5 font-medium">
-              <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center">
-                <svg className="w-3 h-3 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              {formatDuration(duration)}
-            </span>
+            {duration && duration > 0 && (
+              <span className="flex items-center gap-1.5 font-medium">
+                <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center">
+                  <svg className="w-3 h-3 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                {formatDuration(duration)}
+              </span>
+            )}
           </div>
           
           <span className="inline-flex items-center gap-2 text-gray-900 font-semibold group-hover:text-black group-hover:gap-3 transition-all duration-300">

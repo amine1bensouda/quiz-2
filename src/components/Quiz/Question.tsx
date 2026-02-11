@@ -87,13 +87,35 @@ export default function Question({
   const mediaUrl = question.media || question.acf?.media_url;
   const explication = question.explication || question.acf?.explication;
   const points = question.points || question.acf?.points;
+  const questionType = question.type_question || question.acf?.type_question || 'QCM';
+  const isTextInput = questionType === 'TexteLibre' || questionType === 'text_input' || questionType === 'open_ended';
 
-  // Vérifier qu'il y a des réponses
-  if (answers.length === 0) {
+  // Diagnostic détaillé si pas de réponses (sauf pour texte libre)
+  if (answers.length === 0 && !isTextInput) {
+    console.error('❌ Question sans réponses:', {
+      questionId: question.id,
+      questionNumber,
+      questionText: questionText.substring(0, 50),
+      hasReponses: !!question.reponses,
+      reponsesLength: question.reponses?.length || 0,
+      hasAcfReponses: !!question.acf?.reponses,
+      acfReponsesLength: question.acf?.reponses?.length || 0,
+      questionKeys: Object.keys(question),
+      questionAcfKeys: question.acf ? Object.keys(question.acf) : [],
+    });
+    
     return (
       <div className="card-modern p-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">{questionText}</h2>
-        <p className="text-red-600">No answers available for this question.</p>
+        <div className="space-y-2">
+          <p className="text-red-600 font-semibold">No answers available for this question.</p>
+          <p className="text-sm text-gray-500">
+            Question ID: {question.id} | Question #{questionNumber}
+          </p>
+          <p className="text-xs text-gray-400 mt-4">
+            Please check the console for more details about this issue.
+          </p>
+        </div>
       </div>
     );
   }
@@ -153,14 +175,64 @@ export default function Question({
           />
         )}
 
-        {/* Liste des réponses */}
-        <div className="space-y-4">
-          {answers.map((answer, index) => {
-            const answerKey = `answer-${index}`;
-            const isSelected = selectedAnswer === answerKey;
-            const isCorrect = answer.correcte;
-            const showCorrect = showResult && isCorrect;
-            const showIncorrect = showResult && isSelected && !isCorrect;
+        {/* Champ de texte libre ou liste des réponses */}
+        {isTextInput ? (
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="text-answer" className="block text-sm font-medium text-gray-700 mb-3">
+                Your Answer:
+              </label>
+              <textarea
+                id="text-answer"
+                value={selectedAnswer && selectedAnswer.startsWith('text:') ? selectedAnswer.replace('text:', '') : (selectedAnswer || '')}
+                onChange={(e) => onAnswerSelect(`text:${e.target.value}`)}
+                disabled={showResult}
+                rows={4}
+                className={`
+                  w-full px-4 py-3 border-2 rounded-xl transition-all duration-300
+                  ${showResult 
+                    ? 'border-gray-300 bg-gray-50 cursor-not-allowed' 
+                    : 'border-gray-300 bg-white focus:border-gray-900 focus:ring-2 focus:ring-gray-900 focus:outline-none'
+                  }
+                  text-gray-900 placeholder-gray-400 resize-y
+                `}
+                placeholder="Type your answer here..."
+              />
+              {showResult && (
+                <div className="mt-4 space-y-3">
+                  {answers.length > 0 && answers[0]?.texte && (
+                    <div className={`p-4 rounded-xl border-l-4 ${
+                      correctAnswer && selectedAnswer && 
+                      selectedAnswer.replace('text:', '').toLowerCase().trim() === answers[0].texte.toLowerCase().trim()
+                        ? 'bg-green-50 border-green-500'
+                        : 'bg-gray-50 border-gray-900'
+                    }`}>
+                      <p className="text-sm font-semibold text-gray-900 mb-2">Expected Answer:</p>
+                      <p className="text-sm text-gray-700">
+                        <MathRenderer text={answers[0].texte} />
+                      </p>
+                    </div>
+                  )}
+                  {explication && (
+                    <div className="p-4 rounded-xl bg-gray-50 border-l-4 border-gray-900">
+                      <p className="text-sm font-semibold text-gray-900 mb-2">Explanation:</p>
+                      <p className="text-sm text-gray-700">
+                        <MathRenderer text={explication} />
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {answers.map((answer, index) => {
+              const answerKey = `answer-${index}`;
+              const isSelected = selectedAnswer === answerKey;
+              const isCorrect = answer.correcte;
+              const showCorrect = showResult && isCorrect;
+              const showIncorrect = showResult && isSelected && !isCorrect;
 
   const getButtonStyles = () => {
     if (showCorrect) {
@@ -238,7 +310,8 @@ export default function Question({
               </button>
             );
           })}
-        </div>
+          </div>
+        )}
 
         {/* Explication générale si présente et résultat affiché */}
         {showResult && explication && (
