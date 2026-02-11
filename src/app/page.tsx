@@ -362,38 +362,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Success Story Section */}
-      <section className="relative py-20 bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 overflow-hidden">
-        <AnimatedShapes variant="gradient" count={5} intensity="low" />
-        <BackgroundPattern variant="waves" opacity={0.1} />
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto">
-            <div className="backdrop-blur-xl bg-gradient-to-br from-white/90 to-amber-50/50 p-12 rounded-3xl shadow-2xl border border-amber-200/30">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-amber-900 via-yellow-800 to-orange-800 bg-clip-text text-transparent mb-4">
-                  From Struggling Student to Math Master
-                </h2>
-                <div className="flex items-center justify-center gap-2 text-gray-700 mb-6 backdrop-blur-sm bg-white/40 rounded-xl px-6 py-3 inline-block">
-                  <svg className="w-6 h-6 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                  <span className="font-bold text-lg bg-gradient-to-r from-amber-700 to-orange-700 bg-clip-text text-transparent">5.0 Rating</span>
-                </div>
-              </div>
-              <blockquote className="text-xl md:text-2xl text-gray-800 italic mb-6 text-center leading-relaxed backdrop-blur-sm bg-white/40 rounded-2xl p-8">
-                &ldquo;{SITE_NAME} made a big difference in my life. It allowed me to adequately prepare for mathematics exams and receive excellent scores. As a result, I was able to build confidence and excel in my studies.&rdquo;
-              </blockquote>
-              <div className="text-center">
-                <p className="font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">- Sarah M., Mathematics Student</p>
-                <Link href="/about-us" className="text-gray-700 hover:text-gray-900 mt-4 inline-block font-semibold backdrop-blur-sm bg-white/40 rounded-xl px-6 py-2 hover:bg-white/60 transition-all duration-300">
-                  Read More Success Stories →
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Choose If You Are Section */}
       <section className="relative py-20 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 overflow-hidden">
         <AnimatedShapes variant="section" count={6} intensity="medium" />
