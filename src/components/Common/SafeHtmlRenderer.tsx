@@ -117,8 +117,6 @@ export default function SafeHtmlRenderer({ html, className = '', renderMath = fa
     };
   }, [processedHtml]);
 
-  if (!html) return null;
-
   // Si renderMath est activé, utiliser MathJax pour rendre les formules après le rendu HTML
   // MathJax peut traiter les formules LaTeX directement dans le HTML rendu
   useEffect(() => {
@@ -133,6 +131,8 @@ export default function SafeHtmlRenderer({ html, className = '', renderMath = fa
       }
     }
   }, [processedHtml, renderMath]);
+
+  if (!html) return null;
 
   return (
     <div 
