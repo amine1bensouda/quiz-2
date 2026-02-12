@@ -47,9 +47,9 @@ interface QuizFormData {
   moduleId: string;
   description: string;
   excerpt: string;
-  duration: number;
-  difficulty: string;
-  passingGrade: number;
+  duration?: number;
+  difficulty?: string;
+  passingGrade?: number;
   randomizeOrder: boolean;
   maxQuestions?: number;
   featuredImageUrl: string;

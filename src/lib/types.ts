@@ -41,7 +41,7 @@ export interface Question {
   };
   // Pour questions du Repeater ACF (dans quiz.acf.questions)
   texte_question?: string;
-  type_question?: 'QCM' | 'VraiFaux' | 'TexteLibre' | 'Image';
+  type_question?: 'QCM' | 'VraiFaux' | 'TexteLibre' | 'Image' | 'text_input' | 'open_ended';
   media?: string; // URL de l'image
   media_url?: string;
   explication?: string;
@@ -50,7 +50,7 @@ export interface Question {
   reponses?: Answer[];
   // ACF pour questions WordPress indépendantes
   acf?: {
-    type_question?: 'QCM' | 'VraiFaux' | 'TexteLibre' | 'Image';
+    type_question?: 'QCM' | 'VraiFaux' | 'TexteLibre' | 'Image' | 'text_input' | 'open_ended';
     media?: number;
     media_url?: string;
     explication?: string;
