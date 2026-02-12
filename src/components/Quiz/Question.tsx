@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import type { Question as QuestionType } from '@/lib/types';
 import MathRenderer from './MathRenderer';
+import HtmlWithMathRenderer from '@/components/Common/HtmlWithMathRenderer';
 
 interface QuestionProps {
   question: QuestionType;
@@ -67,11 +68,16 @@ export default function Question({
     questionText = `Question ${questionNumber}`;
   }
 
-  // Nettoyer et améliorer le formatage du texte
-  // Remplacer les balises HTML par des sauts de ligne appropriés
-  if (questionText && typeof questionText === 'string') {
+  // Vérifier si le texte contient des images base64 ou des balises <img> avant de nettoyer
+  const hasImages = questionText && typeof questionText === 'string' && 
+    (questionText.includes('<img') || questionText.includes('data:image/'));
+  
+  // Nettoyer et améliorer le formatage du texte seulement si pas d'images
+  // Si le texte contient des images, on le garde tel quel pour SafeHtmlRenderer
+  let cleanedQuestionText = questionText;
+  if (questionText && typeof questionText === 'string' && !hasImages) {
     // Remplacer les balises de paragraphe et de saut de ligne par des espaces
-    questionText = questionText
+    cleanedQuestionText = questionText
       .replace(/<p[^>]*>/gi, '')
       .replace(/<\/p>/gi, '\n\n')
       .replace(/<br\s*\/?>/gi, '\n')
@@ -162,9 +168,18 @@ export default function Question({
 
         {/* Texte de la question */}
         <div className="mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-relaxed">
-            <MathRenderer text={questionText || ''} />
-          </h2>
+          {hasImages ? (
+            <div className="text-2xl md:text-3xl font-bold text-gray-900 leading-relaxed">
+              <HtmlWithMathRenderer 
+                html={questionText || ''}
+                className="prose prose-lg max-w-none"
+              />
+            </div>
+          ) : (
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-relaxed">
+              <MathRenderer text={cleanedQuestionText || ''} />
+            </h2>
+          )}
         </div>
 
         {/* Description si présente */}

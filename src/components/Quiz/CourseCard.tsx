@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
 
 interface CourseCardProps {
   id: string;
@@ -41,7 +42,12 @@ export default function CourseCard({
       </div>
       
       {description && (
-        <p className="text-gray-600 mb-4 line-clamp-2">{description}</p>
+        <div className="text-gray-600 mb-4 overflow-hidden">
+          <SafeHtmlRenderer 
+            html={description}
+            className="prose prose-sm max-w-none course-card-description"
+          />
+        </div>
       )}
       
       <div className="flex items-center gap-4 text-sm text-gray-500">

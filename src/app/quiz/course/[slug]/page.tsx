@@ -9,6 +9,7 @@ import AnimatedShapes from '@/components/Layout/AnimatedShapes';
 import BackgroundPattern from '@/components/Layout/BackgroundPattern';
 import Accordion from '@/components/Layout/Accordion';
 import QuizCard from '@/components/Quiz/QuizCard';
+import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
 import type { Quiz } from '@/lib/types';
 
 interface Module {
@@ -125,9 +126,10 @@ export default function CoursePage() {
             {course.title}
           </h1>
           {course.description && (
-            <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto backdrop-blur-sm bg-white/40 rounded-2xl p-6 inline-block">
-              {course.description}
-            </p>
+            <SafeHtmlRenderer 
+              html={course.description}
+              className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto backdrop-blur-sm bg-white/40 rounded-2xl p-6 inline-block prose prose-lg max-w-none"
+            />
           )}
           <div className="mt-6 flex items-center justify-center gap-6 text-gray-600">
             <span className="flex items-center gap-2">

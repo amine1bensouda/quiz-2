@@ -43,6 +43,11 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  icons: {
+    icon: '/logo_maths.svg',
+    shortcut: '/logo_maths.svg',
+    apple: '/logo_maths.svg',
+  },
 };
 
 export default function RootLayout({

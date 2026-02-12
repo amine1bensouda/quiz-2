@@ -41,50 +41,9 @@ export default function QuizSidebar({
     if (!text || text.trim() === '') {
       return `Question ${index + 1}`;
     }
-    // Retourner le texte brut pour que MathRenderer le traite
+    // Retourner le texte complet pour que MathRenderer le traite
+    // La troncature visuelle sera gérée par CSS (WebkitLineClamp)
     return text;
-  };
-  
-  const truncateText = (text: string, maxLength: number = 50): string => {
-    // Protéger les formules mathématiques avant de tronquer
-    const mathPlaceholders: string[] = [];
-    let placeholderIndex = 0;
-    
-    // Protéger les formules en bloc $$...$$
-    let protectedText = text.replace(/\$\$[\s\S]*?\$\$/g, (match) => {
-      const placeholder = `__MATH_BLOCK_${placeholderIndex}__`;
-      mathPlaceholders[placeholderIndex] = match;
-      placeholderIndex++;
-      return placeholder;
-    });
-    
-    // Protéger les formules inline $...$
-    protectedText = protectedText.replace(/(?<!__MATH_BLOCK_\d+__)(?<!\$)\$(?!\$)([^$\n]+?)\$(?!\$)/g, (match) => {
-      const placeholder = `__MATH_INLINE_${placeholderIndex}__`;
-      mathPlaceholders[placeholderIndex] = match;
-      placeholderIndex++;
-      return placeholder;
-    });
-    
-    // Nettoyer le HTML pour calculer la longueur
-    const cleanText = protectedText
-      .replace(/<[^>]*>/g, '')
-      .replace(/&nbsp;/g, ' ')
-      .trim();
-    
-    // Tronquer si nécessaire
-    let truncated = cleanText;
-    if (cleanText.length > maxLength) {
-      truncated = cleanText.substring(0, maxLength) + '...';
-    }
-    
-    // Restaurer les formules
-    mathPlaceholders.forEach((formula, index) => {
-      truncated = truncated.replace(`__MATH_BLOCK_${index}__`, formula);
-      truncated = truncated.replace(`__MATH_INLINE_${index}__`, formula);
-    });
-    
-    return truncated;
   };
 
   return (
@@ -203,7 +162,7 @@ export default function QuizSidebar({
                           overflow: 'hidden',
                         }}
                       >
-                        <MathRenderer text={truncateText(questionText, 50)} className="text-sm" />
+                        <MathRenderer text={questionText} className="text-sm" />
                       </div>
                     </div>
 

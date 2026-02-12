@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db';
 import Link from 'next/link';
 import DeleteCourseButton from '@/components/Admin/DeleteCourseButton';
 import PublishCourseButton from '@/components/Admin/PublishCourseButton';
+import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
 
 export default async function AdminCoursesPage() {
   try {
@@ -72,7 +73,10 @@ export default async function AdminCoursesPage() {
                     </span>
                   </div>
                   {course.description && (
-                    <p className="text-gray-600 mb-2">{course.description}</p>
+                    <SafeHtmlRenderer 
+                      html={course.description}
+                      className="text-gray-600 mb-2 prose prose-sm max-w-none"
+                    />
                   )}
                   <code className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-700">
                     {course.slug}

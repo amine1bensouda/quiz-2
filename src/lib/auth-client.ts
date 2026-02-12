@@ -43,10 +43,18 @@ export async function getCurrentUser(): Promise<User | null> {
       }
     }
 
+    // 401 est normal si l'utilisateur n'est pas connecté, ne pas logger comme erreur
+    if (response.status !== 401) {
+      console.warn('Unexpected response from /api/users/me:', response.status);
+    }
+
     currentUserCache = null;
     return null;
   } catch (error) {
-    console.error('Error getting current user:', error);
+    // Ne logger que les vraies erreurs réseau, pas les 401 normales
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.error('Network error getting current user:', error);
+    }
     currentUserCache = null;
     return null;
   }

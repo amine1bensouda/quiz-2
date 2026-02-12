@@ -214,5 +214,38 @@
   .text-shadow-luxury {
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
   }
+  
+  /* Styles pour les images dans les descriptions de cours */
+  .course-card-description {
+    max-height: 6rem; /* Limite la hauteur totale */
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .course-card-description img {
+    max-width: 100%;
+    max-height: 4rem; /* Limite la hauteur des images */
+    width: auto;
+    height: auto;
+    display: block;
+    margin: 0.25rem 0;
+    border-radius: 0.375rem;
+    object-fit: contain;
+  }
+  
+  .course-card-description p {
+    margin: 0.25rem 0;
+  }
+  
+  /* Si le paragraphe contient une image, ne pas appliquer line-clamp */
+  .course-card-description p:has(img) {
+    display: block;
+    overflow: visible;
+  }
+  
+  /* Pour les navigateurs qui ne supportent pas :has() */
+  .course-card-description img {
+    display: block;
+  }
 }
 

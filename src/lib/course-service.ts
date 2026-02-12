@@ -10,6 +10,9 @@ import { convertPrismaQuizToQuiz } from './quiz-service';
  */
 export async function getAllPublishedCourses() {
   try {
+    // Tester la connexion à la base de données
+    await prisma.$connect();
+    
     const courses = await prisma.course.findMany({
       where: {
         status: 'published',
@@ -41,6 +44,15 @@ export async function getAllPublishedCourses() {
     return courses;
   } catch (error) {
     console.error('Erreur getAllPublishedCourses:', error);
+    
+    // Vérifier si c'est une erreur de connexion
+    if (error instanceof Error) {
+      const errorMessage = error.message.toLowerCase();
+      if (errorMessage.includes('connect') || errorMessage.includes('connection') || errorMessage.includes('database')) {
+        throw new Error('Database connection error. Please check your DATABASE_URL configuration.');
+      }
+    }
+    
     return [];
   }
 }
@@ -50,6 +62,9 @@ export async function getAllPublishedCourses() {
  */
 export async function getCourseBySlug(slug: string) {
   try {
+    // Tester la connexion à la base de données
+    await prisma.$connect();
+    
     const course = await prisma.course.findFirst({
       where: {
         slug,
@@ -102,6 +117,15 @@ export async function getCourseBySlug(slug: string) {
     return courseWithConvertedQuizzes;
   } catch (error) {
     console.error(`Erreur getCourseBySlug(${slug}):`, error);
+    
+    // Vérifier si c'est une erreur de connexion
+    if (error instanceof Error) {
+      const errorMessage = error.message.toLowerCase();
+      if (errorMessage.includes('connect') || errorMessage.includes('connection') || errorMessage.includes('database')) {
+        throw new Error('Database connection error. Please check your DATABASE_URL configuration.');
+      }
+    }
+    
     return null;
   }
 }
