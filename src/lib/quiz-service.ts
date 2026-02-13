@@ -60,11 +60,16 @@ export async function getAllQuiz(): Promise<Quiz[]> {
 
 /**
  * Récupère un quiz par son slug
+ * Gère les slugs avec espaces (anciens quiz) et les slugs normalisés
  */
 export async function getQuizBySlug(slug: string): Promise<Quiz | null> {
   try {
-    const quiz = await prisma.quiz.findUnique({
-      where: { slug },
+    // Décoder le slug pour gérer les espaces encodés (%20)
+    const decodedSlug = decodeURIComponent(slug);
+    
+    // Essayer d'abord avec le slug exact
+    let quiz = await prisma.quiz.findUnique({
+      where: { slug: decodedSlug },
       include: {
         module: {
           include: {
@@ -81,6 +86,52 @@ export async function getQuizBySlug(slug: string): Promise<Quiz | null> {
         },
       },
     });
+
+    // Si pas trouvé et que le slug contient des espaces, essayer avec des tirets
+    if (!quiz && decodedSlug.includes(' ')) {
+      const normalizedSlug = decodedSlug.replace(/\s+/g, '-').toLowerCase();
+      quiz = await prisma.quiz.findFirst({
+        where: { slug: normalizedSlug },
+        include: {
+          module: {
+            include: {
+              course: true,
+            },
+          },
+          questions: {
+            include: {
+              answers: true,
+            },
+            orderBy: {
+              order: 'asc',
+            },
+          },
+        },
+      });
+    }
+
+    // Si pas trouvé et que le slug contient des tirets, essayer avec des espaces
+    if (!quiz && decodedSlug.includes('-')) {
+      const slugWithSpaces = decodedSlug.replace(/-/g, ' ');
+      quiz = await prisma.quiz.findFirst({
+        where: { slug: slugWithSpaces },
+        include: {
+          module: {
+            include: {
+              course: true,
+            },
+          },
+          questions: {
+            include: {
+              answers: true,
+            },
+            orderBy: {
+              order: 'asc',
+            },
+          },
+        },
+      });
+    }
 
     if (!quiz) return null;
 

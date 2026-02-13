@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { generateSlug } from '@/lib/utils';
 
 /**
  * PUT /api/admin/quizzes/[id]
@@ -27,6 +28,9 @@ export async function PUT(
       questions,
     } = body;
 
+    // Normaliser le slug si fourni
+    const normalizedSlug = slug ? generateSlug(slug) : undefined;
+
     // Supprimer toutes les questions existantes et leurs réponses
     await prisma.answer.deleteMany({
       where: {
@@ -46,7 +50,7 @@ export async function PUT(
       where: { id: params.id },
       data: {
         ...(title && { title }),
-        ...(slug && { slug }),
+        ...(normalizedSlug && { slug: normalizedSlug }),
         ...(moduleId !== undefined && { moduleId: moduleId || null }),
         ...(description !== undefined && { description: description || null }),
         ...(excerpt !== undefined && { excerpt: excerpt || null }),

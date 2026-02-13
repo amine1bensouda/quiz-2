@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { generateSlug } from '@/lib/utils';
 
 /**
  * POST /api/admin/quizzes
@@ -32,11 +33,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Normaliser le slug (remplacer les espaces et caractères invalides)
+    const normalizedSlug = generateSlug(slug);
+
     // Créer le quiz avec ses questions et réponses
     const quiz = await prisma.quiz.create({
       data: {
         title,
-        slug,
+        slug: normalizedSlug,
         moduleId: moduleId || null,
         description: description || null,
         excerpt: excerpt || null,

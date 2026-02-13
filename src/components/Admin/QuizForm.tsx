@@ -299,7 +299,11 @@ export default function QuizForm({ initialData }: QuizFormProps) {
                 type="text"
                 required
                 value={formData.slug}
-                onChange={(e) => setFormData((prev) => ({ ...prev, slug: e.target.value }))}
+                onChange={(e) => {
+                  // Normaliser automatiquement le slug (remplacer les espaces par des tirets)
+                  const normalizedSlug = generateSlug(e.target.value);
+                  setFormData((prev) => ({ ...prev, slug: normalizedSlug }));
+                }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 placeholder="ex: basic-algebra"
               />

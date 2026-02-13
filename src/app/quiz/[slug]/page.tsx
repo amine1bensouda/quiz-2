@@ -9,7 +9,7 @@ import BreadcrumbSchema from '@/components/SEO/BreadcrumbSchema';
 import DisplayAd from '@/components/Ads/DisplayAd';
 import InArticleAd from '@/components/Ads/InArticleAd';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
-import { stripHtml, formatDuration } from '@/lib/utils';
+import { stripHtml, formatDuration, generateSlug } from '@/lib/utils';
 
 export const revalidate = 3600; // Revalider toutes les heures
 
@@ -37,7 +37,16 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const quiz = await getQuizBySlug(params.slug);
+  // Décoder le slug pour gérer les espaces encodés (%20)
+  const decodedSlug = decodeURIComponent(params.slug);
+  
+  // Essayer d'abord avec le slug décodé, puis avec le slug original
+  let quiz = await getQuizBySlug(decodedSlug);
+  
+  if (!quiz && decodedSlug !== params.slug) {
+    // Si le slug décodé ne fonctionne pas, essayer le slug original
+    quiz = await getQuizBySlug(params.slug);
+  }
 
   if (!quiz) {
     return {
@@ -69,7 +78,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function QuizPage({ params }: PageProps) {
-  const quiz = await getQuizBySlug(params.slug);
+  // Décoder le slug pour gérer les espaces encodés (%20)
+  const decodedSlug = decodeURIComponent(params.slug);
+  
+  // Essayer d'abord avec le slug décodé, puis avec le slug original
+  let quiz = await getQuizBySlug(decodedSlug);
+  
+  if (!quiz && decodedSlug !== params.slug) {
+    // Si le slug décodé ne fonctionne pas, essayer le slug original
+    quiz = await getQuizBySlug(params.slug);
+  }
 
   if (!quiz) {
     notFound();
