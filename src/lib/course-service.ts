@@ -10,9 +10,6 @@ import { convertPrismaQuizToQuiz } from './quiz-service';
  */
 export async function getAllPublishedCourses() {
   try {
-    // Tester la connexion à la base de données
-    await prisma.$connect();
-    
     const courses = await prisma.course.findMany({
       where: {
         status: 'published',
@@ -62,9 +59,6 @@ export async function getAllPublishedCourses() {
  */
 export async function getCourseBySlug(slug: string) {
   try {
-    // Tester la connexion à la base de données
-    await prisma.$connect();
-    
     const course = await prisma.course.findFirst({
       where: {
         slug,

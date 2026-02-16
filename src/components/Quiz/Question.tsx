@@ -140,7 +140,7 @@ export default function Question({
             </div>
             <div>
               <span className="text-base font-semibold text-gray-900 block">Question {questionNumber}</span>
-              <span className="text-sm text-gray-500">of {totalQuestions}</span>
+              <span className="text-sm text-gray-500">sur {totalQuestions}</span>
             </div>
           </div>
           {points && (

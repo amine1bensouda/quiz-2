@@ -66,7 +66,7 @@ function normalizeTutorQuiz(tutorQuiz: any, questions: Question[] = []): Quiz {
     featured_media: tutorQuiz.featured_image_id || 0,
     featured_media_url: tutorQuiz.featured_image_url || undefined,
     acf: {
-      duree_estimee: tutorQuiz.time_limit || tutorQuiz.duration || 10,
+      duree_estimee: tutorQuiz.time_limit ?? tutorQuiz.duration ?? undefined,
       niveau_difficulte: tutorQuiz.difficulty || 'Moyen',
       categorie: tutorQuiz.category || '',
       nombre_questions: questions.length || tutorQuiz.question_count || 0,

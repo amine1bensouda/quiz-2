@@ -173,7 +173,7 @@ export default async function QuizPage({ params }: PageProps) {
                       </svg>
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 font-medium">Duration</div>
+                      <div className="text-xs text-gray-500 font-medium">Durée</div>
                       <div className="text-sm font-bold text-gray-900">{formatDuration(duration)}</div>
                     </div>
                   </div>
@@ -201,7 +201,7 @@ export default async function QuizPage({ params }: PageProps) {
                       </svg>
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 font-medium">Level</div>
+                      <div className="text-xs text-gray-500 font-medium">Niveau</div>
                       <div className="text-sm font-bold text-gray-900">{difficulty}</div>
                     </div>
                   </div>
@@ -215,7 +215,7 @@ export default async function QuizPage({ params }: PageProps) {
                       </svg>
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 font-medium">Category</div>
+                      <div className="text-xs text-gray-500 font-medium">Catégorie</div>
                       <div className="text-sm font-bold text-gray-900">{quiz.acf.categorie}</div>
                     </div>
                   </div>

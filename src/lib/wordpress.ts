@@ -255,11 +255,7 @@ function normalizeTutorQuiz(tutorQuiz: any, questions: Question[] = []): Quiz {
     duration = Math.ceil(timeValue / 60);
   }
   
-  // Si pas de durée, utiliser une valeur par défaut
-  if (duration === 0) {
-    duration = 10; // 10 minutes par défaut
-  }
-  
+  // Si pas de durée (0 ou non défini), le quiz est en temps libre (aucun chronomètre)
   const passingGrade = quizSettings.passing_grade ? parseInt(quizSettings.passing_grade) : 70;
   const questionsOrder = quizSettings.questions_order === 'rand' ? 'Aleatoire' : 'Fixe';
   const maxQuestions = quizSettings.max_questions_for_answer ? parseInt(quizSettings.max_questions_for_answer) : questions.length || 0;
@@ -279,7 +275,7 @@ function normalizeTutorQuiz(tutorQuiz: any, questions: Question[] = []): Quiz {
     featured_media: tutorQuiz.featured_image_id || tutorQuiz.featured_media || 0,
     featured_media_url: tutorQuiz.featured_image_url || undefined,
     acf: {
-      duree_estimee: duration,
+      duree_estimee: duration && duration > 0 ? duration : undefined,
       niveau_difficulte: tutorQuiz.difficulty || 'Moyen',
       categorie: tutorQuiz.category || '',
       nombre_questions: maxQuestions || questions.length || 0,

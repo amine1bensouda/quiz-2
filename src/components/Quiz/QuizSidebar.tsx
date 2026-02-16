@@ -55,7 +55,7 @@ export default function QuizSidebar({
       <div className="px-6 pb-6 border-b border-gray-200 sticky top-0 bg-white z-10">
         <div className="mb-4">
           <h2 className="text-xl font-bold text-gray-900">
-            Quiz Questions
+            Questions du quiz
           </h2>
         </div>
           
@@ -64,13 +64,13 @@ export default function QuizSidebar({
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-green-500"></div>
               <span className="text-gray-600">
-                {Object.keys(selectedAnswers).length} answered
+                {Object.keys(selectedAnswers).length} répondues
               </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-gray-300"></div>
               <span className="text-gray-600">
-                {questions.length - Object.keys(selectedAnswers).length} unanswered
+                {questions.length - Object.keys(selectedAnswers).length} sans réponse
               </span>
             </div>
             {flaggedQuestions.size > 0 && (
@@ -79,7 +79,7 @@ export default function QuizSidebar({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
                 </svg>
                 <span className="text-yellow-600 font-medium">
-                  {flaggedQuestions.size} flagged
+                  {flaggedQuestions.size} marquées
                 </span>
               </div>
             )}

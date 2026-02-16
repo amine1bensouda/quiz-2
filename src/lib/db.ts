@@ -11,8 +11,18 @@ if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('file:')) {
   process.env.DATABASE_URL = `file:${dbPath}`;
 }
 
-// PrismaClient est instancié une seule fois et réutilisé
-// Pour éviter les problèmes de connexions multiples en développement
+// En production (Vercel + Supabase), limiter les connexions pour éviter "max clients reached"
+if (process.env.VERCEL && process.env.DATABASE_URL?.startsWith('postgres')) {
+  const url = process.env.DATABASE_URL;
+  if (!url.includes('connection_limit=')) {
+    process.env.DATABASE_URL = url.includes('?')
+      ? `${url}&connection_limit=1`
+      : `${url}?connection_limit=1`;
+  }
+}
+
+// PrismaClient instancié une seule fois et réutilisé (dev + prod)
+// Critique sur Vercel : éviter une nouvelle instance par requête → épuisement du pool DB
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
@@ -23,4 +33,4 @@ export const prisma =
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   });
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+globalForPrisma.prisma = prisma;

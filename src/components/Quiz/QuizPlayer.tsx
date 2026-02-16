@@ -657,10 +657,10 @@ export default function QuizPlayer({ quiz }: QuizPlayerProps) {
             </div>
             <div>
               <span className="text-base font-semibold text-gray-900 block">
-                Question {currentQuestionIndex + 1} of {totalQuestions}
+                Question {currentQuestionIndex + 1} sur {totalQuestions}
               </span>
               <span className="text-sm text-gray-500">
-                {totalQuestions - (currentQuestionIndex + 1)} remaining
+                {totalQuestions - (currentQuestionIndex + 1)} restantes
               </span>
             </div>
           </div>
@@ -680,7 +680,7 @@ export default function QuizPlayer({ quiz }: QuizPlayerProps) {
                 <span className="font-bold text-lg">
                   {Math.floor(quizTimeRemaining / 60)}:{(quizTimeRemaining % 60).toString().padStart(2, '0')}
                 </span>
-                <span className="text-xs opacity-75">Quiz Timer</span>
+                <span className="text-xs opacity-75">Chronomètre</span>
               </div>
             ) : (
               // Indicateur pour quiz sans limite de temps
@@ -688,7 +688,7 @@ export default function QuizPlayer({ quiz }: QuizPlayerProps) {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="text-sm">No time limit</span>
+                <span className="text-sm">Temps libre</span>
               </div>
             )}
             {/* Timer pour la question actuelle */}
@@ -711,7 +711,7 @@ export default function QuizPlayer({ quiz }: QuizPlayerProps) {
               <span className="text-2xl font-bold text-gray-900 block">
                 {Math.round(progressPercentage)}%
               </span>
-              <span className="text-xs text-gray-500">Progress</span>
+              <span className="text-xs text-gray-500">Progression</span>
             </div>
           </div>
         </div>
@@ -729,7 +729,7 @@ export default function QuizPlayer({ quiz }: QuizPlayerProps) {
         
         <div className="mt-4 text-center">
           <span className="text-sm text-gray-600">
-            {Object.keys(selectedAnswers).length} / {totalQuestions} answered
+            {Object.keys(selectedAnswers).length} / {totalQuestions} répondues
           </span>
         </div>
       </div>
