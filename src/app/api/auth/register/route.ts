@@ -3,6 +3,9 @@ import { prisma } from '@/lib/db';
 import { hashPassword } from '@/lib/auth-utils';
 import { cookies } from 'next/headers';
 
+// Évite l'optimisation statique sur Vercel (cause fréquente de 405 en prod)
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     let body;

@@ -74,7 +74,7 @@ export default async function AdminQuizzesPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
                         <Link
-                          href={`/admin/quizzes/${quiz.slug}/edit`}
+                          href={`/admin/quizzes/${encodeURIComponent(quiz.slug)}/edit`}
                           className="px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
                         >
                           Edit

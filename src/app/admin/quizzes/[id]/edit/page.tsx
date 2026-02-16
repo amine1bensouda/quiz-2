@@ -2,46 +2,51 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import QuizForm from '@/components/Admin/QuizForm';
 
-export default async function EditQuizPage({ params }: { params: { id: string } }) {
-  // Essayer d'abord par ID, puis par slug si l'ID ne fonctionne pas
-  let quiz = await prisma.quiz.findUnique({
-    where: { id: params.id },
+const quizInclude = {
+  module: {
     include: {
-      module: {
-        include: {
-          course: true,
-        },
-      },
-      questions: {
-        include: {
-          answers: true,
-        },
-        orderBy: {
-          order: 'asc',
-        },
-      },
+      course: true,
     },
+  },
+  questions: {
+    include: {
+      answers: true,
+    },
+    orderBy: {
+      order: 'asc' as const,
+    },
+  },
+};
+
+export default async function EditQuizPage({ params }: { params: { id: string } }) {
+  const rawId = typeof params.id === 'string' ? params.id : '';
+  const decodedId = decodeURIComponent(rawId);
+
+  // Essayer d'abord par ID (cuid)
+  let quiz = await prisma.quiz.findUnique({
+    where: { id: decodedId },
+    include: quizInclude,
   });
 
-  // Si pas trouvé par ID, essayer par slug
+  // Si pas trouvé par ID, essayer par slug (exact puis variantes)
   if (!quiz) {
     quiz = await prisma.quiz.findUnique({
-      where: { slug: params.id },
-      include: {
-        module: {
-          include: {
-            course: true,
-          },
-        },
-        questions: {
-          include: {
-            answers: true,
-          },
-          orderBy: {
-            order: 'asc',
-          },
-        },
-      },
+      where: { slug: decodedId },
+      include: quizInclude,
+    });
+  }
+  if (!quiz && decodedId.includes(' ')) {
+    const slugWithHyphens = decodedId.replace(/\s+/g, '-');
+    quiz = await prisma.quiz.findFirst({
+      where: { slug: slugWithHyphens },
+      include: quizInclude,
+    });
+  }
+  if (!quiz) {
+    const normalizedSlug = decodedId.replace(/\s+/g, '-').toLowerCase();
+    quiz = await prisma.quiz.findFirst({
+      where: { slug: normalizedSlug },
+      include: quizInclude,
     });
   }
 
