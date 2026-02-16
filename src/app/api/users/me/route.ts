@@ -5,11 +5,9 @@ export async function GET() {
   try {
     const user = await getCurrentUserFromSession();
 
+    // 200 avec user: null si non connecté (évite l'erreur 401 en console)
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ user: null });
     }
 
     return NextResponse.json({ user });
