@@ -40,6 +40,72 @@ export function generateSlug(text: string): string {
 }
 
 /**
+ * Traduit le niveau de difficulté en français (si reçu en anglais depuis l'API)
+ */
+const DIFFICULTY_FR: Record<string, string> = {
+  Easy: 'Facile',
+  Medium: 'Moyen',
+  Hard: 'Difficile',
+  Expert: 'Expert',
+  Facile: 'Facile',
+  Moyen: 'Moyen',
+  Difficile: 'Difficile',
+};
+export function translateDifficulty(value: string | undefined): string {
+  if (!value || !value.trim()) return '';
+  const trimmed = value.trim();
+  return DIFFICULTY_FR[trimmed] ?? trimmed;
+}
+
+/**
+ * Traduit les noms de catégories courants en français (pour les cartes quiz, etc.)
+ */
+const CATEGORY_FR: Record<string, string> = {
+  'Timed Mini Exams': 'Examens mini chronométrés',
+  'Mini Exams': 'Examens mini',
+  'Practice': 'Entraînement',
+  'Full Exam': 'Examen complet',
+};
+export function translateCategory(value: string | undefined): string {
+  if (!value || !value.trim()) return '';
+  const trimmed = value.trim();
+  return CATEGORY_FR[trimmed] ?? trimmed;
+}
+
+/**
+ * Niveau de difficulté en anglais (pour la bannière quiz en anglais)
+ */
+const DIFFICULTY_EN: Record<string, string> = {
+  Facile: 'Easy',
+  Moyen: 'Medium',
+  Difficile: 'Hard',
+  Expert: 'Expert',
+  Easy: 'Easy',
+  Medium: 'Medium',
+  Hard: 'Hard',
+};
+export function difficultyToEnglish(value: string | undefined): string {
+  if (!value || !value.trim()) return '';
+  const trimmed = value.trim();
+  return DIFFICULTY_EN[trimmed] ?? trimmed;
+}
+
+/**
+ * Catégorie en anglais (pour la bannière quiz en anglais)
+ */
+const CATEGORY_EN: Record<string, string> = {
+  'Examens mini chronométrés': 'Timed Mini Exams',
+  'Examens mini': 'Mini Exams',
+  'Entraînement': 'Practice',
+  'Examen complet': 'Full Exam',
+};
+export function categoryToEnglish(value: string | undefined): string {
+  if (!value || !value.trim()) return '';
+  const trimmed = value.trim();
+  return CATEGORY_EN[trimmed] ?? trimmed;
+}
+
+/**
  * Formate une date en français
  */
 export function formatDate(date: string | Date): string {

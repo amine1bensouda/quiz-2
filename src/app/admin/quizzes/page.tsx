@@ -1,6 +1,7 @@
 import { getAllQuiz } from '@/lib/quiz-service';
 import Link from 'next/link';
 import DeleteQuizButton from '@/components/Admin/DeleteQuizButton';
+import { difficultyToEnglish } from '@/lib/utils';
 
 export default async function AdminQuizzesPage() {
   const quizzes = await getAllQuiz();
@@ -47,7 +48,7 @@ export default async function AdminQuizzesPage() {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {quizzes.map((quiz) => (
-                  <tr key={quiz.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={quiz.prismaId ?? quiz.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="font-semibold text-gray-900">
                         {typeof quiz.title === 'string' ? quiz.title : quiz.title?.rendered || 'No title'}
@@ -67,9 +68,16 @@ export default async function AdminQuizzesPage() {
                       {quiz.acf?.questions?.length || quiz.acf?.nombre_questions || 0}
                     </td>
                     <td className="px-6 py-4">
-                      <span className="px-3 py-1 text-xs font-medium rounded-full bg-indigo-100 text-indigo-800">
-                        {quiz.acf?.niveau_difficulte || 'Moyen'}
-                      </span>
+                      {(() => {
+                        const d = quiz.acf?.niveau_difficulte;
+                        const isEmpty = !d || String(d).trim() === '' || d === 'Moyen';
+                        const label = isEmpty ? 'Not specified' : difficultyToEnglish(d);
+                        return (
+                          <span className={`px-3 py-1 text-xs font-medium rounded-full ${isEmpty ? 'bg-gray-100 text-gray-600' : 'bg-indigo-100 text-indigo-800'}`}>
+                            {label}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
@@ -80,7 +88,7 @@ export default async function AdminQuizzesPage() {
                           Edit
                         </Link>
                         <DeleteQuizButton 
-                          quizId={quiz.slug} 
+                          quizId={quiz.prismaId ?? String(quiz.id)} 
                           quizTitle={typeof quiz.title === 'string' ? quiz.title : quiz.title?.rendered || 'No title'} 
                         />
                       </div>

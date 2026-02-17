@@ -66,11 +66,11 @@ export default function CoursePage() {
     return (
       <div className="relative bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 min-h-screen">
         <Navigation />
-        <div className="container mx-auto px-4 py-20">
+        <div className="container mx-auto px-4 sm:px-5 md:px-6 py-12 sm:py-16 md:py-20 max-w-[100vw]">
           <div className="text-center">
-            <div className="inline-block backdrop-blur-xl bg-white/80 rounded-3xl shadow-2xl p-12 border border-white/40">
-              <div className="text-6xl mb-6 animate-spin">⏳</div>
-              <p className="text-gray-700 text-lg">Chargement du cours...</p>
+            <div className="inline-block backdrop-blur-xl bg-white/80 rounded-2xl sm:rounded-3xl shadow-2xl p-8 sm:p-10 md:p-12 border border-white/40">
+              <div className="text-5xl sm:text-6xl mb-4 sm:mb-6 animate-spin">⏳</div>
+              <p className="text-gray-700 text-base sm:text-lg">Loading the course...</p>
             </div>
           </div>
         </div>
@@ -82,19 +82,19 @@ export default function CoursePage() {
     return (
       <div className="relative bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 min-h-screen">
         <Navigation />
-        <div className="container mx-auto px-4 py-20">
+        <div className="container mx-auto px-4 sm:px-5 md:px-6 py-12 sm:py-16 md:py-20 max-w-[100vw]">
           <div className="text-center">
-            <div className="inline-block backdrop-blur-xl bg-white/80 rounded-3xl shadow-2xl p-12 border border-white/40">
-              <div className="text-6xl mb-6">📚</div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-3">
-                Cours introuvable
+            <div className="inline-block backdrop-blur-xl bg-white/80 rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-8 md:p-12 border border-white/40 max-w-full">
+              <div className="text-5xl sm:text-6xl mb-4 sm:mb-6">📚</div>
+              <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2 sm:mb-3">
+                Course not found
               </h3>
-              <p className="text-gray-700 text-lg mb-6">Le cours demandé n'existe pas.</p>
+              <p className="text-gray-700 text-sm sm:text-lg mb-4 sm:mb-6">The requested course does not exist.</p>
               <Link
                 href="/quiz"
-                className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                className="inline-block px-5 py-2.5 sm:px-6 sm:py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm sm:text-base"
               >
-                Retour aux cours
+                Back to courses
               </Link>
             </div>
           </div>
@@ -110,36 +110,36 @@ export default function CoursePage() {
       <AnimatedShapes variant="hero" count={8} intensity="high" />
       <BackgroundPattern variant="luxury" opacity={0.12} />
       <Navigation />
-      <div className="container mx-auto px-4 py-12 md:py-16 relative z-10">
+      <div className="container mx-auto px-4 sm:px-5 md:px-6 py-8 sm:py-10 md:py-12 lg:py-16 relative z-10 max-w-[100vw] overflow-x-hidden">
         {/* Breadcrumb */}
-        <nav className="mb-8 text-sm text-gray-600">
-          <Link href="/" className="hover:text-indigo-600">Accueil</Link>
-          <span className="mx-2">/</span>
-          <Link href="/quiz" className="hover:text-indigo-600">Cours</Link>
-          <span className="mx-2">/</span>
-          <span className="text-gray-900 font-medium">{course.title}</span>
+        <nav className="mb-4 sm:mb-6 md:mb-8 text-xs sm:text-sm text-gray-600 overflow-x-auto whitespace-nowrap scrollbar-hide">
+          <Link href="/" className="hover:text-indigo-600">Home</Link>
+          <span className="mx-1.5 sm:mx-2">/</span>
+          <Link href="/quiz" className="hover:text-indigo-600">Courses</Link>
+          <span className="mx-1.5 sm:mx-2">/</span>
+          <span className="text-gray-900 font-medium truncate inline-block max-w-[180px] sm:max-w-none">{course.title}</span>
         </nav>
 
         {/* En-tête du cours */}
-        <div className="text-center mb-16 animate-fade-in">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-indigo-900 via-purple-900 to-pink-900 bg-clip-text text-transparent mb-6 leading-tight">
+        <div className="text-center mb-8 sm:mb-12 md:mb-16 animate-fade-in">
+          <h1 className="text-2xl min-[400px]:text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold bg-gradient-to-r from-indigo-900 via-purple-900 to-pink-900 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight break-words px-1">
             {course.title}
           </h1>
           {course.description && (
             <SafeHtmlRenderer 
               html={course.description}
-              className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto backdrop-blur-sm bg-white/40 rounded-2xl p-6 inline-block prose prose-lg max-w-none"
+              className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 max-w-3xl mx-auto backdrop-blur-sm bg-white/40 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 inline-block prose prose-sm sm:prose-base md:prose-lg max-w-none"
             />
           )}
-          <div className="mt-6 flex items-center justify-center gap-6 text-gray-600">
-            <span className="flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="mt-4 sm:mt-6 flex flex-wrap items-center justify-center gap-3 sm:gap-4 md:gap-6 text-gray-600 text-sm sm:text-base">
+            <span className="flex items-center gap-1.5 sm:gap-2">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
               {course.modules.length} module{course.modules.length !== 1 ? 's' : ''}
             </span>
-            <span className="flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <span className="flex items-center gap-1.5 sm:gap-2">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
               {totalQuizzes} quiz{totalQuizzes !== 1 ? 'zes' : ''}
@@ -152,7 +152,7 @@ export default function CoursePage() {
 
         {/* Modules du cours */}
         {course.modules.length > 0 ? (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-3 sm:space-y-4 md:space-y-6 animate-fade-in">
             {course.modules.map((module) => {
               if (module._count.quizzes === 0) {
                 return null;
@@ -166,7 +166,7 @@ export default function CoursePage() {
                   defaultOpen={false}
                   icon={
                     <svg
-                      className="w-6 h-6 text-indigo-600"
+                      className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -180,9 +180,9 @@ export default function CoursePage() {
                     </svg>
                   }
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                     {module.quizzes.map((quiz, index) => (
-                      <QuizCard key={quiz.id} quiz={quiz} index={index} />
+                      <QuizCard key={quiz.prismaId ?? quiz.id} quiz={quiz} index={index} />
                     ))}
                   </div>
                 </Accordion>
@@ -190,8 +190,8 @@ export default function CoursePage() {
             })}
           </div>
         ) : (
-          <div className="text-center py-12 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200">
-            <p className="text-gray-600">Ce cours n'a pas encore de modules.</p>
+          <div className="text-center py-8 sm:py-10 md:py-12 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 px-4">
+            <p className="text-gray-600 text-sm sm:text-base">This course has no modules yet.</p>
           </div>
         )}
 

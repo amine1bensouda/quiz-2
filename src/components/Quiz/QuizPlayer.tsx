@@ -12,9 +12,11 @@ import { saveQuizAttempt } from '@/lib/auth-client';
 
 interface QuizPlayerProps {
   quiz: Quiz;
+  /** Appelé quand l'utilisateur clique sur "Skip Question" (rafraîchit les pubs) */
+  onSkipQuestion?: () => void;
 }
 
-export default function QuizPlayer({ quiz }: QuizPlayerProps) {
+export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
   const [showResults, setShowResults] = useState(false);
@@ -523,6 +525,10 @@ export default function QuizPlayer({ quiz }: QuizPlayerProps) {
   };
 
   const handleNext = async () => {
+    const isSkip = !selectedAnswers[currentQuestionIndex];
+    if (isSkip && onSkipQuestion) {
+      onSkipQuestion();
+    }
     // Permettre de passer même sans réponse sélectionnée
     if (currentQuestionIndex < totalQuestions - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -657,10 +663,10 @@ export default function QuizPlayer({ quiz }: QuizPlayerProps) {
             </div>
             <div>
               <span className="text-base font-semibold text-gray-900 block">
-                Question {currentQuestionIndex + 1} sur {totalQuestions}
+                Question {currentQuestionIndex + 1} of {totalQuestions}
               </span>
               <span className="text-sm text-gray-500">
-                {totalQuestions - (currentQuestionIndex + 1)} restantes
+                {totalQuestions - (currentQuestionIndex + 1)} remaining
               </span>
             </div>
           </div>
@@ -680,7 +686,7 @@ export default function QuizPlayer({ quiz }: QuizPlayerProps) {
                 <span className="font-bold text-lg">
                   {Math.floor(quizTimeRemaining / 60)}:{(quizTimeRemaining % 60).toString().padStart(2, '0')}
                 </span>
-                <span className="text-xs opacity-75">Chronomètre</span>
+                <span className="text-xs opacity-75">Timer</span>
               </div>
             ) : (
               // Indicateur pour quiz sans limite de temps
@@ -711,7 +717,7 @@ export default function QuizPlayer({ quiz }: QuizPlayerProps) {
               <span className="text-2xl font-bold text-gray-900 block">
                 {Math.round(progressPercentage)}%
               </span>
-              <span className="text-xs text-gray-500">Progression</span>
+              <span className="text-xs text-gray-500">Progress</span>
             </div>
           </div>
         </div>
@@ -729,7 +735,7 @@ export default function QuizPlayer({ quiz }: QuizPlayerProps) {
         
         <div className="mt-4 text-center">
           <span className="text-sm text-gray-600">
-            {Object.keys(selectedAnswers).length} / {totalQuestions} répondues
+            {Object.keys(selectedAnswers).length} / {totalQuestions} answered
           </span>
         </div>
       </div>

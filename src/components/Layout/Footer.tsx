@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { SITE_NAME } from '@/lib/constants';
 
 export default function Footer() {
@@ -10,12 +11,18 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo and Site Description */}
           <div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-black rounded flex items-center justify-center">
-                <span className="text-white font-bold text-lg">M</span>
+            <Link href="/" className="flex items-center gap-3 mb-4 inline-flex">
+              <div className="w-10 h-10 relative rounded-lg overflow-hidden flex-shrink-0 bg-white border border-gray-200">
+                <Image
+                  src="/logo_maths.svg"
+                  alt={`Logo ${SITE_NAME}`}
+                  width={40}
+                  height={40}
+                  className="object-contain w-full h-full"
+                />
               </div>
               <h3 className="text-gray-900 font-bold text-lg">{SITE_NAME}</h3>
-            </div>
+            </Link>
             <p className="text-sm text-gray-600 leading-relaxed">
               Test your knowledge with our interactive mathematics quizzes. Learn while having fun!
             </p>

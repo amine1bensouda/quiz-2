@@ -52,7 +52,7 @@ model Quiz {
   description     String?
   excerpt         String?
   duration        Int            @default(10) // minutes
-  difficulty      String         @default("Moyen") // Facile, Moyen, Difficile, Expert
+  difficulty      String?        // null = non renseigné (pas d'affichage Level)
   passingGrade    Int            @default(70)
   randomizeOrder  Boolean        @default(false)
   maxQuestions    Int?           // Nombre max de questions à afficher

@@ -172,7 +172,7 @@ export default async function AdminCoursesPage() {
             Unable to connect to the database. Please check your configuration.
           </p>
           <details className="text-sm text-red-700">
-            <summary className="cursor-pointer font-medium">Détails de l'erreur</summary>
+            <summary className="cursor-pointer font-medium">Error details</summary>
             <pre className="mt-2 p-2 bg-red-100 rounded overflow-auto">{error.message}</pre>
           </details>
         </div>

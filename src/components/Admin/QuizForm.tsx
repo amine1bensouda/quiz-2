@@ -242,7 +242,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
           ...formData,
           moduleId: formData.moduleId || null,
           duration: formData.duration || null,
-          difficulty: formData.difficulty || null,
+          difficulty: formData.difficulty ?? '',
           passingGrade: formData.passingGrade || null,
           maxQuestions: formData.maxQuestions || null,
           questions: formData.questions.map((q, qIndex) => ({
@@ -261,11 +261,11 @@ export default function QuizForm({ initialData }: QuizFormProps) {
         router.refresh();
       } else {
         const data = await response.json();
-        alert(data.error || 'Erreur lors de la sauvegarde');
+        alert(data.error || 'Error saving');
       }
     } catch (error) {
       console.error('Erreur sauvegarde:', error);
-      alert('Erreur lors de la sauvegarde');
+      alert('Error saving');
     } finally {
       setLoading(false);
     }
@@ -502,7 +502,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
               </label>
               <select
                 value={formData.difficulty || ''}
-                onChange={(e) => setFormData((prev) => ({ ...prev, difficulty: e.target.value || undefined }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, difficulty: e.target.value === '' ? '' : e.target.value }))}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               >
                 <option value="">Not specified</option>

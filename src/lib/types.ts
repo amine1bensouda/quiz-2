@@ -1,6 +1,8 @@
 // Types pour les Quiz
 export interface Quiz {
   id: number;
+  /** Id Prisma (cuid) pour les quiz issus de la DB — utilisé en admin pour clé React et suppression */
+  prismaId?: string;
   slug: string;
   title: {
     rendered: string;

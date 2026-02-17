@@ -90,9 +90,9 @@ export async function register(email: string, password: string, name: string): P
         
         // Messages d'erreur plus clairs pour l'utilisateur
         if (errorMessage.includes('Database connection')) {
-          errorMessage = 'Service temporairement indisponible. Veuillez réessayer dans quelques instants.';
+          errorMessage = 'Service temporarily unavailable. Please try again in a few moments.';
         } else if (errorMessage.includes('already registered')) {
-          errorMessage = 'Cet email est déjà enregistré. Connectez-vous ou utilisez un autre email.';
+          errorMessage = 'This email is already registered. Sign in or use another email.';
         }
       } else {
         const text = await response.text();
@@ -133,9 +133,9 @@ export async function login(email: string, password: string): Promise<User> {
         
         // Messages d'erreur plus clairs pour l'utilisateur
         if (errorMessage.includes('Database connection')) {
-          errorMessage = 'Service temporairement indisponible. Veuillez réessayer dans quelques instants.';
+          errorMessage = 'Service temporarily unavailable. Please try again in a few moments.';
         } else if (errorMessage.includes('Invalid email or password')) {
-          errorMessage = 'Email ou mot de passe incorrect.';
+          errorMessage = 'Invalid email or password.';
         }
       } else {
         const text = await response.text();

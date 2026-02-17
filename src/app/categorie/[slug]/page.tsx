@@ -1,18 +1,36 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getQuizByCategory } from '@/lib/wordpress';
-import { getAllCategories } from '@/lib/quiz-service';
+import { getAllCategories, getQuizByModule } from '@/lib/quiz-service';
 import QuizCard from '@/components/Quiz/QuizCard';
 import Navigation from '@/components/Layout/Navigation';
 import DisplayAd from '@/components/Ads/DisplayAd';
 import { SITE_NAME } from '@/lib/constants';
 
-export const revalidate = 3600; // Revalider toutes les heures
+export const revalidate = 3600;
 
 interface PageProps {
   params: {
     slug: string;
   };
+}
+
+function normalizeSlug(s: string): string {
+  return s
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+}
+
+function findCategoryBySlug(categories: { slug: string; name: string }[], slugParam: string) {
+  const decoded = decodeURIComponent(slugParam || '');
+  const exact = categories.find((c) => c.slug === decoded);
+  if (exact) return exact;
+  const normalized = normalizeSlug(decoded);
+  const bySlug = categories.find((c) => normalizeSlug(c.slug) === normalized);
+  if (bySlug) return bySlug;
+  const byName = categories.find((c) => normalizeSlug(c.name) === normalized || c.name.toLowerCase() === decoded.toLowerCase());
+  return byName ?? null;
 }
 
 export async function generateStaticParams() {
@@ -24,10 +42,8 @@ export async function generateStaticParams() {
       }));
     }
   } catch (error) {
-    // Si WordPress n'est pas accessible, continuer avec les valeurs par défaut
-    console.warn('Erreur lors de la récupération des catégories pour generateStaticParams:', error);
+    console.warn('Error getCategories generateStaticParams:', error);
   }
-  // Retourner des catégories par défaut pour permettre le build
   return [
     { slug: 'all' },
     { slug: 'sat-test' },
@@ -37,7 +53,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const categories = await getAllCategories();
-  const category = categories.find((cat) => cat.slug === params.slug);
+  const category = findCategoryBySlug(categories, params.slug);
 
   if (!category) {
     return {
@@ -52,16 +68,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function CategoryPage({ params }: PageProps) {
-  const [quizs, categories] = await Promise.all([
-    getQuizByCategory(params.slug),
-    getAllCategories(),
-  ]);
-
-  const category = categories.find((cat) => cat.slug === params.slug);
+  const categories = await getAllCategories();
+  const category = findCategoryBySlug(categories, params.slug);
 
   if (!category) {
     notFound();
   }
+
+  const quizs = await getQuizByModule(category.slug);
 
   return (
     <div>

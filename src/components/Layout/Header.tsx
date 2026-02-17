@@ -19,7 +19,7 @@ export default function Header() {
       setUser(currentUser);
     }
     loadUser();
-  }, []);
+  }, [pathname]); // Re-vérifier après navigation (ex. retour de /login)
 
   const isActive = (path: string) => {
     if (path === '/') {

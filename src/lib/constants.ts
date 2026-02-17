@@ -4,15 +4,18 @@ export const SITE_NAME = 'The School of Mathematics';
 export const SITE_DESCRIPTION = 'Test your knowledge with our interactive mathematics quizzes';
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://theschoolofmathematics.com';
 
-// Difficulty levels
-export const DIFFICULTY_LEVELS = {
+// Difficulty levels (English labels, keys EN/FR for API compatibility)
+export const DIFFICULTY_LEVELS: Record<string, { label: string; color: string; icon: string }> = {
   Easy: { label: 'Easy', color: 'green', icon: '🟢' },
   Medium: { label: 'Medium', color: 'yellow', icon: '🟡' },
   Hard: { label: 'Hard', color: 'orange', icon: '🟠' },
   Expert: { label: 'Expert', color: 'red', icon: '🔴' },
-} as const;
+  Facile: { label: 'Easy', color: 'green', icon: '🟢' },
+  Moyen: { label: 'Medium', color: 'yellow', icon: '🟡' },
+  Difficile: { label: 'Hard', color: 'orange', icon: '🟠' },
+};
 
-// Catégories par défaut
+// Default categories
 export const DEFAULT_CATEGORIES = [
   'Histoire',
   'Géographie',

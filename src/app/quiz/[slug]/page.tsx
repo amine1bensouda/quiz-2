@@ -3,13 +3,11 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { getQuizBySlug } from '@/lib/wordpress';
 import { getAllQuizSlugs } from '@/lib/quiz-service';
-import QuizPlayer from '@/components/Quiz/QuizPlayer';
+import QuizWithAds from '@/components/Quiz/QuizWithAds';
 import QuizSchema from '@/components/SEO/QuizSchema';
 import BreadcrumbSchema from '@/components/SEO/BreadcrumbSchema';
-import DisplayAd from '@/components/Ads/DisplayAd';
-import InArticleAd from '@/components/Ads/InArticleAd';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
-import { stripHtml, formatDuration, generateSlug } from '@/lib/utils';
+import { stripHtml, formatDuration, generateSlug, difficultyToEnglish, categoryToEnglish } from '@/lib/utils';
 
 export const revalidate = 3600; // Revalider toutes les heures
 
@@ -99,11 +97,13 @@ export default async function QuizPage({ params }: PageProps) {
   const duration = quiz.acf?.duree_estimee;
   const questionCount = quiz.acf?.nombre_questions || 0;
   
+  // Ne pas afficher "Level" si vide ou ancienne valeur par défaut "Moyen"
+  const showDifficulty = difficulty && String(difficulty).trim() !== '' && difficulty !== 'Moyen';
   // Compter le nombre de métadonnées à afficher
   const metadataCount = [
     duration && duration > 0,
     questionCount > 0,
-    difficulty,
+    showDifficulty,
     quiz.acf?.categorie,
   ].filter(Boolean).length;
   
@@ -173,7 +173,7 @@ export default async function QuizPage({ params }: PageProps) {
                       </svg>
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 font-medium">Durée</div>
+                      <div className="text-xs text-gray-500 font-medium">Duration</div>
                       <div className="text-sm font-bold text-gray-900">{formatDuration(duration)}</div>
                     </div>
                   </div>
@@ -193,7 +193,7 @@ export default async function QuizPage({ params }: PageProps) {
                   </div>
                 )}
 
-                {difficulty && (
+                {showDifficulty && (
                   <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
                     <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0">
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -201,8 +201,8 @@ export default async function QuizPage({ params }: PageProps) {
                       </svg>
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 font-medium">Niveau</div>
-                      <div className="text-sm font-bold text-gray-900">{difficulty}</div>
+                      <div className="text-xs text-gray-500 font-medium">Level</div>
+                      <div className="text-sm font-bold text-gray-900">{difficultyToEnglish(difficulty)}</div>
                     </div>
                   </div>
                 )}
@@ -215,8 +215,8 @@ export default async function QuizPage({ params }: PageProps) {
                       </svg>
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 font-medium">Catégorie</div>
-                      <div className="text-sm font-bold text-gray-900">{quiz.acf.categorie}</div>
+                      <div className="text-xs text-gray-500 font-medium">Category</div>
+                      <div className="text-sm font-bold text-gray-900">{categoryToEnglish(quiz.acf.categorie)}</div>
                     </div>
                   </div>
                 )}
@@ -225,14 +225,8 @@ export default async function QuizPage({ params }: PageProps) {
             </div>
           </div>
 
-        {/* Publicité */}
-        <DisplayAd />
-
-        {/* Lecteur de quiz */}
-        <QuizPlayer quiz={quiz} />
-
-        {/* Publicité dans l'article */}
-        <InArticleAd />
+        {/* Publicité + Quiz (les pubs se rechargent au clic sur "Skip Question") */}
+        <QuizWithAds quiz={quiz} />
         </div>
       </div>
     </>

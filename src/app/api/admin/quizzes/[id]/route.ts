@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { generateSlug } from '@/lib/utils';
 
@@ -54,8 +55,9 @@ export async function PUT(
         ...(moduleId !== undefined && { moduleId: moduleId || null }),
         ...(description !== undefined && { description: description || null }),
         ...(excerpt !== undefined && { excerpt: excerpt || null }),
-        ...(duration !== undefined && { duration }),
-        ...(difficulty !== undefined && { difficulty }),
+        ...(duration !== undefined && { duration: (duration === null || duration === '' || Number(duration) <= 0) ? 0 : Math.max(0, Number(duration)) }),
+        // Toujours mettre à jour difficulty si présente dans le body (y compris '' pour "Not specified")
+        ...('difficulty' in body && { difficulty: (body.difficulty === null || body.difficulty === '') ? '' : body.difficulty }),
         ...(passingGrade !== undefined && { passingGrade }),
         ...(randomizeOrder !== undefined && { randomizeOrder }),
         ...(maxQuestions !== undefined && { maxQuestions: maxQuestions || null }),
@@ -98,6 +100,9 @@ export async function PUT(
       },
     });
 
+    // Invalider le cache de la page quiz pour afficher les nouvelles données
+    revalidatePath(`/quiz/${quiz.slug}`);
+
     return NextResponse.json(quiz);
   } catch (error: any) {
     console.error(`Erreur mise à jour quiz ${params.id}:`, error);
@@ -129,6 +134,10 @@ export async function DELETE(
     await prisma.quiz.delete({
       where: { id: params.id },
     });
+
+    revalidatePath('/admin/quizzes');
+    revalidatePath('/');
+    revalidatePath('/quiz');
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

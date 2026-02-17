@@ -312,14 +312,14 @@ export function convertPrismaQuizToQuiz(prismaQuiz: any): Quiz {
     return convertedQuestion;
   });
 
-  // Convertir l'ID string (cuid) en number pour compatibilité avec le type Quiz
-  // On utilise un hash simple de la string pour obtenir un number
-  const idAsNumber = typeof prismaQuiz.id === 'string' 
+  // Convertir l'ID string (cuid) en number pour compatibilité avec le type Quiz (affichage / ancien code)
+  const idAsNumber = typeof prismaQuiz.id === 'string'
     ? prismaQuiz.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0) % 1000000
     : prismaQuiz.id;
 
   return {
     id: idAsNumber,
+    prismaId: typeof prismaQuiz.id === 'string' ? prismaQuiz.id : undefined,
     slug: prismaQuiz.slug,
     title: {
       rendered: prismaQuiz.title,
@@ -333,9 +333,9 @@ export function convertPrismaQuizToQuiz(prismaQuiz: any): Quiz {
     featured_media: 0,
     featured_media_url: prismaQuiz.featuredImageUrl || prismaQuiz.featuredImage || undefined,
     acf: {
-      duree_estimee: prismaQuiz.duration,
-      niveau_difficulte: prismaQuiz.difficulty,
-      categorie: prismaQuiz.module?.title || '',
+      duree_estimee: prismaQuiz.duration > 0 ? prismaQuiz.duration : undefined,
+      niveau_difficulte: (prismaQuiz.difficulty != null && String(prismaQuiz.difficulty).trim()) ? prismaQuiz.difficulty : undefined,
+      categorie: prismaQuiz.module?.title?.trim() || undefined,
       nombre_questions: prismaQuiz.maxQuestions || questions.length,
       score_minimum: prismaQuiz.passingGrade,
       ordre_questions: prismaQuiz.randomizeOrder ? 'Aleatoire' : 'Fixe',

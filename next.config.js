@@ -9,6 +9,8 @@ const nextConfig = {
     domains: [
       'theschoolofmathematics.com',
       'www.theschoolofmathematics.com',
+      'picsum.photos',
+      'images.unsplash.com',
       process.env.WORDPRESS_API_URL?.replace('https://', '').replace('http://', '').split('/')[0] || ''
     ].filter(Boolean),
     remotePatterns: [
@@ -19,6 +21,14 @@ const nextConfig = {
       {
         protocol: 'http',
         hostname: '**.theschoolofmathematics.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
       },
     ],
     formats: ['image/avif', 'image/webp'],

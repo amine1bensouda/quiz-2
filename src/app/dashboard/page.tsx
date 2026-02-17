@@ -44,7 +44,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-gradient-to-b from-white via-gray-50 to-white flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-6 animate-spin">⏳</div>
-          <p className="text-gray-700 text-lg">Chargement...</p>
+          <p className="text-gray-700 text-lg">Loading...</p>
         </div>
       </div>
     );
