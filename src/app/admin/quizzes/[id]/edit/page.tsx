@@ -63,7 +63,8 @@ export default async function EditQuizPage({ params }: { params: { id: string } 
     description: quiz.description || '',
     excerpt: quiz.excerpt || '',
     duration: quiz.duration,
-    difficulty: quiz.difficulty,
+    // Normaliser la difficulté : utiliser '' quand la valeur est null
+    difficulty: quiz.difficulty ?? '',
     passingGrade: quiz.passingGrade,
     randomizeOrder: quiz.randomizeOrder,
     maxQuestions: quiz.maxQuestions || undefined,
