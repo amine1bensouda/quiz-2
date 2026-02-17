@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getAllCategories, getQuizByModule } from '@/lib/quiz-service';
+import type { Category } from '@/lib/types';
 import QuizCard from '@/components/Quiz/QuizCard';
 import Navigation from '@/components/Layout/Navigation';
 import DisplayAd from '@/components/Ads/DisplayAd';
@@ -22,7 +23,7 @@ function normalizeSlug(s: string): string {
     .replace(/[^a-z0-9-]/g, '');
 }
 
-function findCategoryBySlug(categories: { slug: string; name: string }[], slugParam: string) {
+function findCategoryBySlug(categories: Category[], slugParam: string) {
   const decoded = decodeURIComponent(slugParam || '');
   const exact = categories.find((c) => c.slug === decoded);
   if (exact) return exact;
