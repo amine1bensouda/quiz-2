@@ -51,7 +51,8 @@ export async function POST(request: NextRequest) {
     // Chaîne vide si non renseigné (la DB peut avoir une contrainte NOT NULL sur difficulty)
     const safeDifficulty = (difficulty != null && difficulty !== '') ? String(difficulty) : '';
     const safePassingGrade = passingGrade != null && passingGrade !== '' ? Math.max(0, Math.min(100, Number(passingGrade) || 70)) : 70;
-    const safeMaxQuestions = (maxQuestions != null && maxQuestions !== '') ? Math.max(0, Math.floor(Number(maxQuestions)) || null) : null;
+    const maxQuestionsNum = (maxQuestions != null && maxQuestions !== '') ? Math.floor(Number(maxQuestions)) : NaN;
+    const safeMaxQuestions = Number.isFinite(maxQuestionsNum) && maxQuestionsNum >= 0 ? maxQuestionsNum : null;
 
     const questionsPayload = Array.isArray(rawQuestions) ? rawQuestions : [];
     const questionsCreate = questionsPayload.map((q: any, index: number) => ({
