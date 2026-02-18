@@ -4,7 +4,6 @@ import { getAllCategories, getQuizByModule } from '@/lib/quiz-service';
 import type { Category } from '@/lib/types';
 import QuizCard from '@/components/Quiz/QuizCard';
 import Navigation from '@/components/Layout/Navigation';
-import DisplayAd from '@/components/Ads/DisplayAd';
 import { SITE_NAME } from '@/lib/constants';
 
 export const revalidate = 3600;
@@ -97,9 +96,6 @@ export default async function CategoryPage({ params }: PageProps) {
           </p>
         </div>
 
-        {/* Publicité */}
-        <DisplayAd />
-
         {quizs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {quizs.map((quiz, index) => (
@@ -114,9 +110,6 @@ export default async function CategoryPage({ params }: PageProps) {
             </p>
           </div>
         )}
-
-        {/* Publicité */}
-        <DisplayAd />
       </div>
     </div>
   );

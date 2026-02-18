@@ -217,15 +217,15 @@ export default function Question({
                 <div className="mt-4 space-y-3">
                   {answers.length > 0 && answers[0]?.texte && (
                     <div className={`p-4 rounded-xl border-l-4 ${
-                      correctAnswer && selectedAnswer && 
-                      selectedAnswer.replace('text:', '').toLowerCase().trim() === answers[0].texte.toLowerCase().trim()
+                      correctAnswer && selectedAnswer &&
+                      selectedAnswer.replace('text:', '').toLowerCase().trim() === (answers[0].texte || '').replace(/<[^>]*>/g, '').toLowerCase().trim()
                         ? 'bg-green-50 border-green-500'
                         : 'bg-gray-50 border-gray-900'
                     }`}>
                       <p className="text-sm font-semibold text-gray-900 mb-2">Expected Answer:</p>
-                      <p className="text-sm text-gray-700">
-                        <MathRenderer text={answers[0].texte} />
-                      </p>
+                      <div className="text-sm text-gray-700">
+                        <HtmlWithMathRenderer html={answers[0].texte} />
+                      </div>
                     </div>
                   )}
                   {explication && (
@@ -275,7 +275,7 @@ export default function Question({
                 `}
               >
                 <div className="flex items-start gap-4">
-                  {/* Indicateur de réponse */}
+                  {/* Indicateur de réponse (A, B, C...) */}
                   <div className={`
                     flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm transition-all duration-300
                     ${showCorrect && 'bg-green-600 text-white shadow-lg'}
@@ -300,19 +300,29 @@ export default function Question({
                       <span>{String.fromCharCode(65 + index)}</span>
                     )}
                   </div>
-                  
-                  {/* Texte de la réponse */}
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900 text-lg leading-relaxed">
-                      <MathRenderer text={answer.texte || ''} />
-                    </p>
+
+                  {/* Contenu du choix : image + texte (images bien visibles parmi les choix) */}
+                  <div className="flex-1 min-w-0">
+                    {answer.imageUrl && (
+                      <div className="mb-3 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 max-w-sm max-h-40 w-full">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={answer.imageUrl}
+                          alt=""
+                          className="object-contain w-full h-32 sm:h-40"
+                        />
+                      </div>
+                    )}
+                    <div className="font-semibold text-gray-900 text-lg leading-relaxed [&_.ql-editor]:p-0">
+                      <HtmlWithMathRenderer html={answer.texte || ''} />
+                    </div>
                     {showResult && answer.explication && (
-                      <p className="text-sm text-gray-600 mt-3 italic leading-relaxed bg-gray-50 p-3 rounded-lg">
-                        💡 <MathRenderer text={answer.explication || ''} />
-                      </p>
+                      <div className="text-sm text-gray-600 mt-3 italic leading-relaxed bg-gray-50 p-3 rounded-lg">
+                        💡 <HtmlWithMathRenderer html={answer.explication || ''} />
+                      </div>
                     )}
                   </div>
-                  
+
                   {/* Badge correcte */}
                   {showCorrect && (
                     <div className="flex-shrink-0">

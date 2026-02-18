@@ -8,6 +8,7 @@ interface Answer {
   text: string;
   isCorrect: boolean;
   explanation: string;
+  imageUrl?: string;
   order: number;
 }
 
@@ -67,6 +68,7 @@ export default function QuestionEditor({ question, index, onUpdate, onDelete }: 
       text: '',
       isCorrect: false,
       explanation: '',
+      imageUrl: '',
       order: localQuestion.answers.length,
     };
     updateQuestion({ answers: [...localQuestion.answers, newAnswer] });
@@ -172,21 +174,22 @@ export default function QuestionEditor({ question, index, onUpdate, onDelete }: 
                       className="mt-2 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                     />
                     <div className="flex-1 space-y-2">
-                      <input
-                        type="text"
-                        required
+                      <label className="block text-sm font-medium text-gray-700">Answer text *</label>
+                      <RichTextEditor
                         value={answer.text}
-                        onChange={(e) => handleAnswerChange(answerIndex, { text: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        onChange={(value) => handleAnswerChange(answerIndex, { text: value })}
                         placeholder="Answer text..."
+                        compact
                       />
-                      <input
-                        type="text"
-                        value={answer.explanation}
-                        onChange={(e) => handleAnswerChange(answerIndex, { explanation: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                        placeholder="Explanation (optional)..."
-                      />
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Explanation (optional)</label>
+                        <RichTextEditor
+                          value={answer.explanation}
+                          onChange={(value) => handleAnswerChange(answerIndex, { explanation: value })}
+                          placeholder="Explanation (optional)..."
+                          compact
+                        />
+                      </div>
                     </div>
                     {localQuestion.answers.length > 2 && (
                       <button
@@ -216,6 +219,7 @@ export default function QuestionEditor({ question, index, onUpdate, onDelete }: 
                       text: '',
                       isCorrect: true,
                       explanation: '',
+                      imageUrl: '',
                       order: 0,
                     };
                     updateQuestion({ answers: [newAnswer] });
@@ -229,25 +233,24 @@ export default function QuestionEditor({ question, index, onUpdate, onDelete }: 
                   <div key={answerIndex} className="bg-white p-4 rounded-lg border border-gray-200">
                     <div className="flex items-start space-x-3">
                       <div className="flex-1 space-y-2">
-                        <input
-                          type="text"
-                          required
+                        <label className="block text-sm font-medium text-gray-700">Expected answer (for reference) *</label>
+                        <RichTextEditor
                           value={answer.text}
-                          onChange={(e) => handleAnswerChange(answerIndex, { text: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          onChange={(value) => handleAnswerChange(answerIndex, { text: value })}
                           placeholder="Expected answer (for reference)..."
+                          compact
                         />
-                        <input
-                          type="text"
+                        <label className="block text-sm font-medium text-gray-700">Additional explanation (optional)</label>
+                        <RichTextEditor
                           value={answer.explanation}
-                          onChange={(e) => handleAnswerChange(answerIndex, { explanation: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                          onChange={(value) => handleAnswerChange(answerIndex, { explanation: value })}
                           placeholder="Additional explanation (optional)..."
+                          compact
                         />
                       </div>
                     </div>
                     <p className="text-xs text-gray-500 mt-2">
-                      Note: For text input questions, answers will be compared case-insensitively. Multiple acceptable answers can be added.
+                      Note: For text input questions, answers will be compared case-insensitively (HTML stripped). Multiple acceptable answers can be added.
                     </p>
                   </div>
                 ))

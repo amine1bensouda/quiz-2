@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { getQuizBySlug } from '@/lib/wordpress';
 import { getAllQuizSlugs } from '@/lib/quiz-service';
-import QuizWithAds from '@/components/Quiz/QuizWithAds';
+import QuizPlayer from '@/components/Quiz/QuizPlayer';
 import QuizSchema from '@/components/SEO/QuizSchema';
 import BreadcrumbSchema from '@/components/SEO/BreadcrumbSchema';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
@@ -225,8 +225,7 @@ export default async function QuizPage({ params }: PageProps) {
             </div>
           </div>
 
-        {/* Publicité + Quiz (les pubs se rechargent au clic sur "Skip Question") */}
-        <QuizWithAds quiz={quiz} />
+        <QuizPlayer quiz={quiz} />
         </div>
       </div>
     </>

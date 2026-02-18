@@ -76,6 +76,7 @@ export async function PUT(
                   text: a.text || a.texte || '',
                   isCorrect: a.isCorrect !== undefined ? a.isCorrect : a.correcte || false,
                   explanation: a.explanation || a.explication || null,
+                  imageUrl: (a.imageUrl != null && String(a.imageUrl).trim() !== '') ? String(a.imageUrl).trim() : null,
                   order: a.order !== undefined ? a.order : aIndex,
                 })),
               },

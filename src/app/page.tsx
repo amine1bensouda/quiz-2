@@ -4,7 +4,6 @@ import { getAllQuiz } from '@/lib/quiz-service';
 import { getStats } from '@/lib/wordpress';
 import { getAllPublishedCourses } from '@/lib/course-service';
 import QuizCard from '@/components/Quiz/QuizCard';
-import DisplayAd from '@/components/Ads/DisplayAd';
 import { SITE_NAME, SITE_DESCRIPTION } from '@/lib/constants';
 import { formatNumber } from '@/lib/utils';
 import AnimatedShapes from '@/components/Layout/AnimatedShapes';

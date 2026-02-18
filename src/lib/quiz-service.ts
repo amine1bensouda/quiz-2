@@ -296,6 +296,7 @@ export function convertPrismaQuizToQuiz(prismaQuiz: any): Quiz {
           texte: a.text || '',
           correcte: a.isCorrect || false,
           explication: a.explanation || '',
+          imageUrl: a.imageUrl && String(a.imageUrl).trim() ? a.imageUrl : undefined,
         })),
     };
     

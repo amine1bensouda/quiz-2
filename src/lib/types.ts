@@ -67,6 +67,7 @@ export interface Answer {
   texte: string;
   correcte: boolean;
   explication?: string;
+  imageUrl?: string;
 }
 
 // Types pour les Catégories

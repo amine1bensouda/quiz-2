@@ -11,6 +11,8 @@ interface RichTextEditorProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  /** Hauteur réduite pour réponses / explications */
+  compact?: boolean;
 }
 
 export default function RichTextEditor({
@@ -18,6 +20,7 @@ export default function RichTextEditor({
   onChange,
   placeholder = 'Enter text...',
   className = '',
+  compact = false,
 }: RichTextEditorProps) {
   const [localValue, setLocalValue] = useState(value);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -89,15 +92,20 @@ export default function RichTextEditor({
     'video',
   ];
 
+  const minHeight = compact ? 100 : 200;
   return (
-    <div className={`rich-text-editor ${className}`}>
+    <div className={`rich-text-editor ${compact ? 'rich-text-editor-compact' : ''} ${className}`}>
       <style jsx global>{`
         .rich-text-editor .ql-container {
-          min-height: 200px;
+          min-height: ${minHeight}px;
           font-size: 14px;
         }
         .rich-text-editor .ql-editor {
-          min-height: 200px;
+          min-height: ${minHeight}px;
+        }
+        .rich-text-editor-compact .ql-container,
+        .rich-text-editor-compact .ql-editor {
+          min-height: 100px;
         }
         .rich-text-editor .ql-toolbar {
           border-top: 1px solid #d1d5db;

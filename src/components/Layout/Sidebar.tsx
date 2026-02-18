@@ -1,4 +1,3 @@
-import SidebarAd from '@/components/Ads/SidebarAd';
 import { getAllCategories } from '@/lib/wordpress';
 import Link from 'next/link';
 import type { Category } from '@/lib/types';
@@ -32,11 +31,6 @@ export default function Sidebar({ categories = [] }: SidebarProps) {
             </ul>
           </div>
         )}
-
-        {/* Publicité latérale */}
-        <div className="hidden md:block">
-          <SidebarAd />
-        </div>
       </div>
     </aside>
   );

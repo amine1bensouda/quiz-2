@@ -26,6 +26,7 @@ interface Answer {
   text: string;
   isCorrect: boolean;
   explanation: string;
+  imageUrl?: string;
   order: number;
 }
 
@@ -260,8 +261,9 @@ export default function QuizForm({ initialData }: QuizFormProps) {
         router.push('/admin/quizzes');
         router.refresh();
       } else {
-        const data = await response.json();
-        alert(data.error || 'Error saving');
+        const data = await response.json().catch(() => ({}));
+        const message = data.details ? `${data.error || 'Error saving'}: ${data.details}` : (data.error || 'Error saving');
+        alert(message);
       }
     } catch (error) {
       console.error('Erreur sauvegarde:', error);

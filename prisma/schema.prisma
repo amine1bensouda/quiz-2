@@ -93,6 +93,7 @@ model Answer {
   text        String
   isCorrect   Boolean  @default(false)
   explanation String?
+  imageUrl    String?  // URL d'une image optionnelle pour le choix de réponse
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

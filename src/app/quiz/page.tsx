@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Navigation from '@/components/Layout/Navigation';
-import DisplayAd from '@/components/Ads/DisplayAd';
 import AnimatedShapes from '@/components/Layout/AnimatedShapes';
 import BackgroundPattern from '@/components/Layout/BackgroundPattern';
 import CourseCard from '@/components/Quiz/CourseCard';
@@ -79,9 +78,6 @@ export default function QuizListPage() {
           )}
         </div>
 
-        {/* Publicité */}
-        <DisplayAd />
-
         {loading ? (
           <div className="text-center py-20">
             <div className="inline-block backdrop-blur-xl bg-white/80 rounded-3xl shadow-2xl p-12 border border-white/40">
@@ -120,9 +116,6 @@ export default function QuizListPage() {
             </div>
           </div>
         )}
-
-        {/* Publicité */}
-        <DisplayAd />
       </div>
     </div>
   );

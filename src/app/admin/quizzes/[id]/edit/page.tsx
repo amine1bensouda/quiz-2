@@ -84,6 +84,7 @@ export default async function EditQuizPage({ params }: { params: { id: string } 
           text: a.text,
           isCorrect: a.isCorrect,
           explanation: a.explanation || '',
+          imageUrl: a.imageUrl || undefined,
           order: a.order,
         })),
     })),
