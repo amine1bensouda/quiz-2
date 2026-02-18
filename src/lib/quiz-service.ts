@@ -267,31 +267,19 @@ export async function getAllCategories(): Promise<Category[]> {
  * Convertit un quiz Prisma au format Quiz attendu par le frontend
  */
 export function convertPrismaQuizToQuiz(prismaQuiz: any): Quiz {
-  const questions = prismaQuiz.questions.map((q: any, index: number) => {
-    // Vérifier que les réponses existent
-    const answers = q.answers || [];
-    
-    if (answers.length === 0) {
-      console.warn(`⚠️ Question ${index + 1} (ID: ${q.id}, ${q.text?.substring(0, 50)}...) n'a pas de réponses`);
-      console.warn('   Structure complète de la question:', {
-        id: q.id,
-        text: q.text,
-        type: q.type,
-        answersCount: answers.length,
-        hasAnswers: !!q.answers,
-        questionKeys: Object.keys(q),
-      });
-    }
-    
-    const convertedQuestion = {
+  const questions = prismaQuiz.questions.map((q: any) => {
+    const answers = Array.isArray(q.answers) ? q.answers : [];
+    const typeQuestion = q.type === 'true_false' ? 'VraiFaux' : (q.type === 'text_input' ? 'TexteLibre' : 'QCM');
+
+    return {
       id: q.id,
       texte_question: q.text || '',
-      type_question: q.type === 'true_false' ? 'VraiFaux' : (q.type === 'text_input' ? 'TexteLibre' : 'QCM'),
+      type_question: typeQuestion,
       explication: q.explanation || '',
       points: q.points,
       temps_limite: q.timeLimit || undefined,
       reponses: answers
-        .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
+        .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
         .map((a: any) => ({
           texte: a.text || '',
           correcte: a.isCorrect || false,
@@ -299,18 +287,6 @@ export function convertPrismaQuizToQuiz(prismaQuiz: any): Quiz {
           imageUrl: a.imageUrl && String(a.imageUrl).trim() ? a.imageUrl : undefined,
         })),
     };
-    
-    // Log pour déboguer
-    if (index < 3) {
-      console.log(`📝 Question ${index + 1} convertie:`, {
-        id: convertedQuestion.id,
-        texte_question: convertedQuestion.texte_question?.substring(0, 50),
-        reponsesCount: convertedQuestion.reponses.length,
-        type: convertedQuestion.type_question,
-      });
-    }
-    
-    return convertedQuestion;
   });
 
   // Convertir l'ID string (cuid) en number pour compatibilité avec le type Quiz (affichage / ancien code)
