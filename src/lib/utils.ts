@@ -43,12 +43,15 @@ export function generateSlug(text: string): string {
  * Traduit le niveau de difficulté en français (si reçu en anglais depuis l'API)
  */
 const DIFFICULTY_FR: Record<string, string> = {
-  Easy: 'Facile',
-  Medium: 'Moyen',
-  Hard: 'Difficile',
-  Expert: 'Expert',
-  Facile: 'Facile',
-  Moyen: 'Moyen',
+  Fundamental: 'Fondamental',
+  Intermediate: 'Intermédiaire',
+  Advanced: 'Avancé',
+  Easy: 'Fondamental',
+  Medium: 'Intermédiaire',
+  Hard: 'Avancé',
+  Expert: 'Avancé',
+  Facile: 'Fondamental',
+  Moyen: 'Intermédiaire',
   Difficile: 'Difficile',
 };
 export function translateDifficulty(value: string | undefined): string {
@@ -76,13 +79,19 @@ export function translateCategory(value: string | undefined): string {
  * Niveau de difficulté en anglais (pour la bannière quiz en anglais)
  */
 const DIFFICULTY_EN: Record<string, string> = {
-  Facile: 'Easy',
-  Moyen: 'Medium',
-  Difficile: 'Hard',
-  Expert: 'Expert',
-  Easy: 'Easy',
-  Medium: 'Medium',
-  Hard: 'Hard',
+  Fundamental: 'Fundamental',
+  Intermediate: 'Intermediate',
+  Advanced: 'Advanced',
+  Fondamental: 'Fundamental',
+  Intermediaire: 'Intermediate',
+  Avancé: 'Advanced',
+  Facile: 'Fundamental',
+  Moyen: 'Intermediate',
+  Difficile: 'Advanced',
+  Expert: 'Advanced',
+  Easy: 'Fundamental',
+  Medium: 'Intermediate',
+  Hard: 'Advanced',
 };
 export function difficultyToEnglish(value: string | undefined): string {
   if (!value || !value.trim()) return '';

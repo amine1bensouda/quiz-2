@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db';
 import Link from 'next/link';
 import DeleteModuleButton from '@/components/Admin/DeleteModuleButton';
+import ModuleTableWithReorder from '@/components/Admin/ModuleTableWithReorder';
 
 export default async function AdminModulesPage({
   searchParams,
@@ -83,75 +84,95 @@ export default async function AdminModulesPage({
       )}
 
       {modules.length > 0 ? (
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Title
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Course
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Slug
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Quiz
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Order
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {modules.map((module) => (
-                  <tr key={module.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-gray-900">{module.title}</div>
-                      {module.description && (
-                        <div className="text-sm text-gray-500 mt-1 line-clamp-1">
-                          {module.description}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-3 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800">
-                        {module.course.title}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <code className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-700">
-                        {module.slug}
-                      </code>
-                    </td>
-                    <td className="px-6 py-4 text-gray-700">
-                      {module._count.quizzes}
-                    </td>
-                    <td className="px-6 py-4 text-gray-700">
-                      {module.order}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-2">
-                        <Link
-                          href={`/admin/modules/${module.id}/edit`}
-                          className="px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
-                        >
-                          Edit
-                        </Link>
-                        <DeleteModuleButton moduleId={module.id} moduleTitle={module.title} />
-                      </div>
-                    </td>
+        searchParams.courseId ? (
+          <>
+            <p className="text-sm text-gray-600 mb-3">
+              Utilisez les flèches <span className="inline-block align-middle">↑</span> <span className="inline-block align-middle">↓</span> pour modifier l&apos;ordre des modules.
+            </p>
+            <ModuleTableWithReorder
+            modules={modules.map((m) => ({
+              id: m.id,
+              title: m.title,
+              slug: m.slug,
+              description: m.description,
+              order: m.order,
+              course: m.course,
+              _count: m._count,
+            }))}
+            courseId={searchParams.courseId}
+          />
+          </>
+        ) : (
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Title
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Course
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Slug
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Quiz
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Order
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {modules.map((module) => (
+                    <tr key={module.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-gray-900">{module.title}</div>
+                        {module.description && (
+                          <div className="text-sm text-gray-500 mt-1 line-clamp-1">
+                            {module.description}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-3 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800">
+                          {module.course.title}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <code className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-700">
+                          {module.slug}
+                        </code>
+                      </td>
+                      <td className="px-6 py-4 text-gray-700">
+                        {module._count.quizzes}
+                      </td>
+                      <td className="px-6 py-4 text-gray-700">
+                        {module.order}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2">
+                          <Link
+                            href={`/admin/modules/${module.id}/edit`}
+                            className="px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                          >
+                            Edit
+                          </Link>
+                          <DeleteModuleButton moduleId={module.id} moduleTitle={module.title} />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )
       ) : (
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center">
           <div className="text-6xl mb-4">📦</div>

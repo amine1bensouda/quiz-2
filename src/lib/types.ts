@@ -17,7 +17,7 @@ export interface Quiz {
   featured_media_url?: string;
   acf?: {
     duree_estimee?: number;
-    niveau_difficulte?: 'Facile' | 'Moyen' | 'Difficile' | 'Expert';
+    niveau_difficulte?: 'Fundamental' | 'Intermediate' | 'Advanced' | 'Facile' | 'Moyen' | 'Difficile' | 'Expert' | 'Easy' | 'Medium' | 'Hard';
     categorie?: string;
     nombre_questions?: number;
     score_minimum?: number;

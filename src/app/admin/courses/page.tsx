@@ -3,6 +3,7 @@ import Link from 'next/link';
 import DeleteCourseButton from '@/components/Admin/DeleteCourseButton';
 import PublishCourseButton from '@/components/Admin/PublishCourseButton';
 import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
+import CourseModulesDraggable from '@/components/Admin/CourseModulesDraggable';
 
 export default async function AdminCoursesPage() {
   try {
@@ -104,36 +105,29 @@ export default async function AdminCoursesPage() {
                 </div>
               </div>
 
-              {/* Course Modules */}
-              {course.modules.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3">Modules:</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {course.modules.map((module) => (
-                      <div
-                        key={module.id}
-                        className="bg-gray-50 rounded-lg p-3 border border-gray-200"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium text-gray-900">{module.title}</h4>
-                            <p className="text-xs text-gray-500 mt-1">
-                              {module._count.quizzes} quiz
-                            </p>
-                          </div>
-                          <Link
-                            href={`/admin/modules/${module.id}/edit`}
-                            className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
-                          >
-                            Edit
-                          </Link>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+              {/* Course Modules (glisser-déposer pour réordonner) */}
+              {course.modules.length > 0 ? (
+                <>
+                  <CourseModulesDraggable
+                    courseId={course.id}
+                    modules={course.modules.map((m) => ({
+                      id: m.id,
+                      title: m.title,
+                      _count: m._count,
+                    }))}
+                  />
                   <Link
                     href={`/admin/modules/new?courseId=${course.id}`}
                     className="mt-3 inline-block text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+                  >
+                    ➕ Add a module
+                  </Link>
+                </>
+              ) : (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <Link
+                    href={`/admin/modules/new?courseId=${course.id}`}
+                    className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
                   >
                     ➕ Add a module
                   </Link>
