@@ -98,6 +98,7 @@ export default function LessonPage() {
         <article className="rounded-2xl bg-white/90 backdrop-blur-md border border-white/60 shadow-xl overflow-hidden">
           {lesson.featuredImageUrl && (
             <div className="aspect-video w-full bg-gray-100">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={lesson.featuredImageUrl}
                 alt=""

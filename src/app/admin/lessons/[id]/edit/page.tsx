@@ -25,7 +25,7 @@ export default async function EditLessonPage({
     content: lesson.content ?? '',
     featuredImageUrl: lesson.featuredImageUrl ?? '',
     videoUrl: lesson.videoUrl ?? '',
-    videoPlaybackSeconds: lesson.videoPlaybackSeconds ?? '',
+    videoPlaybackSeconds: (lesson.videoPlaybackSeconds ?? '') as number | '',
     pdfUrl: lesson.pdfUrl ?? '',
     allowPreview: lesson.allowPreview,
     order: lesson.order,
