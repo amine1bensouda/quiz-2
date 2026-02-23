@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import QuestionEditor from './QuestionEditor';
 import RichTextEditor from './RichTextEditor';
+import ImageUploadField from './ImageUploadField';
 
 interface Course {
   id: string;
@@ -541,15 +542,11 @@ export default function QuizForm({ initialData }: QuizFormProps) {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                URL Image
-              </label>
-              <input
-                type="url"
+              <ImageUploadField
+                label="Image du quiz"
                 value={formData.featuredImageUrl}
-                onChange={(e) => setFormData((prev) => ({ ...prev, featuredImageUrl: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="https://..."
+                onChange={(url) => setFormData((prev) => ({ ...prev, featuredImageUrl: url }))}
+                placeholder="or paste a URL (https://...)"
               />
             </div>
             <div className="flex items-center">

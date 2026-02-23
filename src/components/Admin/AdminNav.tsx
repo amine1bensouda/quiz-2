@@ -26,6 +26,7 @@ export default function AdminNav() {
     { href: '/admin', label: 'Dashboard', icon: '📊' },
     { href: '/admin/courses', label: 'Courses', icon: '📚' },
     { href: '/admin/modules', label: 'Modules', icon: '📦' },
+    { href: '/admin/lessons', label: 'Lessons', icon: '📄' },
     { href: '/admin/quizzes', label: 'Quizzes', icon: '📝' },
   ];
 

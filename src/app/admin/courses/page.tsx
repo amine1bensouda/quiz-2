@@ -14,6 +14,7 @@ export default async function AdminCoursesPage() {
           _count: {
             select: {
               quizzes: true,
+              lessons: true,
             },
           },
         },

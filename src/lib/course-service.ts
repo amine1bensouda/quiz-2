@@ -82,9 +82,13 @@ export async function getCourseBySlug(slug: string) {
                 createdAt: 'desc',
               },
             },
+            lessons: {
+              orderBy: { order: 'asc' },
+            },
             _count: {
               select: {
                 quizzes: true,
+                lessons: true,
               },
             },
           },

@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 type ModuleItem = {
   id: string;
   title: string;
-  _count: { quizzes: number };
+  _count: { quizzes: number; lessons?: number };
 };
 
 interface CourseModulesDraggableProps {
@@ -123,16 +123,26 @@ export default function CourseModulesDraggable({ courseId, modules: initialModul
                   <h4 className="font-medium text-gray-900 truncate">{module.title}</h4>
                   <p className="text-xs text-gray-500 mt-1">
                     {module._count.quizzes} quiz
+                    {(module._count.lessons ?? 0) > 0 && ` · ${module._count.lessons} lesson${module._count.lessons !== 1 ? 's' : ''}`}
                   </p>
                 </div>
               </div>
-              <Link
-                href={`/admin/modules/${module.id}/edit`}
-                className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex-shrink-0"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Edit
-              </Link>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Link
+                  href={`/admin/lessons/new?moduleId=${module.id}`}
+                  className="text-emerald-600 hover:text-emerald-800 text-sm font-medium"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  + Lesson
+                </Link>
+                <Link
+                  href={`/admin/modules/${module.id}/edit`}
+                  className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Edit
+                </Link>
+              </div>
             </div>
           </div>
         ))}

@@ -7,6 +7,7 @@ interface AccordionProps {
   children: React.ReactNode;
   defaultOpen?: boolean;
   quizCount?: number;
+  lessonCount?: number;
   icon?: React.ReactNode;
 }
 
@@ -15,9 +16,13 @@ export default function Accordion({
   children,
   defaultOpen = false,
   quizCount,
+  lessonCount,
   icon,
 }: AccordionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const hasQuizzes = (quizCount ?? 0) > 0;
+  const hasLessons = (lessonCount ?? 0) > 0;
+  const countLabel = [hasQuizzes && `${quizCount} quiz${quizCount !== 1 ? 'zes' : ''}`, hasLessons && `${lessonCount} lesson${lessonCount !== 1 ? 's' : ''}`].filter(Boolean).join(' · ');
 
   return (
     <div className="backdrop-blur-xl bg-white/80 rounded-2xl sm:rounded-3xl shadow-2xl border border-white/40 overflow-hidden transition-all duration-300 md:hover:shadow-3xl">
@@ -30,9 +35,9 @@ export default function Accordion({
           <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 break-words min-w-0">
             {title}
           </h2>
-          {quizCount !== undefined && (
+          {countLabel && (
             <span className="flex-shrink-0 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs sm:text-sm font-semibold">
-              {quizCount} quiz{quizCount !== 1 ? 'zes' : ''}
+              {countLabel}
             </span>
           )}
         </div>
