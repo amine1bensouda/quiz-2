@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { unstable_noStore } from 'next/cache';
 import { getAllQuiz } from '@/lib/quiz-service';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 export const revalidate = 3600;
 
 /**
@@ -9,10 +11,12 @@ export const revalidate = 3600;
  * Récupère tous les quiz
  */
 export async function GET(request: NextRequest) {
+  unstable_noStore();
   try {
-    const { searchParams } = new URL(request.url);
-    const moduleSlug = searchParams.get('module');
-    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined;
+    const url = request.nextUrl ?? new URL(request.url);
+    const moduleSlug = url.searchParams.get('module');
+    const limitParam = url.searchParams.get('limit');
+    const limit = limitParam ? parseInt(limitParam, 10) : undefined;
 
     let quizzes = await getAllQuiz();
 

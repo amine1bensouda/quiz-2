@@ -1,19 +1,24 @@
 import { NextResponse } from 'next/server';
-import { getCurrentUserFromSession } from '@/lib/auth-server';
+import { cookies } from 'next/headers';
+import { unstable_noStore } from 'next/cache';
+import { getUserBySessionToken } from '@/lib/auth-server';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function GET() {
+  unstable_noStore();
   try {
-    const user = await getCurrentUserFromSession();
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get('session_token')?.value;
+    const user = await getUserBySessionToken(sessionToken);
 
-    // 200 avec user: null si non connecté (évite l'erreur 401 en console)
     if (!user) {
       return NextResponse.json({ user: null });
     }
 
     return NextResponse.json({ user });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error getting current user:', error);
     return NextResponse.json(
       { error: 'Failed to get user' },
