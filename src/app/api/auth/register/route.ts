@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { hashPassword } from '@/lib/auth-utils';
 import { cookies } from 'next/headers';
 
 // Force dynamic + Node.js runtime on Vercel (évite 405 en prod)
@@ -49,8 +50,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Import dynamique pour éviter erreur au chargement du module (bcrypt) sur Vercel → 405
-    const { hashPassword } = await import('@/lib/auth-utils');
     const hashedPassword = await hashPassword(password);
 
     // Créer l'utilisateur

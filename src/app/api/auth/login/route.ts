@@ -41,8 +41,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Import dynamique pour éviter erreur au chargement du module (bcrypt) sur Vercel → 405
-    const { comparePassword } = await import('@/lib/auth-utils');
     const isPasswordValid = await comparePassword(password, user.password);
 
     if (!isPasswordValid) {

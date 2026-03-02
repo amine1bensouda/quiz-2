@@ -1,18 +1,18 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 /**
- * Hash un mot de passe avec bcrypt
+ * Hash un mot de passe (bcryptjs = JS pur, pas de binaire natif → fonctionne sur Vercel)
  */
 export async function hashPassword(password: string): Promise<string> {
   const saltRounds = 10;
-  return bcrypt.hash(password, saltRounds);
+  return Promise.resolve(bcrypt.hashSync(password, saltRounds));
 }
 
 /**
  * Compare un mot de passe avec un hash
  */
 export async function comparePassword(password: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(password, hash);
+  return Promise.resolve(bcrypt.compareSync(password, hash));
 }
 
 /**

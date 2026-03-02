@@ -13,9 +13,8 @@
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",
-    "@types/bcrypt": "^6.0.0",
     "axios": "^1.6.0",
-    "bcrypt": "^6.0.0",
+    "bcryptjs": "^2.4.3",
     "dotenv": "^17.2.3",
     "katex": "^0.16.27",
     "mathjax-full": "^3.2.1",
@@ -30,6 +29,7 @@
     "sharp": "^0.32.6"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
