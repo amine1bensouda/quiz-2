@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { _getAllCategoriesUncached } from '@/lib/wordpress';
 
-export const revalidate = 3600; // Revalider toutes les heures
+export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export async function GET() {
   try {

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllQuiz } from '@/lib/quiz-service';
 
-export const revalidate = 3600; // Revalider toutes les heures
+export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 /**
  * GET /api/quizzes
