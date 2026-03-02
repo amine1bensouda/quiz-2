@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { unstable_noStore } from 'next/cache';
 import { getAllQuiz } from '@/lib/quiz-service';
 
 export const dynamic = 'force-dynamic';
@@ -11,7 +10,6 @@ export const revalidate = 3600;
  * Récupère tous les quiz
  */
 export async function GET(request: NextRequest) {
-  unstable_noStore();
   try {
     const url = request.nextUrl ?? new URL(request.url);
     const moduleSlug = url.searchParams.get('module');

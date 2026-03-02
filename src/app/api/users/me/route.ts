@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { unstable_noStore } from 'next/cache';
 import { getUserBySessionToken } from '@/lib/auth-server';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET() {
-  unstable_noStore();
   try {
     const cookieStore = await cookies();
     const sessionToken = cookieStore.get('session_token')?.value;
