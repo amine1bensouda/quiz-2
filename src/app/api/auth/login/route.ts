@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { comparePassword } from '@/lib/auth-utils';
 import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
@@ -24,7 +23,6 @@ export async function POST(request: NextRequest) {
     
     const { email, password } = body;
 
-    // Validation
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email and password are required' },
@@ -32,7 +30,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Trouver l'utilisateur
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -44,7 +41,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Vérifier le mot de passe
+    // Import dynamique pour éviter erreur au chargement du module (bcrypt) sur Vercel → 405
+    const { comparePassword } = await import('@/lib/auth-utils');
     const isPasswordValid = await comparePassword(password, user.password);
 
     if (!isPasswordValid) {

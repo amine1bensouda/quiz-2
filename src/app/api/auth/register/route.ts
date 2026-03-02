@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { hashPassword } from '@/lib/auth-utils';
 import { cookies } from 'next/headers';
 
 // Force dynamic + Node.js runtime on Vercel (évite 405 en prod)
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-// Répondre à la preflight CORS si besoin
 export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: { Allow: 'POST, OPTIONS' } });
 }
@@ -26,7 +24,6 @@ export async function POST(request: NextRequest) {
     
     const { email, password, name } = body;
 
-    // Validation
     if (!email || !password || !name) {
       return NextResponse.json(
         { error: 'Email, password, and name are required' },
@@ -41,7 +38,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Vérifier si l'utilisateur existe déjà
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -53,7 +49,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hasher le mot de passe
+    // Import dynamique pour éviter erreur au chargement du module (bcrypt) sur Vercel → 405
+    const { hashPassword } = await import('@/lib/auth-utils');
     const hashedPassword = await hashPassword(password);
 
     // Créer l'utilisateur
