@@ -3,8 +3,14 @@ import { prisma } from '@/lib/db';
 import { hashPassword } from '@/lib/auth-utils';
 import { cookies } from 'next/headers';
 
-// Évite l'optimisation statique sur Vercel (cause fréquente de 405 en prod)
+// Force dynamic + Node.js runtime on Vercel (évite 405 en prod)
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+// Répondre à la preflight CORS si besoin
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: { Allow: 'POST, OPTIONS' } });
+}
 
 export async function POST(request: NextRequest) {
   try {

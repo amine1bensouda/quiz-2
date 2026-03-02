@@ -4,6 +4,11 @@ import { comparePassword } from '@/lib/auth-utils';
 import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: { Allow: 'POST, OPTIONS' } });
+}
 
 export async function POST(request: NextRequest) {
   try {
