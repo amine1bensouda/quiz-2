@@ -28,6 +28,9 @@
     "react-quill": "^2.0.0",
     "sharp": "^0.32.6"
   },
+  "optionalDependencies": {
+    "better-sqlite3": "^12.6.2"
+  },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/better-sqlite3": "^7.6.13",
@@ -35,7 +38,6 @@
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "autoprefixer": "^10.4.16",
-    "better-sqlite3": "^12.6.2",
     "eslint": "^8.50.0",
     "eslint-config-next": "^14.0.0",
     "postcss": "^8.4.0",
