@@ -54,7 +54,8 @@ PrismaClientInitializationError
 |--------|--------|----------|
 | `Environment variable not found: DATABASE_URL` | Variable absente pendant le build | Définir `DATABASE_URL` dans les variables d’environnement du build Hostinger |
 | `AxiosError 404` vers `localhost/test2/wp-json/...` | Appel WordPress en build sans URL configurée | Définir `WORDPRESS_API_URL` avec l’URL réelle en prod, ou laisser non définie (l’app n’appellera plus localhost en prod) |
-| `Échec de la compilation du déploiement` | Souvent une des deux causes ci-dessus | Vérifier les variables ci-dessus et relancer le déploiement |
+| `FATAL: MaxClientsInSessionMode: max clients reached` | Trop de connexions PostgreSQL au build | Déployer la version avec `connection_limit=1` (automatique) et pages en `dynamic` pour limiter la pré-génération. |
+| `Échec de la compilation du déploiement` | Souvent une des causes ci-dessus | Vérifier les variables et relancer le déploiement après mise à jour du code |
 
 ## 5. Vérification
 

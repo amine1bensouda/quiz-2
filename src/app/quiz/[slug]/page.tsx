@@ -18,20 +18,17 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
+  // Build sans DATABASE_URL (ex. Hostinger) : ne pas appeler Prisma
+  if (!process.env.DATABASE_URL) return [];
   try {
     const slugs = await getAllQuizSlugs();
     if (slugs.length > 0) {
-      return slugs.map((slug) => ({
-        slug,
-      }));
+      return slugs.map((slug) => ({ slug }));
     }
   } catch (error) {
-    // Si WordPress n'est pas accessible, retourner un slug par défaut
-    // pour permettre le build
     console.warn('Erreur lors de la récupération des slugs pour generateStaticParams:', error);
   }
-  // Retourner au moins un slug par défaut pour permettre le build
-  return [{ slug: 'mini-exam' }];
+  return [];
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

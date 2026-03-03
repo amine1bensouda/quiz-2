@@ -11,8 +11,9 @@ if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('file:')) {
   process.env.DATABASE_URL = `file:${dbPath}`;
 }
 
-// En production (Vercel + Supabase), limiter les connexions pour éviter "max clients reached"
-if (process.env.VERCEL && process.env.DATABASE_URL?.startsWith('postgres')) {
+// En production (Vercel, Hostinger, Supabase/Neon), limiter les connexions pour éviter "max clients reached"
+// Hostinger build génère beaucoup de pages en parallèle → épuisement du pool si pas de limite
+if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL?.startsWith('postgres')) {
   const url = process.env.DATABASE_URL;
   if (!url.includes('connection_limit=')) {
     process.env.DATABASE_URL = url.includes('?')

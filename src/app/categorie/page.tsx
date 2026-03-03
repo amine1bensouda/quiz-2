@@ -3,6 +3,7 @@ import { getAllCategories } from '@/lib/quiz-service';
 import Navigation from '@/components/Layout/Navigation';
 import { SITE_NAME } from '@/lib/constants';
 
+export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
 
 export const metadata = {

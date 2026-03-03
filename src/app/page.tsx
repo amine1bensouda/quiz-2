@@ -14,7 +14,9 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
 };
 
-export const revalidate = 3600; // Revalider toutes les heures
+// Build Hostinger : pas de pré-rendu pour éviter d'exiger DATABASE_URL au build
+export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 const CARD_COLORS = [
   { gradient: 'from-purple-600 to-purple-800', bg: 'from-purple-500 to-purple-600', btn: 'from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700' },
