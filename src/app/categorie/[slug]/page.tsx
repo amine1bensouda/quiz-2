@@ -33,17 +33,8 @@ function findCategoryBySlug(categories: Category[], slugParam: string) {
   return byName ?? null;
 }
 
+// Toujours [] pour éviter des centaines de pages au build → épuisement du pool PostgreSQL (Hostinger/Supabase)
 export async function generateStaticParams() {
-  // Build sans DATABASE_URL (ex. Hostinger) : ne pas appeler Prisma
-  if (!process.env.DATABASE_URL) return [];
-  try {
-    const categories = await getAllCategories();
-    if (categories.length > 0) {
-      return categories.map((category) => ({ slug: category.slug }));
-    }
-  } catch (error) {
-    console.warn('Error getCategories generateStaticParams:', error);
-  }
   return [];
 }
 

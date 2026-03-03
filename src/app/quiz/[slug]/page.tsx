@@ -2,7 +2,6 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { getQuizBySlug } from '@/lib/wordpress';
-import { getAllQuizSlugs } from '@/lib/quiz-service';
 import QuizPlayer from '@/components/Quiz/QuizPlayer';
 import QuizSchema from '@/components/SEO/QuizSchema';
 import BreadcrumbSchema from '@/components/SEO/BreadcrumbSchema';
@@ -17,17 +16,8 @@ interface PageProps {
   };
 }
 
+// Toujours [] pour éviter des centaines de pages au build → épuisement du pool PostgreSQL (Hostinger/Supabase)
 export async function generateStaticParams() {
-  // Build sans DATABASE_URL (ex. Hostinger) : ne pas appeler Prisma
-  if (!process.env.DATABASE_URL) return [];
-  try {
-    const slugs = await getAllQuizSlugs();
-    if (slugs.length > 0) {
-      return slugs.map((slug) => ({ slug }));
-    }
-  } catch (error) {
-    console.warn('Erreur lors de la récupération des slugs pour generateStaticParams:', error);
-  }
   return [];
 }
 
