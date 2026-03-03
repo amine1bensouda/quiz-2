@@ -1,7 +1,11 @@
 import axios from 'axios';
 import type { Quiz, Question, Category, Stats } from './types';
 
-const WORDPRESS_API_URL = process.env.WORDPRESS_API_URL || 'http://localhost/test2';
+// En production/build, ne pas appeler localhost (évite 404 pendant le build Hostinger)
+const _wpUrl = process.env.WORDPRESS_API_URL || '';
+const WORDPRESS_API_URL = (process.env.NODE_ENV === 'production' && (!_wpUrl || _wpUrl.includes('localhost')))
+  ? ''
+  : (_wpUrl || 'http://localhost/test2');
 
 // Configuration axios pour l'API WordPress
 const apiClient = axios.create({
@@ -84,8 +88,8 @@ function normalizeTutorQuiz(tutorQuiz: any, questions: Question[] = []): Quiz {
  * Récupère tous les quiz Tutor LMS
  */
 export async function getAllQuiz(): Promise<Quiz[]> {
+  if (!WORDPRESS_API_URL) return [];
   try {
-    // Récupérer les quiz depuis Tutor LMS
     const response = await apiClient.get('/tutor_quiz', {
       params: {
         per_page: 100,
@@ -140,8 +144,8 @@ export async function getAllQuiz(): Promise<Quiz[]> {
  * Récupère un quiz spécifique par son slug
  */
 export async function getQuizBySlug(slug: string): Promise<Quiz | null> {
+  if (!WORDPRESS_API_URL) return null;
   try {
-    // Récupérer le quiz
     const response = await apiClient.get('/tutor_quiz', {
       params: {
         slug,
@@ -194,8 +198,8 @@ export async function getQuizBySlug(slug: string): Promise<Quiz | null> {
  * Récupère les quiz d'une catégorie spécifique
  */
 export async function getQuizByCategory(categorySlug: string): Promise<Quiz[]> {
+  if (!WORDPRESS_API_URL) return [];
   try {
-    // Récupérer l'ID de la catégorie
     const categoryResponse = await axios.get(
       `${WORDPRESS_API_URL}/wp-json/wp/v2/categories`,
       {
@@ -248,6 +252,7 @@ export async function getQuizByCategory(categorySlug: string): Promise<Quiz[]> {
  * Récupère toutes les catégories
  */
 export async function getAllCategories(): Promise<Category[]> {
+  if (!WORDPRESS_API_URL) return [];
   try {
     const response = await axios.get(`${WORDPRESS_API_URL}/wp-json/wp/v2/categories`, {
       params: {
@@ -306,6 +311,7 @@ export async function getStats(): Promise<Stats> {
  * Récupère tous les slugs de quiz pour la génération statique
  */
 export async function getAllQuizSlugs(): Promise<string[]> {
+  if (!WORDPRESS_API_URL) return [];
   try {
     const response = await apiClient.get('/tutor_quiz', {
       params: {

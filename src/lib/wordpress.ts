@@ -2,7 +2,11 @@ import axios from 'axios';
 import { unstable_cache } from 'next/cache';
 import type { Quiz, Question, Category, Stats } from './types';
 
-const WORDPRESS_API_URL = process.env.WORDPRESS_API_URL || 'http://localhost/test2';
+// En production/build, ne pas appeler localhost (évite 404 pendant le build Hostinger)
+const _wpUrl = process.env.WORDPRESS_API_URL || '';
+const WORDPRESS_API_URL = (process.env.NODE_ENV === 'production' && (!_wpUrl || _wpUrl.includes('localhost')))
+  ? ''
+  : (_wpUrl || 'http://localhost/test2');
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 // Configuration axios pour l'API WordPress
@@ -294,8 +298,8 @@ function normalizeTutorQuiz(tutorQuiz: any, questions: Question[] = []): Quiz {
  * Mise en cache pour améliorer les performances
  */
 async function _getAllQuizUncached(): Promise<Quiz[]> {
+  if (!WORDPRESS_API_URL) return [];
   try {
-    // Récupérer les quiz depuis l'API personnalisée Tutor LMS
     const response = await tutorApiClient.get('/quizzes', {
       params: {
         per_page: 100,
@@ -420,12 +424,10 @@ export async function getAllQuiz(): Promise<Quiz[]> {
  * Version non cachée pour utilisation interne
  */
 async function _getQuizBySlugUncached(slug: string): Promise<Quiz | null> {
+  if (!WORDPRESS_API_URL) return null;
   try {
-    // Essayer d'abord de récupérer directement le quiz par slug
     let tutorQuiz: any = null;
-    
     try {
-      // Essayer une route directe si disponible
       const directResponse = await tutorApiClient.get(`/quiz/${slug}`);
       if (directResponse.data) {
         tutorQuiz = directResponse.data;
@@ -706,6 +708,7 @@ export async function getQuizByCategory(categorySlug: string): Promise<Quiz[]> {
  * Exportée pour utilisation dans les API routes
  */
 export async function _getAllCategoriesUncached(): Promise<Category[]> {
+  if (!WORDPRESS_API_URL) return [];
   try {
     const response = await axios.get(`${WORDPRESS_API_URL}/wp-json/wp/v2/categories`, {
       params: {
@@ -861,7 +864,7 @@ export async function getAllQuizSlugs(): Promise<string[]> {
       log('⚠️ Prisma non disponible, utilisation WordPress (fallback)');
     }
 
-    // Fallback vers WordPress si Prisma n'est pas configuré
+    if (!WORDPRESS_API_URL) return [];
     const response = await tutorApiClient.get('/quizzes', {
       params: {
         per_page: 100,
