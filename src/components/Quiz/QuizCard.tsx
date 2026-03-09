@@ -35,7 +35,7 @@ export default function QuizCard({ quiz, index = 0 }: QuizCardProps) {
     <Link
       href={`/quiz/${quiz.slug}`}
       prefetch={true}
-      className="group block card-modern animate-fade-in relative hover:-translate-y-2"
+      className="group block h-full card-modern animate-fade-in relative hover:-translate-y-2"
       style={{ animationDelay: index !== undefined ? `${index * 0.1}s` : '0s' }}
     >
       {quiz.featured_media_url && (
@@ -56,7 +56,7 @@ export default function QuizCard({ quiz, index = 0 }: QuizCardProps) {
         </div>
       )}
       
-      <div className="p-6">
+      <div className="p-6 flex flex-col h-full">
         <div className="flex items-center justify-between mb-4">
           {difficultyConfig && (
             <span
@@ -74,18 +74,18 @@ export default function QuizCard({ quiz, index = 0 }: QuizCardProps) {
           )}
         </div>
 
-        <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-gray-700 transition-colors duration-200 line-clamp-2">
+        <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 group-hover:text-gray-700 transition-colors duration-200 line-clamp-2">
           {stripHtml(quiz.title.rendered)}
         </h3>
 
         {quiz.excerpt?.rendered && (
           <div 
-            className="text-gray-600 text-sm mb-5 line-clamp-2 leading-relaxed prose prose-sm max-w-none"
+            className="hidden sm:block text-gray-600 text-sm mb-4 sm:mb-5 line-clamp-2 leading-relaxed prose prose-sm max-w-none"
             dangerouslySetInnerHTML={{ __html: quiz.excerpt.rendered }}
           />
         )}
 
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+        <div className="mt-auto flex items-center justify-between pt-4 border-t border-gray-100">
           <div className="flex items-center gap-5 text-sm text-gray-600">
             {questionCount > 0 && (
               <span className="flex items-center gap-1.5 font-medium">

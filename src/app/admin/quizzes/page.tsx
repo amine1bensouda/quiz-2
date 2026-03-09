@@ -1,7 +1,7 @@
 import { getAllQuiz } from '@/lib/quiz-service';
 import Link from 'next/link';
 import DeleteQuizButton from '@/components/Admin/DeleteQuizButton';
-import { difficultyToEnglish } from '@/lib/utils';
+import { difficultyToEnglish, stripHtml } from '@/lib/utils';
 
 export default async function AdminQuizzesPage() {
   const quizzes = await getAllQuiz();
@@ -54,8 +54,8 @@ export default async function AdminQuizzesPage() {
                         {typeof quiz.title === 'string' ? quiz.title : quiz.title?.rendered || 'No title'}
                       </div>
                       {quiz.content?.rendered && (
-                        <div className="text-sm text-gray-500 mt-1 line-clamp-1">
-                          {quiz.content.rendered}
+                        <div className="text-sm text-gray-500 mt-1 truncate max-w-xl">
+                          {stripHtml(quiz.content.rendered)}
                         </div>
                       )}
                     </td>
