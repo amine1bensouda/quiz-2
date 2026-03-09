@@ -45,8 +45,11 @@ export async function getAllPublishedCourses() {
     // Vérifier si c'est une erreur de connexion
     if (error instanceof Error) {
       const errorMessage = error.message.toLowerCase();
-      if (errorMessage.includes('connect') || errorMessage.includes('connection') || errorMessage.includes('database')) {
-        throw new Error('Database connection error. Please check your DATABASE_URL configuration.');
+      console.error('Message d\'erreur complet:', error.message);
+      console.error('Stack:', error.stack);
+      
+      if (errorMessage.includes('connect') || errorMessage.includes('connection') || errorMessage.includes('database') || errorMessage.includes('prisma')) {
+        throw new Error(`Database connection error. Please check your DATABASE_URL configuration. Original error: ${error.message}`);
       }
     }
     

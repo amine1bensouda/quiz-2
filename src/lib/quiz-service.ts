@@ -16,12 +16,21 @@ export async function getAllQuiz(): Promise<Quiz[]> {
     
     const quizzes = await prisma.quiz.findMany({
       where: {
-        // Ne récupérer que les quiz dont le cours parent est publié
-        module: {
-          course: {
-            status: 'published',
+        // Récupérer les quiz qui :
+        // 1. Ont un module avec un cours publié
+        // 2. OU n'ont pas de module (moduleId = NULL) - pour les quiz orphelins
+        OR: [
+          {
+            module: {
+              course: {
+                status: 'published',
+              },
+            },
           },
-        },
+          {
+            moduleId: null,
+          },
+        ],
       },
       include: {
         module: {
