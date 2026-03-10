@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Suspense } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
 import GoogleAnalytics from '@/components/Analytics/GoogleAnalytics';
 import NavigationProgress from '@/components/Layout/NavigationProgress';
@@ -66,6 +67,7 @@ export default function RootLayout({
         </Suspense>
         <ConditionalLayout>{children}</ConditionalLayout>
         <CookieBanner />
+        <Analytics />
       </body>
     </html>
   );
