@@ -43,6 +43,9 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  verification: {
+    google: 'aqePUc7IOnNBwXrNGJFYlioTwHiWw7VugJH7lJ_BmVc',
+  },
   icons: {
     icon: '/logo_maths.svg',
     shortcut: '/logo_maths.svg',
