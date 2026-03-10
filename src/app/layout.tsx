@@ -2,11 +2,10 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Suspense } from 'react';
 import './globals.css';
-import Header from '@/components/Layout/Header';
-import Footer from '@/components/Layout/Footer';
 import GoogleAnalytics from '@/components/Analytics/GoogleAnalytics';
 import NavigationProgress from '@/components/Layout/NavigationProgress';
 import ConditionalLayout from '@/components/Layout/ConditionalLayout';
+import CookieBanner from '@/components/Layout/CookieBanner';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from '@/lib/constants';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -66,6 +65,7 @@ export default function RootLayout({
           <NavigationProgress />
         </Suspense>
         <ConditionalLayout>{children}</ConditionalLayout>
+        <CookieBanner />
       </body>
     </html>
   );
