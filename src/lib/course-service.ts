@@ -41,18 +41,9 @@ export async function getAllPublishedCourses() {
     return courses;
   } catch (error) {
     console.error('Erreur getAllPublishedCourses:', error);
-    
-    // Vérifier si c'est une erreur de connexion
-    if (error instanceof Error) {
-      const errorMessage = error.message.toLowerCase();
-      console.error('Message d\'erreur complet:', error.message);
-      console.error('Stack:', error.stack);
-      
-      if (errorMessage.includes('connect') || errorMessage.includes('connection') || errorMessage.includes('database') || errorMessage.includes('prisma')) {
-        throw new Error(`Database connection error. Please check your DATABASE_URL configuration. Original error: ${error.message}`);
-      }
-    }
-    
+
+    // En dev, on logue l'erreur mais on ne casse pas toute la page.
+    // On retourne simplement un tableau vide de cours.
     return [];
   }
 }
