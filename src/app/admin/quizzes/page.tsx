@@ -36,10 +36,13 @@ export default async function AdminQuizzesPage({
       continue;
     }
 
+    // On récupère les infos de cours/module depuis les champs ACF convertis,
+    // et on garde l'accès à quiz.module uniquement en any pour éviter l'erreur TS.
+    const anyQuiz = quiz as any;
     const courseTitle =
-      (quiz.module as any)?.course?.title || 'Unassigned course';
+      anyQuiz.module?.course?.title || 'Unassigned course';
     const moduleTitle =
-      quiz.acf?.categorie || (quiz.module as any)?.title || 'Unassigned module';
+      quiz.acf?.categorie || anyQuiz.module?.title || 'Unassigned module';
 
     if (!grouped[courseTitle]) {
       grouped[courseTitle] = {};
