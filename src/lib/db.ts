@@ -11,14 +11,24 @@ if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('file:')) {
   process.env.DATABASE_URL = `file:${dbPath}`;
 }
 
-// En production (Vercel, Hostinger, Supabase/Neon), limiter les connexions pour éviter "max clients reached"
-// Hostinger build génère beaucoup de pages en parallèle → épuisement du pool si pas de limite
+// En production (Vercel, Hostinger, Supabase/Neon), ajuster le pool de connexions
+// connection_limit=5 : suffisant pour les requêtes parallèles (dashboard fait 4 requêtes en Promise.all)
+// pool_timeout=30 : éviter les timeouts sur cold starts Vercel
 if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL?.startsWith('postgres')) {
   const url = process.env.DATABASE_URL;
+  const params: string[] = [];
   if (!url.includes('connection_limit=')) {
-    process.env.DATABASE_URL = url.includes('?')
-      ? `${url}&connection_limit=1`
-      : `${url}?connection_limit=1`;
+    params.push('connection_limit=5');
+  }
+  if (!url.includes('pool_timeout=')) {
+    params.push('pool_timeout=30');
+  }
+  if (!url.includes('connect_timeout=')) {
+    params.push('connect_timeout=30');
+  }
+  if (params.length > 0) {
+    const separator = url.includes('?') ? '&' : '?';
+    process.env.DATABASE_URL = `${url}${separator}${params.join('&')}`;
   }
 }
 

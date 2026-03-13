@@ -4,6 +4,9 @@ import Link from 'next/link';
 
 export default async function AdminDashboard() {
   try {
+    // Tester la connexion d'abord avec une requête simple
+    await prisma.$queryRaw`SELECT 1`;
+
     // Pour l'admin, on veut voir tous les quiz (pas seulement les publiés)
     const [allQuizzes, quizCount, questionCount, moduleCount] = await Promise.all([
       prisma.quiz.findMany({
@@ -23,22 +26,10 @@ export default async function AdminDashboard() {
         orderBy: {
           createdAt: 'desc',
         },
-      }).catch((err) => {
-        console.error('Erreur prisma.quiz.findMany:', err);
-        return [];
       }),
-      prisma.quiz.count().catch((err) => {
-        console.error('Erreur quiz.count:', err);
-        return 0;
-      }),
-      prisma.question.count().catch((err) => {
-        console.error('Erreur question.count:', err);
-        return 0;
-      }),
-      prisma.module.count().catch((err) => {
-        console.error('Erreur module.count:', err);
-        return 0;
-      }),
+      prisma.quiz.count(),
+      prisma.question.count(),
+      prisma.module.count(),
     ]);
 
     // Convertir les quiz Prisma au format attendu
