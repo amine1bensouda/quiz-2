@@ -9,6 +9,7 @@ import BackgroundPattern from '@/components/Layout/BackgroundPattern';
 import Accordion from '@/components/Layout/Accordion';
 import QuizCard from '@/components/Quiz/QuizCard';
 import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
+import LoadingSpinner from '@/components/Layout/LoadingSpinner';
 import type { Quiz } from '@/lib/types';
 
 interface Lesson {
@@ -74,13 +75,18 @@ export default function CoursePage() {
 
   if (loading) {
     return (
-      <div className="relative bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 min-h-screen">
+      <div className="relative bg-gradient-to-br from-slate-50 via-indigo-50/30 to-violet-50 min-h-screen">
         <Navigation />
-        <div className="container mx-auto px-4 sm:px-5 md:px-6 py-12 sm:py-16 md:py-20 max-w-[100vw]">
-          <div className="text-center">
-            <div className="inline-block backdrop-blur-xl bg-white/80 rounded-2xl sm:rounded-3xl shadow-2xl p-8 sm:p-10 md:p-12 border border-white/40">
-              <div className="text-5xl sm:text-6xl mb-4 sm:mb-6 animate-spin">⏳</div>
-              <p className="text-gray-700 text-base sm:text-lg">Loading the course...</p>
+        <div className="container mx-auto px-4 sm:px-5 md:px-6 py-20 sm:py-28 md:py-36 max-w-[100vw]">
+          <div className="flex flex-col items-center justify-center gap-8 animate-fade-in">
+            {/* Carte principale */}
+            <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-xl shadow-gray-200/80 border border-white/60 p-10 sm:p-14 flex flex-col items-center gap-6">
+              <LoadingSpinner size="lg" />
+              {/* Barres skeleton pour simuler le contenu à venir */}
+              <div className="w-full space-y-3 mt-2">
+                <div className="h-4 w-48 bg-gray-200 rounded-full animate-pulse mx-auto" />
+                <div className="h-3 w-36 bg-gray-100 rounded-full animate-pulse mx-auto" />
+              </div>
             </div>
           </div>
         </div>

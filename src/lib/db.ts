@@ -11,20 +11,19 @@ if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('file:')) {
   process.env.DATABASE_URL = `file:${dbPath}`;
 }
 
-// En production (Vercel, Hostinger, Supabase/Neon), ajuster le pool de connexions
-// connection_limit=5 : suffisant pour les requêtes parallèles (dashboard fait 4 requêtes en Promise.all)
-// pool_timeout=30 : éviter les timeouts sur cold starts Vercel
-if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL?.startsWith('postgres')) {
+// En production (Vercel serverless), limiter le pool Prisma à 1 connexion par instance
+// Le vrai pool est géré côté Supabase/PgBouncer (port 6543, mode Transaction)
+if (process.env.DATABASE_URL?.startsWith('postgres')) {
   const url = process.env.DATABASE_URL;
   const params: string[] = [];
   if (!url.includes('connection_limit=')) {
-    params.push('connection_limit=5');
+    params.push('connection_limit=1');
   }
   if (!url.includes('pool_timeout=')) {
-    params.push('pool_timeout=30');
+    params.push('pool_timeout=20');
   }
   if (!url.includes('connect_timeout=')) {
-    params.push('connect_timeout=30');
+    params.push('connect_timeout=15');
   }
   if (params.length > 0) {
     const separator = url.includes('?') ? '&' : '?';

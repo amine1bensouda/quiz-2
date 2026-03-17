@@ -33,44 +33,41 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
     // Initialiser les questions et charger la progression sauvegardée
   useEffect(() => {
     const quizQuestions = quiz.acf?.questions || [];
-    
-    console.log('🎮 QuizPlayer - Initialisation:', {
-      quizId: quiz.id,
-      quizTitle: quiz.title.rendered,
-      questionsCount: quizQuestions.length,
-      hasAcf: !!quiz.acf,
-      hasQuestions: !!quiz.acf?.questions,
-      questionsType: Array.isArray(quizQuestions) ? 'array' : typeof quizQuestions,
-      firstQuestion: quizQuestions[0] ? {
-        id: quizQuestions[0].id,
-        texte_question: quizQuestions[0].texte_question?.substring(0, 50),
-        reponsesCount: quizQuestions[0].reponses?.length || 0,
-      } : null,
-      allQuestions: quizQuestions.map((q: any, i: number) => ({
-        index: i,
-        id: q.id,
-        texte_question: q.texte_question?.substring(0, 50),
-        reponsesCount: q.reponses?.length || 0,
-        hasReponses: !!q.reponses,
-      })),
-    });
-    
-    if (quizQuestions.length === 0) {
-      console.warn('⚠️ No questions available in quiz.acf.questions');
-    }
-    
-    // Vérifier que chaque question a des réponses
-    quizQuestions.forEach((q: any, index: number) => {
-      const answers = q.reponses || q.acf?.reponses || [];
-      if (answers.length === 0) {
-        console.error(`❌ Question ${index + 1} (ID: ${q.id}) n'a pas de réponses:`, {
-          question: q.texte_question?.substring(0, 50),
-          hasReponses: !!q.reponses,
-          hasAcfReponses: !!q.acf?.reponses,
-          questionKeys: Object.keys(q),
-        });
+
+    // En production on évite les logs lourds qui ralentissent le rendu
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🎮 QuizPlayer - Initialisation:', {
+        quizId: quiz.id,
+        quizTitle: quiz.title.rendered,
+        questionsCount: quizQuestions.length,
+        hasAcf: !!quiz.acf,
+        hasQuestions: !!quiz.acf?.questions,
+        questionsType: Array.isArray(quizQuestions) ? 'array' : typeof quizQuestions,
+        firstQuestion: quizQuestions[0]
+          ? {
+              id: quizQuestions[0].id,
+              texte_question: quizQuestions[0].texte_question?.substring(0, 50),
+              reponsesCount: quizQuestions[0].reponses?.length || 0,
+            }
+          : null,
+      });
+
+      if (quizQuestions.length === 0) {
+        console.warn('⚠️ No questions available in quiz.acf.questions');
       }
-    });
+
+      // Vérifier que chaque question a des réponses (debug uniquement)
+      quizQuestions.forEach((q: any, index: number) => {
+        const answers = q.reponses || q.acf?.reponses || [];
+        if (answers.length === 0) {
+          console.error(`❌ Question ${index + 1} (ID: ${q.id}) n'a pas de réponses`, {
+            question: q.texte_question?.substring(0, 50),
+            hasReponses: !!q.reponses,
+            hasAcfReponses: !!q.acf?.reponses,
+          });
+        }
+      });
+    }
     
     // Mélanger les questions si l'ordre est aléatoire
     if (quiz.acf?.ordre_questions === 'Aleatoire') {
@@ -150,14 +147,14 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
             if (remainingSeconds > 0) {
               // Continuer le timer depuis où il s'était arrêté
               setQuizTimeRemaining(remainingSeconds);
-              console.log(`⏱️ Timer restauré: ${remainingSeconds} secondes restantes (${Math.floor(remainingSeconds / 60)}:${(remainingSeconds % 60).toString().padStart(2, '0')})`);
             } else {
               // Le temps est écoulé, initialiser à 0
               setQuizTimeRemaining(0);
-              console.log('⏱️ Temps écoulé lors du rafraîchissement');
             }
           } catch (error) {
-            console.error('Error loading timer:', error);
+            if (process.env.NODE_ENV !== 'production') {
+              console.error('Error loading timer:', error);
+            }
             setQuizTimeRemaining(quizDurationSeconds);
             if (typeof window !== 'undefined') {
               localStorage.setItem(`quiz-start-time-${quiz.id}`, Date.now().toString());
@@ -170,7 +167,6 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
           if (typeof window !== 'undefined') {
             localStorage.setItem(`quiz-start-time-${quiz.id}`, Date.now().toString());
           }
-          console.log(`⏱️ Timer du quiz initialisé: ${dureeEstimee} minutes (${quizDurationSeconds} secondes)`);
         }
       } else {
         // Reset ou première fois, initialiser normalement
@@ -178,11 +174,9 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
         if (typeof window !== 'undefined') {
           localStorage.setItem(`quiz-start-time-${quiz.id}`, Date.now().toString());
         }
-        console.log(`⏱️ Timer du quiz initialisé: ${dureeEstimee} minutes (${quizDurationSeconds} secondes)`);
       }
     } else {
       setQuizTimeRemaining(null);
-      console.log('⏱️ Quiz sans limite de temps (duree_estimee non défini ou égal à 0)');
     }
 
     // Track le début du quiz
@@ -202,31 +196,12 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
     let incorrectAnswers = 0;
     const answerDetails: QuizResults['answers'] = [];
 
-    console.log('📊 Calcul des résultats:', {
-      totalQuestions: questions.length,
-      selectedAnswers,
-      questionsCount: questions.length,
-    });
-
     questions.forEach((question, index) => {
       const selectedAnswerKey = selectedAnswers[index];
       // Gérer les deux formats : Repeater ACF ou Question WordPress
       const answers = question.reponses || question.acf?.reponses || [];
       const questionType = question.type_question || question.acf?.type_question || 'QCM';
       const isTextInput = questionType === 'TexteLibre' || questionType === 'text_input' || questionType === 'open_ended';
-      
-      console.log(`  Question ${index + 1}:`, {
-        questionId: question.id,
-        questionType,
-        isTextInput,
-        selectedAnswerKey,
-        answersCount: answers.length,
-        answers: answers.map((a: any, i: number) => ({
-          index: i,
-          texte: a.texte?.substring(0, 30),
-          correcte: a.correcte,
-        })),
-      });
       
       let selectedAnswer: any = null;
       let isCorrect = false;
@@ -335,21 +310,6 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
         }
       }
 
-      console.log(`  Résultat Question ${index + 1}:`, {
-        selectedAnswerIndex,
-        selectedAnswer: selectedAnswer ? {
-          texte: selectedAnswer.texte?.substring(0, 30),
-          correcte: selectedAnswer.correcte,
-          is_correct: (selectedAnswer as any).is_correct,
-          correct: (selectedAnswer as any).correct,
-        } : null,
-        correctAnswer: correctAnswer ? {
-          texte: correctAnswer.texte?.substring(0, 30),
-          correcte: correctAnswer.correcte,
-        } : null,
-        isCorrect,
-      });
-
       if (isCorrect) {
         correctAnswers++;
       } else {
@@ -362,13 +322,6 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
         isCorrect,
         correctAnswer: correctAnswer?.texte || 'Inconnu',
       });
-    });
-
-    console.log('📊 Résultats finaux:', {
-      correctAnswers,
-      incorrectAnswers,
-      totalQuestions: questions.length,
-      percentage: Math.round((correctAnswers / questions.length) * 100),
     });
 
     const timeSpent = Math.floor((Date.now() - startTime) / 1000);
