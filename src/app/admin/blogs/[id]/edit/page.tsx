@@ -35,9 +35,9 @@ export default async function EditBlogPage({
     <div className="space-y-6">
       <div>
         <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-          Modifier l&apos;article
+          Edit Blog Post
         </h1>
-        <p className="text-gray-600">Modifiez les informations de l&apos;article</p>
+        <p className="text-gray-600">Modify blog post information</p>
       </div>
       <BlogForm initialData={blogData} />
     </div>

@@ -96,7 +96,7 @@ export default function BlogForm({ initialData }: BlogFormProps) {
         router.push('/admin/blogs');
         router.refresh();
       } else {
-        let errorMessage = 'Erreur lors de la sauvegarde';
+        let errorMessage = 'Error saving';
         try {
           const data = await response.json();
           errorMessage = data.error || data.details || errorMessage;
@@ -106,8 +106,8 @@ export default function BlogForm({ initialData }: BlogFormProps) {
         alert(errorMessage);
       }
     } catch (error: any) {
-      console.error('Erreur sauvegarde blog:', error);
-      alert(`Erreur: ${error.message || 'Une erreur est survenue'}`);
+      console.error('Blog save error:', error);
+      alert(`Error: ${error.message || 'An error occurred'}`);
     } finally {
       setLoading(false);
     }
@@ -117,12 +117,12 @@ export default function BlogForm({ initialData }: BlogFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Informations principales */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
-        <h2 className="text-2xl font-bold text-gray-900">Informations du blog</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Blog Information</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Titre *
+              Title *
             </label>
             <input
               type="text"
@@ -148,7 +148,7 @@ export default function BlogForm({ initialData }: BlogFormProps) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Catégorie
+              Category
             </label>
             <input
               type="text"
@@ -160,7 +160,7 @@ export default function BlogForm({ initialData }: BlogFormProps) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Statut
+              Status
             </label>
             <select
               value={formData.status}
@@ -172,25 +172,25 @@ export default function BlogForm({ initialData }: BlogFormProps) {
               }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             >
-              <option value="draft">Brouillon</option>
-              <option value="published">Publié</option>
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
             </select>
           </div>
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Extrait / Résumé
+              Excerpt / Summary
             </label>
             <textarea
               value={formData.excerpt}
               onChange={(e) => setFormData((prev) => ({ ...prev, excerpt: e.target.value }))}
               rows={3}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              placeholder="Bref résumé du blog post pour la liste et le SEO..."
+              placeholder="Brief summary for the blog list and SEO..."
             />
           </div>
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tags (séparés par des virgules)
+              Tags (comma separated)
             </label>
             <input
               type="text"
@@ -221,19 +221,19 @@ export default function BlogForm({ initialData }: BlogFormProps) {
         <RichTextEditor
           value={formData.content}
           onChange={(value) => setFormData((prev) => ({ ...prev, content: value }))}
-          placeholder="Rédigez le contenu du blog..."
+          placeholder="Write the blog content..."
         />
       </div>
 
       {/* CTA (optionnel) */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
         <h2 className="text-2xl font-bold text-gray-900">
-          Call-to-Action <span className="text-sm font-normal text-gray-500">(optionnel)</span>
+          Call-to-Action <span className="text-sm font-normal text-gray-500">(optional)</span>
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Lien CTA
+              CTA Link
             </label>
             <input
               type="text"
@@ -245,7 +245,7 @@ export default function BlogForm({ initialData }: BlogFormProps) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Texte CTA
+              CTA Text
             </label>
             <input
               type="text"
@@ -265,14 +265,14 @@ export default function BlogForm({ initialData }: BlogFormProps) {
           onClick={() => router.back()}
           className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
         >
-          Annuler
+          Cancel
         </button>
         <button
           type="submit"
           disabled={loading || !formData.title || !formData.slug}
           className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Enregistrement...' : initialData?.id ? 'Mettre à jour' : 'Créer le blog'}
+          {loading ? 'Saving...' : initialData?.id ? 'Update' : 'Create Blog Post'}
         </button>
       </div>
     </form>

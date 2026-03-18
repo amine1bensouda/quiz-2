@@ -11,7 +11,7 @@ export default function SidebarAd({ className = '' }: SidebarAdProps) {
   return (
     <aside
       className={`flex flex-col items-center justify-start w-full ${className}`}
-      aria-label="Publicité"
+      aria-label="Advertisement"
     >
       <div className="sticky top-24 w-full max-w-[200px] min-h-[250px] rounded-xl overflow-hidden bg-gray-100/80 border border-gray-200/60">
         <AdSense

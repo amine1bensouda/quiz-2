@@ -5,6 +5,7 @@ import Navigation from '@/components/Layout/Navigation';
 import AnimatedShapes from '@/components/Layout/AnimatedShapes';
 import BackgroundPattern from '@/components/Layout/BackgroundPattern';
 import CourseCard from '@/components/Quiz/CourseCard';
+import LoadingSpinner from '@/components/Layout/LoadingSpinner';
 
 interface Course {
   id: string;
@@ -79,10 +80,13 @@ export default function QuizListPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-20">
-            <div className="inline-block backdrop-blur-xl bg-white/80 rounded-3xl shadow-2xl p-12 border border-white/40">
-              <div className="text-6xl mb-6 animate-spin">⏳</div>
-              <p className="text-gray-700 text-lg">Loading...</p>
+          <div className="flex justify-center py-20">
+            <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-xl shadow-gray-200/80 border border-white/60 p-10 sm:p-14 flex flex-col items-center gap-6">
+              <LoadingSpinner size="lg" />
+              <div className="w-full space-y-3 mt-2">
+                <div className="h-4 w-48 bg-gray-200 rounded-full animate-pulse mx-auto" />
+                <div className="h-3 w-36 bg-gray-100 rounded-full animate-pulse mx-auto" />
+              </div>
             </div>
           </div>
         ) : courses.length > 0 ? (

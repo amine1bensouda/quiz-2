@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Navigation from '@/components/Layout/Navigation';
 import BackgroundPattern from '@/components/Layout/BackgroundPattern';
 import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
+import LoadingSpinner from '@/components/Layout/LoadingSpinner';
 
 interface Lesson {
   id: string;
@@ -56,11 +57,16 @@ export default function LessonPage() {
 
   if (loading) {
     return (
-      <div className="relative min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+      <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-violet-50">
         <Navigation />
-        <div className="container mx-auto px-4 py-16 text-center">
-          <div className="text-5xl mb-4 animate-spin">⏳</div>
-          <p className="text-gray-700">Loading lesson...</p>
+        <div className="container mx-auto px-4 py-20 sm:py-28 flex justify-center">
+          <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-xl shadow-gray-200/80 border border-white/60 p-10 sm:p-14 flex flex-col items-center gap-6">
+            <LoadingSpinner size="lg" />
+            <div className="w-full space-y-3 mt-2">
+              <div className="h-4 w-48 bg-gray-200 rounded-full animate-pulse mx-auto" />
+              <div className="h-3 w-36 bg-gray-100 rounded-full animate-pulse mx-auto" />
+            </div>
+          </div>
         </div>
       </div>
     );

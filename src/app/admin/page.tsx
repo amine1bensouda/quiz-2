@@ -52,7 +52,7 @@ export default async function AdminDashboard() {
     { label: 'Total Quiz', value: quizCount, icon: '📝', color: 'from-indigo-500 to-purple-500' },
     { label: 'Total Questions', value: questionCount, icon: '❓', color: 'from-purple-500 to-pink-500' },
     { label: 'Modules', value: moduleCount, icon: '📚', color: 'from-pink-500 to-rose-500' },
-    { label: 'Articles Blog', value: blogCount, icon: '📰', color: 'from-emerald-500 to-teal-500' },
+    { label: 'Blog Posts', value: blogCount, icon: '📰', color: 'from-emerald-500 to-teal-500' },
   ];
 
   return (
@@ -143,12 +143,12 @@ export default async function AdminDashboard() {
       {/* Blogs récents */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Articles récents</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Recent Posts</h2>
           <Link
             href="/admin/blogs/new"
             className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all font-medium"
           >
-            + Nouveau Blog
+            + New Post
           </Link>
         </div>
 
@@ -162,7 +162,7 @@ export default async function AdminDashboard() {
                 <div className="flex items-center gap-3">
                   <div>
                     <h3 className="font-semibold text-gray-900">
-                      {blog.title || 'Sans titre'}
+                      {blog.title || 'Untitled'}
                     </h3>
                     <p className="text-sm text-gray-600">
                       {blog.slug}
@@ -175,14 +175,14 @@ export default async function AdminDashboard() {
                         : 'bg-gray-200 text-gray-700'
                     }`}
                   >
-                    {blog.status === 'published' ? 'Publié' : 'Brouillon'}
+                    {blog.status === 'published' ? 'Published' : 'Draft'}
                   </span>
                 </div>
                 <Link
                   href={`/admin/blogs/${blog.id}/edit`}
                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
                 >
-                  Modifier
+                  Edit
                 </Link>
               </div>
             ))}
@@ -190,7 +190,7 @@ export default async function AdminDashboard() {
               href="/admin/blogs"
               className="block text-center text-indigo-600 hover:text-indigo-800 font-medium py-2"
             >
-              Voir tous les articles ({blogCount}) →
+              View all posts ({blogCount}) →
             </Link>
           </div>
         ) : (
@@ -200,7 +200,7 @@ export default async function AdminDashboard() {
               href="/admin/blogs/new"
               className="inline-block px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all font-medium"
             >
-              Créer votre premier article
+              Create your first post
             </Link>
           </div>
         )}

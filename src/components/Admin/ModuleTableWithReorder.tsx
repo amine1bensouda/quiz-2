@@ -43,12 +43,12 @@ export default function ModuleTableWithReorder({ modules: initialModules, course
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Erreur lors du réordonnancement');
+        throw new Error(data.error || 'Error reordering');
       }
       setModules(newOrder.map((m, i) => ({ ...m, order: i })));
       router.refresh();
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Erreur');
+      alert(e instanceof Error ? e.message : 'Error');
     } finally {
       setLoading(null);
     }
@@ -61,7 +61,7 @@ export default function ModuleTableWithReorder({ modules: initialModules, course
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-20">
-                Ordre
+                Order
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                 Title
@@ -104,7 +104,7 @@ export default function ModuleTableWithReorder({ modules: initialModules, course
                       onClick={() => reorder(index, 'down')}
                       disabled={index === modules.length - 1 || loading !== null}
                       className="p-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600"
-                      title="Descendre"
+                      title="Move down"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

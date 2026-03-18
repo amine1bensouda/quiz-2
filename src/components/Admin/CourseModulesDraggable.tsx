@@ -70,12 +70,12 @@ export default function CourseModulesDraggable({ courseId, modules: initialModul
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(typeof data.details === 'string' ? data.details : data.error || 'Erreur lors de la mise à jour');
+        throw new Error(typeof data.details === 'string' ? data.details : data.error || 'Error updating order');
       }
       router.refresh();
     } catch (err) {
       setModules(initialModules);
-      alert(err instanceof Error ? err.message : 'Erreur lors du réordonnancement. Réessayez.');
+      alert(err instanceof Error ? err.message : 'Error reordering. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -116,7 +116,7 @@ export default function CourseModulesDraggable({ courseId, modules: initialModul
           >
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="text-gray-400 select-none flex-shrink-0" title="Glisser pour réordonner">
+                <span className="text-gray-400 select-none flex-shrink-0" title="Drag to reorder">
                   ⋮⋮
                 </span>
                 <div className="min-w-0">

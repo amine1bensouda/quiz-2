@@ -41,7 +41,7 @@ export default function ImageUploadField({
         onChange(data.url);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de l\'import');
+      setError(err instanceof Error ? err.message : 'Upload error');
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -69,12 +69,12 @@ export default function ImageUploadField({
             className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-medium cursor-pointer hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed ${uploading ? 'opacity-70' : ''}`}
           >
             {uploading ? (
-              <>⏳ Import en cours...</>
+              <>⏳ Uploading...</>
             ) : (
-              <>📁 Importer une image</>
+              <>📁 Upload an image</>
             )}
           </label>
-          <span className="text-xs text-gray-500">JPEG, PNG, GIF, WebP — max 5 Mo</span>
+          <span className="text-xs text-gray-500">JPEG, PNG, GIF, WebP — max 5 MB</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500">or</span>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getCurrentUser, getQuizStats, logout, type QuizAttempt, type User } from '@/lib/auth-client';
 import { formatDuration } from '@/lib/utils';
+import LoadingSpinner from '@/components/Layout/LoadingSpinner';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -42,9 +43,12 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-white via-gray-50 to-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-6 animate-spin">⏳</div>
-          <p className="text-gray-700 text-lg">Loading...</p>
+        <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-xl shadow-gray-200/80 border border-white/60 p-10 sm:p-14 flex flex-col items-center gap-6">
+          <LoadingSpinner size="lg" />
+          <div className="w-full space-y-3 mt-2">
+            <div className="h-4 w-48 bg-gray-200 rounded-full animate-pulse mx-auto" />
+            <div className="h-3 w-36 bg-gray-100 rounded-full animate-pulse mx-auto" />
+          </div>
         </div>
       </div>
     );

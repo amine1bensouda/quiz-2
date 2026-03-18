@@ -346,7 +346,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
               {/* Formulaire de création de cours */}
               {showCreateCourse && (
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <h3 className="font-semibold text-gray-900 mb-3">Créer un nouveau cours</h3>
+                  <h3 className="font-semibold text-gray-900 mb-3">Create a new course</h3>
                   <div className="space-y-3">
                     <input
                       type="text"
@@ -381,7 +381,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
                         onClick={handleCreateCourse}
                         className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
                       >
-                        Créer
+                        Create
                       </button>
                       <button
                         type="button"
