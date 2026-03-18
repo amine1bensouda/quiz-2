@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: 'aqePUc7IOnNBwXrNGJFYlioTwHiWw7VugJH7lJ_BmVc',
+    google: ['aqePUc7IOnNBwXrNGJFYlioTwHiWw7VugJH7lJ_BmVc', 'zgHDyL-ZuEVF3FHAtIQ3v7jpIbUBnARlfF11hM6_EXM'],
   },
   icons: {
     icon: '/logo_maths.svg',
