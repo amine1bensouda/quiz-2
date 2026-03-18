@@ -1,21 +1,20 @@
 /**
  * Données des articles de blog — partagées entre liste et détail.
- * Contient des articles orientés SEO et liés aux quiz/cours (gratuits).
+ * Les articles proviennent de la base de données (Prisma) avec fallback sur les données statiques.
  */
 
+import { prisma } from '@/lib/db';
+
 export interface BlogPost {
-  id: number;
+  id: number | string;
   title: string;
   excerpt: string;
   content: string;
   date: string;
   category: string;
   slug: string;
-  /** Lien CTA vers quiz/cours (ex: /quiz, /quiz/course/act-math) */
   ctaLink?: string;
-  /** Texte du bouton CTA (ex: "Practice ACT Math", "Try free quizzes") */
   ctaText?: string;
-  /** Mots-clés SEO */
   tags?: string[];
 }
 
@@ -192,7 +191,52 @@ const posts: BlogPost[] = [
   },
 ];
 
-/** Récupère tous les posts (pour la liste). */
+/** Convertit un blog Prisma en BlogPost. */
+function fromPrisma(b: any): BlogPost {
+  return {
+    id: b.id,
+    title: b.title,
+    slug: b.slug,
+    excerpt: b.excerpt || '',
+    content: b.content || '',
+    date: (b.publishedAt || b.createdAt).toISOString().split('T')[0],
+    category: b.category || '',
+    ctaLink: b.ctaLink || undefined,
+    ctaText: b.ctaText || undefined,
+    tags: b.tags || [],
+  };
+}
+
+/** Récupère tous les posts (DB publiés + statiques en fallback). */
+export async function getAllBlogPostsFromDB(): Promise<BlogPost[]> {
+  try {
+    const dbPosts = await prisma.blogPost.findMany({
+      where: { status: 'published' },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (dbPosts.length > 0) {
+      return dbPosts.map(fromPrisma);
+    }
+  } catch {
+    // DB indisponible → fallback statique
+  }
+  return getAllBlogPosts();
+}
+
+/** Récupère un post par id ou slug (DB puis fallback statique). */
+export async function getBlogPostFromDB(idOrSlug: string): Promise<BlogPost | undefined> {
+  try {
+    const blog =
+      (await prisma.blogPost.findUnique({ where: { id: idOrSlug } })) ??
+      (await prisma.blogPost.findUnique({ where: { slug: idOrSlug } }));
+    if (blog && blog.status === 'published') return fromPrisma(blog);
+  } catch {
+    // fallback
+  }
+  return getBlogPostById(idOrSlug) ?? getBlogPostBySlug(idOrSlug);
+}
+
+/** Récupère tous les posts (pour la liste) — version synchrone (statiques uniquement). */
 export function getAllBlogPosts(): BlogPost[] {
   return [...posts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
@@ -208,10 +252,11 @@ export function getBlogPostBySlug(slug: string): BlogPost | undefined {
 }
 
 /** Posts similaires (même catégorie ou premiers), excluant l'id donné. */
-export function getRelatedBlogPosts(currentId: number, limit = 3): BlogPost[] {
-  const current = posts.find((p) => p.id === currentId);
-  if (!current) return getAllBlogPosts().slice(0, limit);
-  const sameCategory = posts.filter((p) => p.id !== currentId && p.category === current.category);
-  const rest = posts.filter((p) => p.id !== currentId && p.category !== current.category);
+export function getRelatedBlogPosts(currentId: number | string, limit = 3): BlogPost[] {
+  const all = getAllBlogPosts();
+  const current = all.find((p) => String(p.id) === String(currentId));
+  if (!current) return all.slice(0, limit);
+  const sameCategory = all.filter((p) => String(p.id) !== String(currentId) && p.category === current.category);
+  const rest = all.filter((p) => String(p.id) !== String(currentId) && p.category !== current.category);
   return [...sameCategory, ...rest].slice(0, limit);
 }

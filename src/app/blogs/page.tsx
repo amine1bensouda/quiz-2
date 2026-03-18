@@ -1,9 +1,11 @@
 import { Metadata } from 'next';
 import { SITE_NAME } from '@/lib/constants';
 import Link from 'next/link';
-import { getAllBlogPosts } from '@/lib/blog-data';
+import { getAllBlogPostsFromDB } from '@/lib/blog-data';
 import AnimatedShapes from '@/components/Layout/AnimatedShapes';
 import BackgroundPattern from '@/components/Layout/BackgroundPattern';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Blog | Math Tips, Exam Prep & Free Practice',
@@ -14,8 +16,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function BlogsPage() {
-  const blogPosts = getAllBlogPosts();
+export default async function BlogsPage() {
+  const blogPosts = await getAllBlogPostsFromDB();
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/40 overflow-hidden">

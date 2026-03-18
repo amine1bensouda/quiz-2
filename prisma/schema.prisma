@@ -138,6 +138,27 @@ model User {
   @@index([email])
 }
 
+model BlogPost {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  excerpt   String   @default("")
+  content   String   @default("")
+  category  String   @default("")
+  tags      String[] @default([])
+  ctaLink   String?
+  ctaText   String?
+  status    String   @default("draft") // "published" ou "draft"
+  publishedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("blog_posts")
+  @@index([slug])
+  @@index([status])
+  @@index([publishedAt])
+}
+
 model QuizAttempt {
   id             String   @id @default(cuid())
   userId         String

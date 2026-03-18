@@ -2,24 +2,19 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import {
-  getBlogPostById,
-  getBlogPostBySlug,
-  getRelatedBlogPosts,
-  getAllBlogPosts,
+  getBlogPostFromDB,
+  getAllBlogPostsFromDB,
 } from '@/lib/blog-data';
 
-interface PageProps {
-  params: { id: string };
-}
+export const dynamic = 'force-dynamic';
 
-function getPost(id: string) {
-  const byId = getBlogPostById(id);
-  if (byId) return byId;
-  return getBlogPostBySlug(id);
+interface PageProps {
+  params: Promise<{ id: string }> | { id: string };
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const post = getPost(params.id);
+  const { id } = await Promise.resolve(params);
+  const post = await getBlogPostFromDB(id);
   if (!post) return { title: 'Blog' };
   return {
     title: `${post.title} | The School of Mathematics`,
@@ -31,22 +26,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export function generateStaticParams() {
-  const posts = getAllBlogPosts();
-  return posts.flatMap((p) => [
-    { id: String(p.id) },
-    ...(p.slug ? [{ id: p.slug }] : []),
-  ]);
-}
-
-export default function BlogPostPage({ params }: PageProps) {
-  const post = getPost(params.id);
+export default async function BlogPostPage({ params }: PageProps) {
+  const { id } = await Promise.resolve(params);
+  const post = await getBlogPostFromDB(id);
 
   if (!post) {
     notFound();
   }
 
-  const related = getRelatedBlogPosts(post.id, 3);
+  const allPosts = await getAllBlogPostsFromDB();
+  const sameCategory = allPosts.filter((p) => String(p.id) !== String(post.id) && p.category === post.category);
+  const rest = allPosts.filter((p) => String(p.id) !== String(post.id) && p.category !== post.category);
+  const related = [...sameCategory, ...rest].slice(0, 3);
   const formattedDate = new Date(post.date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
