@@ -1,0 +1,177 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String?
+  status      String   @default("draft")
+  modules     Module[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("courses")
+  @@index([status])
+  @@index([slug])
+}
+
+model Module {
+  id          String   @id @default(cuid())
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title       String
+  slug        String
+  description String?
+  order       Int      @default(0)
+  quizzes     Quiz[]
+  lessons     Lesson[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([courseId, slug])
+  @@map("modules")
+  @@index([courseId])
+}
+
+model Lesson {
+  id                   String   @id @default(cuid())
+  moduleId             String
+  module               Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title                String
+  slug                 String
+  content              String   @default("")
+  featuredImageUrl     String?
+  videoUrl             String?
+  videoPlaybackSeconds Int?
+  pdfUrl               String?
+  allowPreview         Boolean  @default(false)
+  order                Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@unique([moduleId, slug])
+  @@map("lessons")
+  @@index([moduleId])
+}
+
+model Quiz {
+  id               String         @id @default(cuid())
+  moduleId         String?
+  module           Module?        @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+  title            String
+  slug             String         @unique
+  description      String?
+  excerpt          String?
+  duration         Int            @default(10)
+  difficulty       String?
+  passingGrade     Int            @default(70)
+  randomizeOrder   Boolean        @default(false)
+  maxQuestions     Int?
+  featuredImage    String?
+  featuredImageUrl String?
+  questions        Question[]
+  quizAttempts     QuizAttempt[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@map("quizzes")
+  @@index([slug])
+  @@index([moduleId])
+}
+
+model Question {
+  id          String   @id @default(cuid())
+  quizId      String
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  text        String
+  type        String   @default("multiple_choice")
+  points      Int      @default(1)
+  explanation String?
+  timeLimit   Int?
+  order       Int      @default(0)
+  answers     Answer[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("questions")
+  @@index([quizId])
+}
+
+model Answer {
+  id          String   @id @default(cuid())
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  text        String
+  isCorrect   Boolean  @default(false)
+  explanation String?
+  imageUrl    String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("answers")
+  @@index([questionId])
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String
+  password     String
+  quizAttempts QuizAttempt[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("users")
+  @@index([email])
+}
+
+model BlogPost {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  excerpt     String    @default("")
+  content     String    @default("")
+  category    String    @default("")
+  tags        String[]  @default([])
+  ctaLink     String?
+  ctaText     String?
+  status      String    @default("draft")
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("blog_posts")
+  @@index([slug])
+  @@index([status])
+  @@index([publishedAt])
+}
+
+model QuizAttempt {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quizId         String
+  quiz           Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  score          Int
+  percentage     Int
+  totalQuestions Int
+  correctAnswers Int
+  timeSpent      Int
+  completedAt    DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("quiz_attempts")
+  @@index([userId])
+  @@index([quizId])
+  @@index([completedAt])
+}

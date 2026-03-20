@@ -1,0 +1,187 @@
+{
+  "key": "group_quiz_details",
+  "title": "Quiz Details",
+  "fields": [
+    {
+      "key": "field_duree_estimee",
+      "label": "Durée estimée",
+      "name": "duree_estimee",
+      "type": "number",
+      "default_value": 10,
+      "required": 1,
+      "instructions": "Durée en minutes"
+    },
+    {
+      "key": "field_niveau_difficulte",
+      "label": "Niveau de difficulté",
+      "name": "niveau_difficulte",
+      "type": "select",
+      "choices": {
+        "Facile": "Facile",
+        "Moyen": "Moyen",
+        "Difficile": "Difficile",
+        "Expert": "Expert"
+      },
+      "default_value": "Moyen",
+      "required": 1
+    },
+    {
+      "key": "field_categorie",
+      "label": "Catégorie",
+      "name": "categorie",
+      "type": "text",
+      "required": 1,
+      "instructions": "Ex: Histoire, Géographie, Science"
+    },
+    {
+      "key": "field_nombre_questions",
+      "label": "Nombre de questions",
+      "name": "nombre_questions",
+      "type": "number",
+      "required": 1
+    },
+    {
+      "key": "field_score_minimum",
+      "label": "Score minimum pour réussir",
+      "name": "score_minimum",
+      "type": "number",
+      "default_value": 70,
+      "required": 1,
+      "instructions": "Pourcentage minimum (0-100)"
+    },
+    {
+      "key": "field_ordre_questions",
+      "label": "Ordre des questions",
+      "name": "ordre_questions",
+      "type": "select",
+      "choices": {
+        "Fixe": "Fixe",
+        "Aleatoire": "Aleatoire"
+      },
+      "default_value": "Fixe",
+      "required": 1
+    },
+    {
+      "key": "field_questions",
+      "label": "Questions",
+      "name": "questions",
+      "type": "repeater",
+      "layout": "block",
+      "button_label": "Ajouter une question",
+      "required": 1,
+      "sub_fields": [
+        {
+          "key": "field_texte_question",
+          "label": "Texte de la question",
+          "name": "texte_question",
+          "type": "textarea",
+          "rows": 3,
+          "required": 1
+        },
+        {
+          "key": "field_type_question",
+          "label": "Type de question",
+          "name": "type_question",
+          "type": "select",
+          "choices": {
+            "QCM": "QCM (Question à Choix Multiple)",
+            "VraiFaux": "Vrai/Faux",
+            "TexteLibre": "Texte libre",
+            "Image": "Question avec image"
+          },
+          "default_value": "QCM",
+          "required": 1
+        },
+        {
+          "key": "field_media",
+          "label": "Image de la question",
+          "name": "media",
+          "type": "image",
+          "return_format": "url",
+          "required": 0
+        },
+        {
+          "key": "field_explication",
+          "label": "Explication de la question",
+          "name": "explication",
+          "type": "textarea",
+          "rows": 3,
+          "required": 0,
+          "instructions": "Explication affichée après la réponse"
+        },
+        {
+          "key": "field_points",
+          "label": "Points",
+          "name": "points",
+          "type": "number",
+          "default_value": 1,
+          "required": 0
+        },
+        {
+          "key": "field_temps_limite",
+          "label": "Temps recommandé (secondes)",
+          "name": "temps_limite",
+          "type": "number",
+          "required": 0
+        },
+        {
+          "key": "field_reponses",
+          "label": "Réponses",
+          "name": "reponses",
+          "type": "repeater",
+          "layout": "table",
+          "button_label": "Ajouter une réponse",
+          "min": 2,
+          "max": 6,
+          "required": 1,
+          "sub_fields": [
+            {
+              "key": "field_reponse_texte",
+              "label": "Texte de la réponse",
+              "name": "texte",
+              "type": "text",
+              "required": 1
+            },
+            {
+              "key": "field_reponse_correcte",
+              "label": "Réponse correcte",
+              "name": "correcte",
+              "type": "true_false",
+              "default_value": 0,
+              "required": 1,
+              "instructions": "Cocher si cette réponse est correcte"
+            },
+            {
+              "key": "field_reponse_explication",
+              "label": "Explication",
+              "name": "explication",
+              "type": "textarea",
+              "rows": 2,
+              "required": 0,
+              "instructions": "Explication spécifique à cette réponse"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "quiz"
+      }
+    ]
+  ],
+  "menu_order": 0,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "show_in_rest": 1
+}
+
+
+
+

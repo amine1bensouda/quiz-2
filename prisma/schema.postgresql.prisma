@@ -1,0 +1,136 @@
+// Schema Prisma pour PostgreSQL (Production)
+// Ce fichier est une version du schema.prisma optimisée pour PostgreSQL
+// Pour l'utiliser, renommez-le en schema.prisma et configurez DATABASE_URL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String?
+  status      String   @default("draft") // "published" ou "draft"
+  modules     Module[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("courses")
+  @@index([status])
+  @@index([slug])
+}
+
+model Module {
+  id          String   @id @default(cuid())
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title       String
+  slug        String
+  description String?
+  order       Int      @default(0)
+  quizzes     Quiz[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([courseId, slug])
+  @@map("modules")
+  @@index([courseId])
+}
+
+model Quiz {
+  id              String         @id @default(cuid())
+  moduleId        String?
+  module          Module?        @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+  title           String
+  slug            String         @unique
+  description     String?
+  excerpt         String?
+  duration        Int            @default(10) // minutes
+  difficulty      String         @default("Moyen") // Facile, Moyen, Difficile, Expert
+  passingGrade    Int            @default(70)
+  randomizeOrder  Boolean        @default(false)
+  maxQuestions    Int?           // Nombre max de questions à afficher
+  featuredImage   String?
+  featuredImageUrl String?
+  questions       Question[]
+  quizAttempts    QuizAttempt[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@map("quizzes")
+  @@index([slug])
+  @@index([moduleId])
+}
+
+model Question {
+  id          String   @id @default(cuid())
+  quizId      String
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  text        String
+  type        String   @default("multiple_choice") // multiple_choice, true_false, etc.
+  points      Int      @default(1)
+  explanation String?
+  timeLimit   Int?     // Temps limite en secondes
+  order       Int      @default(0)
+  answers     Answer[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("questions")
+  @@index([quizId])
+}
+
+model Answer {
+  id          String   @id @default(cuid())
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  text        String
+  isCorrect   Boolean  @default(false)
+  explanation String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("answers")
+  @@index([questionId])
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String
+  password     String        // Hashé avec bcrypt
+  quizAttempts QuizAttempt[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("users")
+  @@index([email])
+}
+
+model QuizAttempt {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quizId         String
+  quiz           Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  score           Int
+  percentage      Int
+  totalQuestions  Int
+  correctAnswers  Int
+  timeSpent       Int      // en secondes
+  completedAt     DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("quiz_attempts")
+  @@index([userId])
+  @@index([quizId])
+  @@index([completedAt])
+}
