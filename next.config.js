@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Build : pages/API qui touchent la DB ne doivent pas rester bloquées 60s (défaut)
+  staticPageGenerationTimeout: 180,
   // IMPORTANT: Ne pas utiliser output: 'export' car nous avons des API Routes
   // (authentification, admin, quiz attempts, etc.)
   reactStrictMode: true,

@@ -10,6 +10,9 @@ import ConditionalLayout from '@/components/Layout/ConditionalLayout';
 import CookieBanner from '@/components/Layout/CookieBanner';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from '@/lib/constants';
 
+/** Évite la pré-génération DB au build (timeouts Vercel / workers SIGTERM). */
+export const dynamic = 'force-dynamic';
+
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
