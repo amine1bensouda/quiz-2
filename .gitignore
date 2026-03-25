@@ -28,6 +28,9 @@ yarn-error.log*
 .env*.local
 .env
 
+# dump migration (donnees sensibles)
+/data-supabase-to-neon.sql
+
 # vercel
 .vercel
 

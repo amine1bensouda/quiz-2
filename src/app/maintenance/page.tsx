@@ -11,7 +11,6 @@ export const metadata: Metadata = {
   },
 };
 
-/** Page d’accueil temporaire — remplacer par l’ancienne home quand le site est prêt. */
-export default function HomePage() {
+export default function MaintenancePage() {
   return <HomeUnderConstruction siteName={SITE_NAME} />;
 }

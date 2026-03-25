@@ -9,7 +9,8 @@
     "lint": "next lint",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
-    "script:difficulty-to-advanced": "tsx scripts/update-difficulty-hard-to-advanced.ts"
+    "script:difficulty-to-advanced": "tsx scripts/update-difficulty-hard-to-advanced.ts",
+    "import:data": "tsx scripts/import-prisma-data-source-to-target.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",

@@ -11,9 +11,11 @@ export default function ConditionalLayout({
 }) {
   const pathname = usePathname();
   const isAdminLogin = pathname === '/admin/login';
+  const isEnConstruction = pathname === '/en-construction';
+  const isMaintenance = pathname === '/maintenance';
 
-  // Ne pas afficher Header/Footer sur la page de login admin
-  if (isAdminLogin) {
+  // Pas de Header/Footer : login admin, pages temporaires, mode maintenance global
+  if (isAdminLogin || isEnConstruction || isMaintenance) {
     return <>{children}</>;
   }
 
