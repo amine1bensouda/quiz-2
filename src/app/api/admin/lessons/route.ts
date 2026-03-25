@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { generateSlug } from '@/lib/utils';
 
+
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/admin/lessons?moduleId=xxx
  * Liste les leçons (optionnel: filtrer par moduleId)

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
+
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/lessons/[id] — Récupère une lesson par ID (cours publié uniquement)
  */

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 
+
+export const dynamic = 'force-dynamic';
+
 /**
  * Route API pour forcer la revalidation du cache ISR
  * 

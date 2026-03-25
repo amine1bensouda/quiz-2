@@ -3,6 +3,9 @@ import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { randomUUID } from 'crypto';
 
+
+export const dynamic = 'force-dynamic';
+
 const ALLOWED_TYPES = ['video/mp4', 'video/webm'];
 const MAX_SIZE = 200 * 1024 * 1024; // 200 MB
 

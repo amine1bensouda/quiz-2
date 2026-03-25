@@ -4,6 +4,8 @@ import { getAllQuizSlugs } from '@/lib/quiz-service';
 import { getAllPublishedCourses } from '@/lib/course-service';
 import { getAllCategories } from '@/lib/quiz-service';
 
+export const dynamic = 'force-dynamic';
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = SITE_URL;
   const currentDate = new Date();

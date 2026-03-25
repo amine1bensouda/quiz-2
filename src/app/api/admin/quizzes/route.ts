@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { generateSlug } from '@/lib/utils';
 
+
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/admin/quizzes
  * Crée un nouveau quiz (admin uniquement)

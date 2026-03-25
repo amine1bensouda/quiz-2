@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getQuizBySlug } from '@/lib/quiz-service';
 
+
+export const dynamic = 'force-dynamic';
+
 export const revalidate = 3600; // Revalider toutes les heures
 
 /**

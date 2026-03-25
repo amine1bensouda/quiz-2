@@ -3,6 +3,9 @@ import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { randomUUID } from 'crypto';
 
+
+export const dynamic = 'force-dynamic';
+
 const ALLOWED_TYPE = 'application/pdf';
 const MAX_SIZE = 50 * 1024 * 1024; // 50 MB
 

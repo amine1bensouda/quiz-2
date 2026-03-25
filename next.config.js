@@ -3,6 +3,8 @@ const nextConfig = {
   // IMPORTANT: Ne pas utiliser output: 'export' car nous avons des API Routes
   // (authentification, admin, quiz attempts, etc.)
   reactStrictMode: true,
+  // Vercel : éviter les timeouts si beaucoup de routes touchent la DB au build
+  staticPageGenerationTimeout: 180,
   images: {
     // Optimisation d'images activée pour la production
     unoptimized: false,

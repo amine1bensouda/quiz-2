@@ -12,6 +12,9 @@ import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from '@/lib/constants';
 
 const inter = Inter({ subsets: ['latin'] });
 
+/** Évite la pré-génération statique massive au build (DB / timeouts Vercel). */
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: {
     default: SITE_NAME,

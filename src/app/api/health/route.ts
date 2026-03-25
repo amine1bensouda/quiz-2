@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Route de diagnostic pour vérifier la santé de l'API et de la base de données
  */

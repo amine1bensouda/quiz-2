@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
+
+export const dynamic = 'force-dynamic';
+
 /**
  * PUT /api/admin/modules/[id]
  * Met à jour un module

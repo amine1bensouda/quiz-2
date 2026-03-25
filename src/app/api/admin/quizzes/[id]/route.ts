@@ -3,6 +3,9 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { generateSlug } from '@/lib/utils';
 
+
+export const dynamic = 'force-dynamic';
+
 /**
  * PUT /api/admin/quizzes/[id]
  * Met à jour un quiz existant

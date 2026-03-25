@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
+
+export const dynamic = 'force-dynamic';
+
 /**
  * PATCH /api/admin/courses/[id]/modules/order
  * Met à jour l'ordre des modules du cours.
