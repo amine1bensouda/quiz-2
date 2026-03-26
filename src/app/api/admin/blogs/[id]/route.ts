@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isFullRequest } from '@/lib/request-utils';
 import { prisma } from '@/lib/db';
 
 
@@ -8,12 +9,27 @@ export const dynamic = 'force-dynamic';
  * GET /api/admin/blogs/[id]
  */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const { id } = await Promise.resolve(params);
-    const blog = await prisma.blogPost.findUnique({ where: { id } });
+    const full = isFullRequest(request);
+    const blog = full
+      ? await prisma.blogPost.findUnique({ where: { id } })
+      : await prisma.blogPost.findUnique({
+          where: { id },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            excerpt: true,
+            category: true,
+            status: true,
+            publishedAt: true,
+            updatedAt: true,
+          },
+        });
 
     if (!blog) {
       return NextResponse.json({ error: 'Blog post not found' }, { status: 404 });
@@ -49,21 +65,48 @@ export async function PUT(
     const wasPublished = existing.status === 'published';
     const isNowPublished = status === 'published';
 
-    const blog = await prisma.blogPost.update({
-      where: { id },
-      data: {
-        ...(title !== undefined && { title }),
-        ...(slug !== undefined && { slug }),
-        ...(excerpt !== undefined && { excerpt }),
-        ...(content !== undefined && { content }),
-        ...(category !== undefined && { category }),
-        ...(tags !== undefined && { tags }),
-        ...(ctaLink !== undefined && { ctaLink: ctaLink || null }),
-        ...(ctaText !== undefined && { ctaText: ctaText || null }),
-        ...(status !== undefined && { status }),
-        ...(!wasPublished && isNowPublished && { publishedAt: new Date() }),
-      },
-    });
+    const full = isFullRequest(request);
+    const blog = full
+      ? await prisma.blogPost.update({
+          where: { id },
+          data: {
+            ...(title !== undefined && { title }),
+            ...(slug !== undefined && { slug }),
+            ...(excerpt !== undefined && { excerpt }),
+            ...(content !== undefined && { content }),
+            ...(category !== undefined && { category }),
+            ...(tags !== undefined && { tags }),
+            ...(ctaLink !== undefined && { ctaLink: ctaLink || null }),
+            ...(ctaText !== undefined && { ctaText: ctaText || null }),
+            ...(status !== undefined && { status }),
+            ...(!wasPublished && isNowPublished && { publishedAt: new Date() }),
+          },
+        })
+      : await prisma.blogPost.update({
+          where: { id },
+          data: {
+            ...(title !== undefined && { title }),
+            ...(slug !== undefined && { slug }),
+            ...(excerpt !== undefined && { excerpt }),
+            ...(content !== undefined && { content }),
+            ...(category !== undefined && { category }),
+            ...(tags !== undefined && { tags }),
+            ...(ctaLink !== undefined && { ctaLink: ctaLink || null }),
+            ...(ctaText !== undefined && { ctaText: ctaText || null }),
+            ...(status !== undefined && { status }),
+            ...(!wasPublished && isNowPublished && { publishedAt: new Date() }),
+          },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            excerpt: true,
+            category: true,
+            status: true,
+            publishedAt: true,
+            updatedAt: true,
+          },
+        });
 
     return NextResponse.json(blog);
   } catch (error: any) {

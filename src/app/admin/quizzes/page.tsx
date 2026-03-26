@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import DeleteQuizButton from '@/components/Admin/DeleteQuizButton';
 import { difficultyToEnglish, stripHtml } from '@/lib/utils';
 import { getAllQuiz } from '@/lib/quiz-service';
@@ -80,20 +79,20 @@ export default async function AdminQuizzesPage({
               Search
             </button>
             {searchQuery && (
-              <Link
+              <a
                 href="/admin/quizzes"
                 className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
               >
                 Reset
-              </Link>
+              </a>
             )}
           </form>
-          <Link
+          <a
             href="/admin/quizzes/new"
             className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-lg text-center"
           >
             ➕ New Quiz
-          </Link>
+          </a>
         </div>
       </div>
 
@@ -216,14 +215,14 @@ export default async function AdminQuizzesPage({
                                   </td>
                                   <td className="px-6 py-3">
                                     <div className="flex items-center space-x-2">
-                                      <Link
+                                      <a
                                         href={`/admin/quizzes/${encodeURIComponent(
                                           quiz.slug
                                         )}/edit`}
                                         className="px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
                                       >
                                         Edit
-                                      </Link>
+                                      </a>
                                       <DeleteQuizButton
                                         quizId={quiz.prismaId ?? String(quiz.id)}
                                         quizTitle={
@@ -255,12 +254,12 @@ export default async function AdminQuizzesPage({
           <p className="text-gray-600 mb-6">
             Start by creating your first quiz
           </p>
-          <Link
+          <a
             href="/admin/quizzes/new"
             className="inline-block px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium"
           >
             Create a quiz
-          </Link>
+          </a>
         </div>
       )}
     </div>

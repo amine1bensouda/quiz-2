@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isFullRequest } from '@/lib/request-utils';
 import { prisma } from '@/lib/db';
 
 
@@ -10,20 +11,40 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(request: NextRequest) {
   try {
-    const modules = await prisma.module.findMany({
-      include: {
-        course: true,
-        _count: {
-          select: {
-            quizzes: true,
+    const full = isFullRequest(request);
+    const modules = full
+      ? await prisma.module.findMany({
+          include: {
+            course: true,
+            _count: {
+              select: {
+                quizzes: true,
+              },
+            },
           },
-        },
-      },
-      orderBy: [
-        { course: { title: 'asc' } },
-        { order: 'asc' },
-      ],
-    });
+          orderBy: [{ course: { title: 'asc' } }, { order: 'asc' }],
+        })
+      : await prisma.module.findMany({
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            order: true,
+            courseId: true,
+            course: {
+              select: {
+                id: true,
+                title: true,
+              },
+            },
+            _count: {
+              select: {
+                quizzes: true,
+              },
+            },
+          },
+          orderBy: [{ course: { title: 'asc' } }, { order: 'asc' }],
+        });
 
     return NextResponse.json(modules);
   } catch (error: any) {

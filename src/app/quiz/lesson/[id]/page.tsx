@@ -13,6 +13,8 @@ interface Lesson {
   title: string;
   slug: string;
   content: string;
+  ctaLink: string | null;
+  ctaText: string | null;
   featuredImageUrl: string | null;
   videoUrl: string | null;
   videoPlaybackSeconds: number | null;
@@ -26,23 +28,26 @@ interface Lesson {
       title: string;
       slug: string;
     };
-  };
+  } | null;
 }
 
 export default function LessonPage() {
   const params = useParams();
   const router = useRouter();
-  const id = params.id as string;
+  const slugOrId = params.id as string;
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadLesson() {
       try {
-        const res = await fetch(`/api/lessons/${id}`);
+        const res = await fetch(`/api/lessons/${slugOrId}`);
         if (res.ok) {
           const data = await res.json();
           setLesson(data);
+          if (data.slug && data.slug !== slugOrId) {
+            router.replace(`/quiz/lesson/${data.slug}`);
+          }
         } else if (res.status === 404) {
           router.push('/quiz');
         }
@@ -52,8 +57,8 @@ export default function LessonPage() {
         setLoading(false);
       }
     }
-    if (id) loadLesson();
-  }, [id, router]);
+    if (slugOrId) loadLesson();
+  }, [slugOrId, router]);
 
   if (loading) {
     return (
@@ -84,7 +89,7 @@ export default function LessonPage() {
     );
   }
 
-  const courseSlug = lesson.module.course.slug;
+  const courseSlug = lesson.module?.course.slug;
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-violet-50">
@@ -95,8 +100,12 @@ export default function LessonPage() {
           <Link href="/" className="hover:text-indigo-600">Home</Link>
           <span className="mx-1.5">/</span>
           <Link href="/quiz" className="hover:text-indigo-600">Courses</Link>
-          <span className="mx-1.5">/</span>
-          <Link href={`/quiz/course/${courseSlug}`} className="hover:text-indigo-600">{lesson.module.course.title}</Link>
+          {lesson.module && courseSlug && (
+            <>
+              <span className="mx-1.5">/</span>
+              <Link href={`/quiz/course/${courseSlug}`} className="hover:text-indigo-600">{lesson.module.course.title}</Link>
+            </>
+          )}
           <span className="mx-1.5">/</span>
           <span className="text-gray-900 font-medium">{lesson.title}</span>
         </nav>
@@ -159,16 +168,36 @@ export default function LessonPage() {
                 <SafeHtmlRenderer html={lesson.content} renderMath />
               </div>
             )}
+
+            {lesson.ctaLink && lesson.ctaText && (
+              <div className="mt-8">
+                <Link
+                  href={lesson.ctaLink}
+                  className="inline-flex items-center rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-3 text-white font-medium hover:from-indigo-700 hover:to-purple-700 transition-all"
+                >
+                  {lesson.ctaText}
+                </Link>
+              </div>
+            )}
           </div>
         </article>
 
         <div className="mt-6">
-          <Link
-            href={`/quiz/course/${courseSlug}`}
-            className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium"
-          >
-            ← Back to {lesson.module.course.title}
-          </Link>
+          {lesson.module && courseSlug ? (
+            <Link
+              href={`/quiz/course/${courseSlug}`}
+              className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium"
+            >
+              ← Back to {lesson.module.course.title}
+            </Link>
+          ) : (
+            <Link
+              href="/quiz"
+              className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium"
+            >
+              ← Back to courses
+            </Link>
+          )}
         </div>
       </div>
     </div>

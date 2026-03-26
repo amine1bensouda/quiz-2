@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isFullRequest } from '@/lib/request-utils';
 import { prisma } from '@/lib/db';
 
 
@@ -7,11 +8,26 @@ export const dynamic = 'force-dynamic';
 /**
  * GET /api/admin/blogs
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const blogs = await prisma.blogPost.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
+    const full = isFullRequest(request);
+    const blogs = full
+      ? await prisma.blogPost.findMany({
+          orderBy: { createdAt: 'desc' },
+        })
+      : await prisma.blogPost.findMany({
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            category: true,
+            status: true,
+            publishedAt: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        });
     return NextResponse.json(blogs);
   } catch (error: any) {
     console.error('Erreur récupération blogs:', error);

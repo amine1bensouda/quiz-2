@@ -1,4 +1,5 @@
 import { prisma } from './db';
+import { getAllPublishedCoursesData, getCourses, getPublishedCoursesSummaryData } from './cache';
 import { convertPrismaQuizToQuiz } from './quiz-service';
 
 /**
@@ -6,44 +7,28 @@ import { convertPrismaQuizToQuiz } from './quiz-service';
  */
 
 /**
- * Récupère tous les cours publiés avec leurs modules et quiz
+ * Récupère tous les cours publiés avec leurs modules et quiz (cache Next ~1 h).
  */
 export async function getAllPublishedCourses() {
   try {
-    const courses = await prisma.course.findMany({
-      where: {
-        status: 'published',
-      },
-      include: {
-        modules: {
-          include: {
-            _count: {
-              select: {
-                quizzes: true,
-              },
-            },
-          },
-          orderBy: {
-            order: 'asc',
-          },
-        },
-        _count: {
-          select: {
-            modules: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-
-    return courses;
+    return await getAllPublishedCoursesData();
   } catch (error) {
     console.error('Erreur getAllPublishedCourses:', error);
 
     // En dev, on logue l'erreur mais on ne casse pas toute la page.
     // On retourne simplement un tableau vide de cours.
+    return [];
+  }
+}
+
+/**
+ * Résumé de cours pour APIs/listes (payload réduit).
+ */
+export async function getPublishedCoursesSummary() {
+  try {
+    return await getPublishedCoursesSummaryData();
+  } catch (error) {
+    console.error('Erreur getPublishedCoursesSummary:', error);
     return [];
   }
 }
@@ -127,18 +112,7 @@ export async function getCourseBySlug(slug: string) {
  */
 export async function getCourseStatsByTestType() {
   try {
-    const courses = await prisma.course.findMany({
-      where: {
-        status: 'published',
-      },
-      select: {
-        title: true,
-        slug: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    const courses = await getCourses();
 
     // Filtrer les cours par type de test en fonction du titre ou slug
     const actCourses = courses.filter(

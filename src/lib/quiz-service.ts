@@ -1,4 +1,5 @@
 import type { Prisma } from '@prisma/client';
+import { unstable_cache } from 'next/cache';
 import { prisma } from './db';
 import type { Quiz, Question, Category } from './types';
 
@@ -22,6 +23,34 @@ export const PUBLISHED_QUIZ_WHERE: Prisma.QuizWhereInput = {
     },
   ],
 };
+
+const getFeaturedQuizzesUncached = async () => {
+  return prisma.quiz.findMany({
+    where: PUBLISHED_QUIZ_WHERE,
+    take: 6,
+    include: {
+      module: {
+        include: {
+          course: true,
+        },
+      },
+      _count: {
+        select: {
+          questions: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+};
+
+const getFeaturedQuizzesCached = unstable_cache(
+  async () => getFeaturedQuizzesUncached(),
+  ['home-featured-quizzes'],
+  { revalidate: 3600, tags: ['quizzes'] }
+);
 
 /**
  * Récupère tous les quiz avec leurs questions
@@ -64,6 +93,65 @@ export async function getAllQuiz(): Promise<Quiz[]> {
     console.error('❌ Erreur getAllQuiz:', error);
     console.error('   Message:', error.message);
     console.error('   Stack:', error.stack);
+    return [];
+  }
+}
+
+/**
+ * Récupère les quiz en vedette pour la home (léger + cache).
+ */
+export async function getFeaturedQuiz(): Promise<Quiz[]> {
+  try {
+    const quizzes = await getFeaturedQuizzesCached();
+    return quizzes.map(convertPrismaQuizToQuiz);
+  } catch (error) {
+    console.error('❌ Erreur getFeaturedQuiz:', error);
+    return [];
+  }
+}
+
+/**
+ * Liste légère de quiz pour APIs/listes (sans questions/réponses).
+ */
+export async function getQuizList(options?: {
+  limit?: number;
+  moduleSlug?: string;
+}): Promise<Quiz[]> {
+  try {
+    const take = options?.limit && options.limit > 0 ? options.limit : undefined;
+    const moduleSlug = options?.moduleSlug?.trim();
+
+    const quizzes = await prisma.quiz.findMany({
+      where: {
+        ...PUBLISHED_QUIZ_WHERE,
+        ...(moduleSlug
+          ? {
+              module: {
+                slug: moduleSlug,
+                course: {
+                  status: 'published',
+                },
+              },
+            }
+          : {}),
+      },
+      ...(take ? { take } : {}),
+      include: {
+        module: true,
+        _count: {
+          select: {
+            questions: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return quizzes.map(convertPrismaQuizToQuiz);
+  } catch (error) {
+    console.error('Erreur getQuizList:', error);
     return [];
   }
 }
@@ -240,8 +328,11 @@ export async function getAllCategories(): Promise<Category[]> {
           status: 'published', // Ne récupérer que les modules de cours publiés
         },
       },
-      include: {
-        course: true,
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
         _count: {
           select: {
             quizzes: true,
@@ -277,7 +368,8 @@ export async function getAllCategories(): Promise<Category[]> {
  * Convertit un quiz Prisma au format Quiz attendu par le frontend
  */
 export function convertPrismaQuizToQuiz(prismaQuiz: any): Quiz {
-  const questions = prismaQuiz.questions.map((q: any) => {
+  const rawQuestions = Array.isArray(prismaQuiz.questions) ? prismaQuiz.questions : [];
+  const questions = rawQuestions.map((q: any) => {
     const answers = Array.isArray(q.answers) ? q.answers : [];
     const typeQuestion = q.type === 'true_false' ? 'VraiFaux' : (q.type === 'text_input' ? 'TexteLibre' : 'QCM');
 
@@ -323,7 +415,7 @@ export function convertPrismaQuizToQuiz(prismaQuiz: any): Quiz {
       duree_estimee: prismaQuiz.duration > 0 ? prismaQuiz.duration : undefined,
       niveau_difficulte: (prismaQuiz.difficulty != null && String(prismaQuiz.difficulty).trim()) ? prismaQuiz.difficulty : undefined,
       categorie: prismaQuiz.module?.title?.trim() || undefined,
-      nombre_questions: prismaQuiz.maxQuestions || questions.length,
+      nombre_questions: prismaQuiz.maxQuestions || prismaQuiz._count?.questions || questions.length,
       score_minimum: prismaQuiz.passingGrade,
       ordre_questions: prismaQuiz.randomizeOrder ? 'Aleatoire' : 'Fixe',
       questions: questions,

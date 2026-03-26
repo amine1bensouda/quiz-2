@@ -1,14 +1,19 @@
 import { NextResponse } from 'next/server';
-import { getAllPublishedCourses } from '@/lib/course-service';
+import { isFullRequest } from '@/lib/request-utils';
+import { getAllPublishedCourses, getPublishedCoursesSummary } from '@/lib/course-service';
 
 
 export const dynamic = 'force-dynamic';
 
 export const revalidate = 3600; // Revalider toutes les heures
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const courses = await getAllPublishedCourses();
+    const full = isFullRequest(request);
+    // Léger par défaut pour réduire l'egress DB.
+    const courses = full
+      ? await getAllPublishedCourses()
+      : await getPublishedCoursesSummary();
     return NextResponse.json(courses);
   } catch (error) {
     console.error('Erreur API courses:', error);

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isFullRequest } from '@/lib/request-utils';
+import { invalidatePublishedCoursesCache } from '@/lib/cache';
 import { prisma } from '@/lib/db';
 
 
@@ -10,30 +12,43 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(request: NextRequest) {
   try {
-    const courses = await prisma.course.findMany({
-      include: {
-        modules: {
+    const full = isFullRequest(request);
+    const courses = full
+      ? await prisma.course.findMany({
           include: {
+            modules: {
+              include: {
+                _count: {
+                  select: {
+                    quizzes: true,
+                  },
+                },
+              },
+              orderBy: {
+                order: 'asc',
+              },
+            },
             _count: {
               select: {
-                quizzes: true,
+                modules: true,
               },
             },
           },
           orderBy: {
-            order: 'asc',
+            createdAt: 'desc',
           },
-        },
-        _count: {
+        })
+      : await prisma.course.findMany({
           select: {
-            modules: true,
+            id: true,
+            title: true,
+            slug: true,
+            status: true,
           },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+          orderBy: {
+            createdAt: 'desc',
+          },
+        });
 
     return NextResponse.json(courses);
   } catch (error: any) {
@@ -72,6 +87,8 @@ export async function POST(request: NextRequest) {
         modules: true,
       },
     });
+
+    invalidatePublishedCoursesCache();
 
     return NextResponse.json(course, { status: 201 });
   } catch (error: any) {

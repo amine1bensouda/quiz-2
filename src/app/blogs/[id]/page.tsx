@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import {
   getBlogPostFromDB,
@@ -13,8 +13,8 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = await Promise.resolve(params);
-  const post = await getBlogPostFromDB(id);
+  const { id: idOrSlug } = await Promise.resolve(params);
+  const post = await getBlogPostFromDB(idOrSlug);
   if (!post) return { title: 'Blog' };
   return {
     title: `${post.title} | The School of Mathematics`,
@@ -27,11 +27,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
-  const { id } = await Promise.resolve(params);
-  const post = await getBlogPostFromDB(id);
+  const { id: idOrSlug } = await Promise.resolve(params);
+  const post = await getBlogPostFromDB(idOrSlug);
 
   if (!post) {
     notFound();
+  }
+  if (idOrSlug !== post.slug) {
+    redirect(`/blogs/${post.slug}`);
   }
 
   const allPosts = await getAllBlogPostsFromDB();
@@ -136,7 +139,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                     {related.map((p) => (
                       <li key={p.id}>
                         <Link
-                          href={`/blogs/${p.id}`}
+                          href={`/blogs/${p.slug}`}
                           className="group block p-3 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-200"
                         >
                           <span className="text-xs font-medium text-slate-400">{p.category}</span>

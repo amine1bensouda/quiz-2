@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/constants';
 import { getAllQuizSlugs } from '@/lib/quiz-service';
-import { getAllPublishedCourses } from '@/lib/course-service';
+import { getCourses } from '@/lib/cache';
 import { getAllCategories } from '@/lib/quiz-service';
 
 export const dynamic = 'force-dynamic';
@@ -91,10 +91,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Récupérer tous les cours publiés
   let coursePages: MetadataRoute.Sitemap = [];
   try {
-    const courses = await getAllPublishedCourses();
+    const courses = await getCourses();
     coursePages = courses.map((course) => ({
       url: `${baseUrl}/quiz/course/${encodeURIComponent(course.slug)}`,
-      lastModified: course.updatedAt || currentDate,
+      lastModified: currentDate,
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     }));

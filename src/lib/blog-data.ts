@@ -191,6 +191,12 @@ const posts: BlogPost[] = [
   },
 ];
 
+/** Normalise les tags (MySQL : champ JSON ; PostgreSQL ancien : string[]). */
+export function normalizeBlogTags(tags: unknown): string[] {
+  if (!Array.isArray(tags)) return [];
+  return tags.filter((t): t is string => typeof t === 'string');
+}
+
 /** Convertit un blog Prisma en BlogPost. */
 function fromPrisma(b: any): BlogPost {
   return {
@@ -203,7 +209,7 @@ function fromPrisma(b: any): BlogPost {
     category: b.category || '',
     ctaLink: b.ctaLink || undefined,
     ctaText: b.ctaText || undefined,
-    tags: b.tags || [],
+    tags: normalizeBlogTags(b.tags),
   };
 }
 

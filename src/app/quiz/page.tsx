@@ -12,18 +12,8 @@ interface Course {
   title: string;
   slug: string;
   description: string | null;
-  modules: {
-    id: string;
-    title: string;
-    slug: string;
-    order: number;
-    _count: {
-      quizzes: number;
-    };
-  }[];
-  _count: {
-    modules: number;
-  };
+  moduleCount: number;
+  totalQuizzes: number;
 }
 
 export default function QuizListPage() {
@@ -40,10 +30,11 @@ export default function QuizListPage() {
           const coursesData = await coursesResponse.json();
           setCourses(coursesData);
           
-          // Calculer le total de quiz
-          const total = coursesData.reduce((sum: number, course: Course) => {
-            return sum + course.modules.reduce((moduleSum, module) => moduleSum + module._count.quizzes, 0);
-          }, 0);
+          // Calculer le total de quiz (payload léger)
+          const total = coursesData.reduce(
+            (sum: number, course: Course) => sum + (course.totalQuizzes || 0),
+            0
+          );
           setTotalQuizzes(total);
         }
       } catch (error) {
@@ -55,11 +46,6 @@ export default function QuizListPage() {
 
     loadData();
   }, []);
-
-  // Calculer le total de quiz par cours
-  const getTotalQuizzesForCourse = (course: Course): number => {
-    return course.modules.reduce((total, module) => total + module._count.quizzes, 0);
-  };
 
   return (
     <div className="relative bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 min-h-screen">
@@ -94,15 +80,14 @@ export default function QuizListPage() {
             {/* Cartes des cours */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {courses.map((course) => {
-                const courseTotalQuizzes = getTotalQuizzesForCourse(course);
                 return (
                   <CourseCard
                     key={course.id}
                     id={course.id}
                     title={course.title}
                     description={course.description}
-                    moduleCount={course._count.modules}
-                    totalQuizzes={courseTotalQuizzes}
+                    moduleCount={course.moduleCount}
+                    totalQuizzes={course.totalQuizzes}
                     slug={course.slug}
                   />
                 );

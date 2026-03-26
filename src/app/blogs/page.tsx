@@ -41,7 +41,7 @@ export default async function BlogsPage() {
               {blogPosts.map((post) => (
                 <Link
                   key={post.id}
-                  href={`/blogs/${post.id}`}
+                  href={`/blogs/${post.slug}`}
                   className="group flex flex-col backdrop-blur-xl bg-white/90 rounded-2xl sm:rounded-3xl shadow-lg border border-white/60 overflow-hidden hover:shadow-xl hover:border-indigo-200/80 transition-all duration-300"
                 >
                   <div className="p-5 sm:p-6 md:p-7 flex flex-col flex-1">

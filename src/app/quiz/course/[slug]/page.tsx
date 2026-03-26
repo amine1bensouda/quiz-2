@@ -207,7 +207,7 @@ export default function CoursePage() {
                             {module.lessons.map((lesson) => (
                               <li key={lesson.id}>
                                 <Link
-                                  href={`/quiz/lesson/${lesson.id}`}
+                                  href={`/quiz/lesson/${lesson.slug}`}
                                   className="block rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all"
                                 >
                                   <span className="font-medium text-gray-900">{lesson.title}</span>

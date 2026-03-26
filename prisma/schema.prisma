@@ -43,11 +43,13 @@ model Module {
 
 model Lesson {
   id                   String   @id @default(cuid())
-  moduleId             String
-  module               Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId             String?
+  module               Module?  @relation(fields: [moduleId], references: [id], onDelete: SetNull)
   title                String
   slug                 String
   content              String   @default("")
+  ctaLink              String?
+  ctaText              String?
   featuredImageUrl     String?
   videoUrl             String?
   videoPlaybackSeconds Int?

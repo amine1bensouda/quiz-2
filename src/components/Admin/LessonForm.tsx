@@ -26,6 +26,8 @@ interface LessonFormData {
   slug: string;
   moduleId: string;
   content: string;
+  ctaLink: string;
+  ctaText: string;
   featuredImageUrl: string;
   videoUrl: string;
   videoPlaybackSeconds: number | '';
@@ -37,9 +39,10 @@ interface LessonFormData {
 interface LessonFormProps {
   initialData?: LessonFormData;
   defaultModuleId?: string;
+  hideModuleField?: boolean;
 }
 
-export default function LessonForm({ initialData, defaultModuleId }: LessonFormProps) {
+export default function LessonForm({ initialData, defaultModuleId, hideModuleField = false }: LessonFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [courses, setCourses] = useState<Course[]>([]);
@@ -48,6 +51,8 @@ export default function LessonForm({ initialData, defaultModuleId }: LessonFormP
     slug: '',
     moduleId: defaultModuleId || '',
     content: '',
+    ctaLink: '',
+    ctaText: '',
     featuredImageUrl: '',
     videoUrl: '',
     videoPlaybackSeconds: '',
@@ -57,13 +62,32 @@ export default function LessonForm({ initialData, defaultModuleId }: LessonFormP
     ...initialData,
   });
 
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  };
+
+  const handleTitleChange = (title: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      title,
+      slug: prev.id ? prev.slug : generateSlug(title),
+    }));
+  };
+
   useEffect(() => {
-    fetchCourses();
-  }, []);
+    if (!hideModuleField) {
+      fetchCourses();
+    }
+  }, [hideModuleField]);
 
   const fetchCourses = async () => {
     try {
-      const response = await fetch('/api/admin/courses');
+      const response = await fetch('/api/admin/courses?full=1');
       if (response.ok) {
         const data = await response.json();
         setCourses(data);
@@ -105,66 +129,40 @@ export default function LessonForm({ initialData, defaultModuleId }: LessonFormP
     }
   };
 
-  const modules = formData.moduleId
-    ? courses.flatMap((c) => c.modules).filter((m) => m.id === formData.moduleId)
-    : courses.flatMap((c) => c.modules);
-  const selectedCourse = courses.find((c) => c.modules.some((m) => m.id === formData.moduleId));
-
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Lesson</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Lesson Information</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Course *</label>
-            <select
-              required
-              value={selectedCourse?.id ?? ''}
-              onChange={(e) => {
-                const course = courses.find((c) => c.id === e.target.value);
-                setFormData((prev) => ({
-                  ...prev,
-                  moduleId: course?.modules?.[0]?.id ?? '',
-                }));
-              }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="">Select a course</option>
-              {courses.map((course) => (
-                <option key={course.id} value={course.id}>
-                  {course.title}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Module *</label>
-            <select
-              required
-              value={formData.moduleId}
-              onChange={(e) => setFormData((prev) => ({ ...prev, moduleId: e.target.value }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="">Select a module</option>
-              {courses.map((course) => (
-                <optgroup key={course.id} label={course.title}>
-                  {course.modules.map((mod) => (
-                    <option key={mod.id} value={mod.id}>
-                      {mod.title}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-          </div>
+          {!hideModuleField && (
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Module (optional)</label>
+              <select
+                value={formData.moduleId}
+                onChange={(e) => setFormData((prev) => ({ ...prev, moduleId: e.target.value }))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              >
+                <option value="">Independent lesson (no module)</option>
+                {courses.map((course) => (
+                  <optgroup key={course.id} label={course.title}>
+                    {course.modules.map((mod) => (
+                      <option key={mod.id} value={mod.id}>
+                        {mod.title}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Name *</label>
             <input
               type="text"
               required
               value={formData.title}
-              onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+              onChange={(e) => handleTitleChange(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               placeholder="Enter Lesson Name"
             />
           </div>
@@ -174,19 +172,54 @@ export default function LessonForm({ initialData, defaultModuleId }: LessonFormP
               type="text"
               value={formData.slug}
               onChange={(e) => setFormData((prev) => ({ ...prev, slug: e.target.value }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               placeholder="auto from name if empty"
             />
           </div>
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Content</label>
-            <RichTextEditor
-              value={formData.content}
-              onChange={(value) => setFormData((prev) => ({ ...prev, content: value }))}
-              placeholder="Enter lesson content..."
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-4">
+        <h2 className="text-2xl font-bold text-gray-900">Content</h2>
+        <RichTextEditor
+          value={formData.content}
+          onChange={(value) => setFormData((prev) => ({ ...prev, content: value }))}
+          placeholder="Write the lesson content..."
+        />
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
+        <h2 className="text-2xl font-bold text-gray-900">
+          Call-to-Action <span className="text-sm font-normal text-gray-500">(optional)</span>
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">CTA Link</label>
+            <input
+              type="text"
+              value={formData.ctaLink}
+              onChange={(e) => setFormData((prev) => ({ ...prev, ctaLink: e.target.value }))}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              placeholder="Ex: /quiz or /quiz/course/act-math"
             />
           </div>
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">CTA Text</label>
+            <input
+              type="text"
+              value={formData.ctaText}
+              onChange={(e) => setFormData((prev) => ({ ...prev, ctaText: e.target.value }))}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              placeholder="Ex: Practice this chapter quiz"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
+        <h2 className="text-2xl font-bold text-gray-900">Media</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="md:col-span-2">
             <ImageUploadField
               label="Featured Image"
               value={formData.featuredImageUrl}
@@ -217,10 +250,16 @@ export default function LessonForm({ initialData, defaultModuleId }: LessonFormP
               min={0}
               value={formData.videoPlaybackSeconds}
               onChange={(e) => setFormData((prev) => ({ ...prev, videoPlaybackSeconds: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               placeholder="0"
             />
           </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
+        <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Order</label>
             <input
@@ -228,10 +267,10 @@ export default function LessonForm({ initialData, defaultModuleId }: LessonFormP
               min={0}
               value={formData.order}
               onChange={(e) => setFormData((prev) => ({ ...prev, order: parseInt(e.target.value) || 0 }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center md:pt-8 gap-2">
             <input
               type="checkbox"
               id="allowPreview"
@@ -239,7 +278,9 @@ export default function LessonForm({ initialData, defaultModuleId }: LessonFormP
               onChange={(e) => setFormData((prev) => ({ ...prev, allowPreview: e.target.checked }))}
               className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
             />
-            <label htmlFor="allowPreview" className="text-sm font-medium text-gray-700">Lesson Preview (free preview)</label>
+            <label htmlFor="allowPreview" className="text-sm font-medium text-gray-700">
+              Lesson Preview (free preview)
+            </label>
           </div>
         </div>
       </div>
@@ -253,8 +294,8 @@ export default function LessonForm({ initialData, defaultModuleId }: LessonFormP
         </button>
         <button
           type="submit"
-          disabled={loading || !formData.title || !formData.moduleId}
-          className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 font-medium shadow-lg disabled:opacity-50"
+          disabled={loading || !formData.title}
+          className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Saving...' : initialData?.id ? 'Update' : 'Create Lesson'}
         </button>

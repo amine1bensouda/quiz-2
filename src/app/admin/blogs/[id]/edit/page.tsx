@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
+import { normalizeBlogTags } from '@/lib/blog-data';
 import BlogForm from '@/components/Admin/BlogForm';
 
 export default async function EditBlogPage({
@@ -25,7 +26,7 @@ export default async function EditBlogPage({
     excerpt: blog.excerpt || '',
     content: blog.content || '',
     category: blog.category || '',
-    tags: blog.tags || [],
+    tags: normalizeBlogTags(blog.tags),
     ctaLink: blog.ctaLink || '',
     ctaText: blog.ctaText || '',
     status: (blog.status as 'published' | 'draft') || 'draft',

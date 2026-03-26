@@ -10,7 +10,8 @@
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "script:difficulty-to-advanced": "tsx scripts/update-difficulty-hard-to-advanced.ts",
-    "import:data": "tsx scripts/import-prisma-data-source-to-target.ts"
+    "import:data": "tsx scripts/import-prisma-data-source-to-target.ts",
+    "health:db": "tsx scripts/health-check-db.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",

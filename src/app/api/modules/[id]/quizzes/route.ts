@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isFullRequest } from '@/lib/request-utils';
 import { prisma } from '@/lib/db';
 import { convertPrismaQuizToQuiz } from '@/lib/quiz-service';
 
@@ -12,6 +13,7 @@ export async function GET(
   try {
     const resolvedParams = await Promise.resolve(params);
     const moduleId = resolvedParams.id;
+    const full = isFullRequest(request);
 
     const quizzes = await prisma.quiz.findMany({
       where: {
@@ -23,14 +25,24 @@ export async function GET(
             course: true,
           },
         },
-        questions: {
-          include: {
-            answers: true,
-          },
-          orderBy: {
-            order: 'asc',
-          },
-        },
+        ...(full
+          ? {
+              questions: {
+                include: {
+                  answers: true,
+                },
+                orderBy: {
+                  order: 'asc',
+                },
+              },
+            }
+          : {
+              _count: {
+                select: {
+                  questions: true,
+                },
+              },
+            }),
       },
       orderBy: {
         createdAt: 'desc',

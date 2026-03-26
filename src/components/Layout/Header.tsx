@@ -87,6 +87,19 @@ export default function Header() {
               )}
             </Link>
             <Link
+              href="/lessons"
+              className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
+                isActive('/lessons')
+                  ? 'bg-gray-100 rounded-lg'
+                  : 'hover:text-gray-900'
+              }`}
+            >
+              Lessons
+              {isActive('/lessons') && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800 rounded-full"></span>
+              )}
+            </Link>
+            <Link
               href="/about-us"
               className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
                 isActive('/about-us') 
@@ -197,6 +210,17 @@ export default function Header() {
                 }`}
               >
                 About us
+              </Link>
+              <Link
+                href="/lessons"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
+                  isActive('/lessons')
+                    ? 'bg-gray-100'
+                    : 'hover:bg-gray-50'
+                }`}
+              >
+                Lessons
               </Link>
               <Link
                 href="/blogs"

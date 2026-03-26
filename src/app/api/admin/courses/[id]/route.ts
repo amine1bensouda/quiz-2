@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isFullRequest } from '@/lib/request-utils';
+import { invalidatePublishedCoursesCache } from '@/lib/cache';
 import { prisma } from '@/lib/db';
 
 
@@ -61,13 +63,28 @@ export async function PUT(
       );
     }
 
-    const course = await prisma.course.update({
-      where: { id: courseId },
-      data: updateData,
-      include: {
-        modules: true,
-      },
-    });
+    const full = isFullRequest(request);
+    const course = full
+      ? await prisma.course.update({
+          where: { id: courseId },
+          data: updateData,
+          include: {
+            modules: true,
+          },
+        })
+      : await prisma.course.update({
+          where: { id: courseId },
+          data: updateData,
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            status: true,
+            updatedAt: true,
+          },
+        });
+
+    invalidatePublishedCoursesCache();
 
     console.log(`✅ Cours ${courseId} mis à jour via PUT:`, updateData);
 
@@ -148,13 +165,26 @@ export async function PATCH(
       );
     }
 
-    const course = await prisma.course.update({
-      where: { id: courseId },
-      data: updateData,
-      include: {
-        modules: true,
-      },
-    });
+    const full = isFullRequest(request);
+    const course = full
+      ? await prisma.course.update({
+          where: { id: courseId },
+          data: updateData,
+          include: {
+            modules: true,
+          },
+        })
+      : await prisma.course.update({
+          where: { id: courseId },
+          data: updateData,
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            status: true,
+            updatedAt: true,
+          },
+        });
 
     console.log(`✅ Cours ${courseId} mis à jour: status=${course.status}`);
 
@@ -200,6 +230,8 @@ export async function DELETE(
     await prisma.course.delete({
       where: { id: courseId },
     });
+
+    invalidatePublishedCoursesCache();
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

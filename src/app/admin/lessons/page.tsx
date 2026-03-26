@@ -100,10 +100,18 @@ export default async function AdminLessonsPage({
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <span className="px-2 py-1 text-xs font-medium rounded bg-purple-100 text-purple-800">
-                        {lesson.module.title}
-                      </span>
-                      <span className="text-gray-500 text-sm ml-1">({lesson.module.course.title})</span>
+                      {lesson.module ? (
+                        <>
+                          <span className="px-2 py-1 text-xs font-medium rounded bg-purple-100 text-purple-800">
+                            {lesson.module.title}
+                          </span>
+                          <span className="text-gray-500 text-sm ml-1">({lesson.module.course.title})</span>
+                        </>
+                      ) : (
+                        <span className="px-2 py-1 text-xs font-medium rounded bg-slate-100 text-slate-700">
+                          Independent
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-gray-700">{lesson.order}</td>
                     <td className="px-6 py-4">

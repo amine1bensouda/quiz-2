@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isFullRequest } from '@/lib/request-utils';
 import { prisma } from '@/lib/db';
 
 
@@ -15,20 +16,40 @@ export async function PUT(
   try {
     const body = await request.json();
     const { title, slug, courseId, description, order } = body;
+    const full = isFullRequest(request);
 
-    const moduleItem = await prisma.module.update({
-      where: { id: params.id },
-      data: {
-        ...(title && { title }),
-        ...(slug && { slug }),
-        ...(courseId !== undefined && { courseId }),
-        ...(description !== undefined && { description: description || null }),
-        ...(order !== undefined && { order }),
-      },
-      include: {
-        course: true,
-      },
-    });
+    const moduleItem = full
+      ? await prisma.module.update({
+          where: { id: params.id },
+          data: {
+            ...(title && { title }),
+            ...(slug && { slug }),
+            ...(courseId !== undefined && { courseId }),
+            ...(description !== undefined && { description: description || null }),
+            ...(order !== undefined && { order }),
+          },
+          include: {
+            course: true,
+          },
+        })
+      : await prisma.module.update({
+          where: { id: params.id },
+          data: {
+            ...(title && { title }),
+            ...(slug && { slug }),
+            ...(courseId !== undefined && { courseId }),
+            ...(description !== undefined && { description: description || null }),
+            ...(order !== undefined && { order }),
+          },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            courseId: true,
+            order: true,
+            updatedAt: true,
+          },
+        });
 
     return NextResponse.json(moduleItem);
   } catch (error: any) {

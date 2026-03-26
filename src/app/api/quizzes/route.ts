@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllQuiz } from '@/lib/quiz-service';
+import { isFullRequest } from '@/lib/request-utils';
+import { getAllQuiz, getQuizList } from '@/lib/quiz-service';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -14,18 +15,29 @@ export async function GET(request: NextRequest) {
     const url = request.nextUrl ?? new URL(request.url);
     const moduleSlug = url.searchParams.get('module');
     const limitParam = url.searchParams.get('limit');
+    const full = isFullRequest(request);
     const limit = limitParam ? parseInt(limitParam, 10) : undefined;
+
+    // Mode léger par défaut pour réduire egress DB. `full=1` garde l’ancien comportement.
+    if (!full) {
+      const quizzes = await getQuizList({
+        moduleSlug: moduleSlug || undefined,
+        limit,
+      });
+      return NextResponse.json(quizzes);
+    }
 
     let quizzes = await getAllQuiz();
 
     // Filtrer par module si demandé
     if (moduleSlug) {
       quizzes = quizzes.filter((q) => {
-        // Vérifier si le slug du module correspond
-        const moduleSlugMatch = q.acf?.categorie === moduleSlug;
-        // Ou vérifier dans les catégories (slugs convertis en nombres)
-        const categoryMatch = q.categories && q.categories.length > 0;
-        return moduleSlugMatch || false;
+        const fromCategory = String(q.acf?.categorie || '')
+          .trim()
+          .toLowerCase()
+          .replace(/\s+/g, '-');
+        const fromCategories = Array.isArray(q.categories) ? q.categories : [];
+        return fromCategory === moduleSlug || fromCategories.includes(moduleSlug);
       });
     }
 
