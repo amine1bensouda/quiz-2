@@ -13,7 +13,11 @@ export const revalidate = 3600;
 export async function GET(request: NextRequest) {
   try {
     const url = request.nextUrl ?? new URL(request.url);
-    const moduleSlug = url.searchParams.get('module');
+    const moduleSlug = url.searchParams
+      .get('module')
+      ?.trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-');
     const limitParam = url.searchParams.get('limit');
     const full = isFullRequest(request);
     const limit = limitParam ? parseInt(limitParam, 10) : undefined;
@@ -36,7 +40,14 @@ export async function GET(request: NextRequest) {
           .trim()
           .toLowerCase()
           .replace(/\s+/g, '-');
-        const fromCategories = Array.isArray(q.categories) ? q.categories : [];
+        const fromCategories = Array.isArray(q.categories)
+          ? q.categories.map((value) =>
+              String(value)
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, '-')
+            )
+          : [];
         return fromCategory === moduleSlug || fromCategories.includes(moduleSlug);
       });
     }

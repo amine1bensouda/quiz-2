@@ -10,7 +10,7 @@ export const COURSES_CACHE_TAG = 'courses';
 const coursesCacheConfig = {
   revalidate: 3600,
   tags: [COURSES_CACHE_TAG],
-} as const;
+};
 
 /**
  * Liste légère des cours publiés — réduit l’egress vs charger toutes les relations.
