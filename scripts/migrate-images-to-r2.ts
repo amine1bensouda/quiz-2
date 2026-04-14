@@ -33,29 +33,30 @@ type MigrationTask = {
 const applyChanges = process.argv.includes('--apply');
 const dryRun = !applyChanges;
 
+function requireEnv(name: string): string {
+  const value = process.env[name]?.trim();
+  if (!value) {
+    console.error(`❌ Variable manquante: ${name}`);
+    process.exit(1);
+  }
+  return value;
+}
+
 const accountId = process.env.R2_ACCOUNT_ID || '9a3dd3eab85fa0bc37624ca240487b9b';
 const endpoint =
   process.env.R2_ENDPOINT ||
   `https://${accountId}.r2.cloudflarestorage.com`;
-const bucket = process.env.R2_BUCKET_NAME;
-const publicBaseUrl = process.env.R2_PUBLIC_BASE_URL;
-
-if (!bucket || !publicBaseUrl) {
-  console.error('❌ Variables manquantes: R2_BUCKET_NAME et R2_PUBLIC_BASE_URL');
-  process.exit(1);
-}
-
-if (!process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY) {
-  console.error('❌ Variables manquantes: R2_ACCESS_KEY_ID et/ou R2_SECRET_ACCESS_KEY');
-  process.exit(1);
-}
+const bucket = requireEnv('R2_BUCKET_NAME');
+const publicBaseUrl = requireEnv('R2_PUBLIC_BASE_URL');
+const r2AccessKeyId = requireEnv('R2_ACCESS_KEY_ID');
+const r2SecretAccessKey = requireEnv('R2_SECRET_ACCESS_KEY');
 
 const s3 = new S3Client({
   region: 'auto',
   endpoint,
   credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+    accessKeyId: r2AccessKeyId,
+    secretAccessKey: r2SecretAccessKey,
   },
 });
 
