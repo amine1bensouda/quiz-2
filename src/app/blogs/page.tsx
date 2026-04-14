@@ -5,7 +5,7 @@ import { getAllBlogPostsFromDB } from '@/lib/blog-data';
 import AnimatedShapes from '@/components/Layout/AnimatedShapes';
 import BackgroundPattern from '@/components/Layout/BackgroundPattern';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 900;
 
 export const metadata: Metadata = {
   title: 'Blog | Math Tips, Exam Prep & Free Practice',

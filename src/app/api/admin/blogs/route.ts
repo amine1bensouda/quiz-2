@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isFullRequest } from '@/lib/request-utils';
+import { invalidatePublishedBlogsCache } from '@/lib/cache';
 import { prisma } from '@/lib/db';
 
 
@@ -67,6 +68,8 @@ export async function POST(request: NextRequest) {
         publishedAt: status === 'published' ? new Date() : null,
       },
     });
+
+    invalidatePublishedBlogsCache();
 
     return NextResponse.json(blog, { status: 201 });
   } catch (error: any) {

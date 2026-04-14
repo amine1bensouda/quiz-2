@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { generateSlug } from '@/lib/utils';
+import { invalidatePublishedQuizzesCache } from '@/lib/cache';
 
 
 export const dynamic = 'force-dynamic';
@@ -107,6 +108,8 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+
+    invalidatePublishedQuizzesCache();
 
     return NextResponse.json(quiz, { status: 201 });
   } catch (error: any) {

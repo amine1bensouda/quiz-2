@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 
 interface ImageUploadFieldProps {
   label?: string;
@@ -93,10 +94,11 @@ export default function ImageUploadField({
           <div className="mt-2">
             <p className="text-xs text-gray-500 mb-1">Preview:</p>
             <div className="relative w-32 h-32 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={value}
                 alt=""
+                fill
+                sizes="128px"
                 className="object-cover w-full h-full"
                 onError={() => setError('Image not accessible')}
               />

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isFullRequest } from '@/lib/request-utils';
+import { invalidatePublishedCoursesCache, invalidatePublishedQuizzesCache } from '@/lib/cache';
 import { prisma } from '@/lib/db';
 
 
@@ -84,6 +85,9 @@ export async function POST(request: NextRequest) {
         course: true,
       },
     });
+
+    invalidatePublishedCoursesCache();
+    invalidatePublishedQuizzesCache();
 
     return NextResponse.json(moduleItem, { status: 201 });
   } catch (error: any) {

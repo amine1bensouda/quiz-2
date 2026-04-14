@@ -2,6 +2,7 @@ import type { Prisma } from '@prisma/client';
 import { unstable_cache } from 'next/cache';
 import { prisma } from './db';
 import type { Quiz, Question, Category } from './types';
+import { getPublishedQuizListData, QUIZZES_CACHE_TAG } from './cache';
 
 /**
  * Service pour gérer les quiz avec Prisma
@@ -49,7 +50,7 @@ const getFeaturedQuizzesUncached = async () => {
 const getFeaturedQuizzesCached = unstable_cache(
   async () => getFeaturedQuizzesUncached(),
   ['home-featured-quizzes'],
-  { revalidate: 3600, tags: ['quizzes'] }
+  { revalidate: 3600, tags: [QUIZZES_CACHE_TAG] }
 );
 
 /**
@@ -57,9 +58,6 @@ const getFeaturedQuizzesCached = unstable_cache(
  */
 export async function getAllQuiz(): Promise<Quiz[]> {
   try {
-    console.log('🔍 getAllQuiz: Début de la récupération...');
-    console.log('📁 DATABASE_URL:', process.env.DATABASE_URL ? 'défini' : 'non défini');
-    
     const quizzes = await prisma.quiz.findMany({
       where: PUBLISHED_QUIZ_WHERE,
       include: {
@@ -82,12 +80,8 @@ export async function getAllQuiz(): Promise<Quiz[]> {
       },
     });
 
-    console.log(`✅ getAllQuiz: ${quizzes.length} quiz publiés récupérés depuis Prisma`);
-
     // Convertir au format Quiz attendu par le frontend
     const converted = quizzes.map(convertPrismaQuizToQuiz);
-    console.log(`✅ getAllQuiz: ${converted.length} quiz convertis`);
-    
     return converted;
   } catch (error: any) {
     console.error('❌ Erreur getAllQuiz:', error);
@@ -118,36 +112,9 @@ export async function getQuizList(options?: {
   moduleSlug?: string;
 }): Promise<Quiz[]> {
   try {
-    const take = options?.limit && options.limit > 0 ? options.limit : undefined;
+    const take = options?.limit && options.limit > 0 ? Math.min(options.limit, 100) : undefined;
     const moduleSlug = options?.moduleSlug?.trim();
-
-    const quizzes = await prisma.quiz.findMany({
-      where: {
-        ...PUBLISHED_QUIZ_WHERE,
-        ...(moduleSlug
-          ? {
-              module: {
-                slug: moduleSlug,
-                course: {
-                  status: 'published',
-                },
-              },
-            }
-          : {}),
-      },
-      ...(take ? { take } : {}),
-      include: {
-        module: true,
-        _count: {
-          select: {
-            questions: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    const quizzes = await getPublishedQuizListData(moduleSlug || undefined, take);
 
     return quizzes.map(convertPrismaQuizToQuiz);
   } catch (error) {
@@ -360,6 +327,92 @@ export async function getAllCategories(): Promise<Category[]> {
     });
   } catch (error) {
     console.error('Erreur getAllCategories:', error);
+    return [];
+  }
+}
+
+/**
+ * Récupère les cours publiés liés à une catégorie (module) via son slug.
+ */
+export async function getCoursesByCategorySlug(categorySlug: string): Promise<
+  Array<{
+    id: string;
+    title: string;
+    slug: string;
+    description: string | null;
+    moduleCount: number;
+    totalQuizzes: number;
+  }>
+> {
+  try {
+    const decodedSlug = decodeURIComponent(categorySlug || '').trim();
+    if (!decodedSlug) return [];
+
+    const normalize = (value: string) =>
+      value
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '');
+
+    const normalizedSlug = normalize(decodedSlug);
+
+    const courses = await prisma.course.findMany({
+      where: {
+        status: 'published',
+        modules: {
+          some: {},
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        modules: {
+          select: {
+            slug: true,
+            title: true,
+            _count: {
+              select: {
+                quizzes: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: {
+            modules: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    const filtered = courses.filter((course) =>
+      course.modules.some(
+        (module) =>
+          module.slug === decodedSlug ||
+          normalize(module.slug) === normalizedSlug ||
+          normalize(module.title) === normalizedSlug
+      )
+    );
+
+    return filtered.map((course) => ({
+      id: course.id,
+      title: course.title,
+      slug: course.slug,
+      description: course.description,
+      moduleCount: course._count.modules,
+      totalQuizzes: course.modules.reduce(
+        (sum, module) => sum + (module._count?.quizzes ?? 0),
+        0
+      ),
+    }));
+  } catch (error) {
+    console.error(`Erreur getCoursesByCategorySlug(${categorySlug}):`, error);
     return [];
   }
 }

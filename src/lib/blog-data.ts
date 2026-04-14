@@ -3,7 +3,7 @@
  * Les articles proviennent de la base de données (Prisma) avec fallback sur les données statiques.
  */
 
-import { prisma } from '@/lib/db';
+import { getAllBlogsData, getBlogByIdOrSlugData } from '@/lib/cache';
 
 export interface BlogPost {
   id: number | string;
@@ -213,33 +213,35 @@ function fromPrisma(b: any): BlogPost {
   };
 }
 
-/** Récupère tous les posts (DB publiés + statiques en fallback). */
+/** Récupère tous les posts (DB uniquement). */
 export async function getAllBlogPostsFromDB(): Promise<BlogPost[]> {
   try {
-    const dbPosts = await prisma.blogPost.findMany({
-      where: { status: 'published' },
-      orderBy: { createdAt: 'desc' },
-    });
-    if (dbPosts.length > 0) {
-      return dbPosts.map(fromPrisma);
-    }
+    const dbPosts = await getAllBlogsData();
+    return dbPosts.map(fromPrisma);
   } catch {
-    // DB indisponible → fallback statique
+    // DB indisponible
+    return [];
   }
-  return getAllBlogPosts();
 }
 
 /** Récupère un post par id ou slug (DB puis fallback statique). */
 export async function getBlogPostFromDB(idOrSlug: string): Promise<BlogPost | undefined> {
+  const normalized = decodeURIComponent(String(idOrSlug)).trim().toLowerCase();
   try {
-    const blog =
-      (await prisma.blogPost.findUnique({ where: { id: idOrSlug } })) ??
-      (await prisma.blogPost.findUnique({ where: { slug: idOrSlug } }));
-    if (blog && blog.status === 'published') return fromPrisma(blog);
+    const blog = await getBlogByIdOrSlugData(idOrSlug);
+    if (blog) return fromPrisma(blog);
+
+    // Fallback robuste: certains slugs peuvent différer en casse/encodage.
+    const allDbPosts = await getAllBlogsData();
+    const matched = allDbPosts.find((p) => {
+      const dbSlug = String(p.slug || '').trim().toLowerCase();
+      return dbSlug === normalized;
+    });
+    if (matched) return fromPrisma(matched);
   } catch {
-    // fallback
+    // DB indisponible
   }
-  return getBlogPostById(idOrSlug) ?? getBlogPostBySlug(idOrSlug);
+  return undefined;
 }
 
 /** Récupère tous les posts (pour la liste) — version synchrone (statiques uniquement). */

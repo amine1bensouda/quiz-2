@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isFullRequest } from '@/lib/request-utils';
+import { invalidatePublishedBlogsCache } from '@/lib/cache';
 import { prisma } from '@/lib/db';
 
 
@@ -108,6 +109,8 @@ export async function PUT(
           },
         });
 
+    invalidatePublishedBlogsCache();
+
     return NextResponse.json(blog);
   } catch (error: any) {
     console.error('Erreur mise à jour blog:', error);
@@ -140,6 +143,7 @@ export async function DELETE(
     const { id } = await Promise.resolve(params);
 
     await prisma.blogPost.delete({ where: { id } });
+    invalidatePublishedBlogsCache();
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

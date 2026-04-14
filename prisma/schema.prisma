@@ -21,6 +21,7 @@ model Course {
   @@map("courses")
   @@index([status])
   @@index([slug])
+  @@index([status, createdAt(sort: Desc)])
 }
 
 model Module {
@@ -39,6 +40,7 @@ model Module {
   @@unique([courseId, slug])
   @@map("modules")
   @@index([courseId])
+  @@index([courseId, order])
 }
 
 model Lesson {
@@ -62,6 +64,7 @@ model Lesson {
   @@unique([moduleId, slug])
   @@map("lessons")
   @@index([moduleId])
+  @@index([moduleId, order])
 }
 
 model Quiz {
@@ -87,6 +90,7 @@ model Quiz {
   @@map("quizzes")
   @@index([slug])
   @@index([moduleId])
+  @@index([moduleId, createdAt(sort: Desc)])
 }
 
 model Question {
@@ -105,6 +109,7 @@ model Question {
 
   @@map("questions")
   @@index([quizId])
+  @@index([quizId, order])
 }
 
 model Answer {
@@ -121,6 +126,7 @@ model Answer {
 
   @@map("answers")
   @@index([questionId])
+  @@index([questionId, order])
 }
 
 model User {
@@ -155,6 +161,7 @@ model BlogPost {
   @@index([slug])
   @@index([status])
   @@index([publishedAt])
+  @@index([status, createdAt(sort: Desc)])
 }
 
 model QuizAttempt {

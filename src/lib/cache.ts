@@ -6,10 +6,22 @@ import { prisma } from './db';
  * Appeler revalidateTag(COURSES_CACHE_TAG) après create/update/delete côté admin.
  */
 export const COURSES_CACHE_TAG = 'courses';
+export const BLOGS_CACHE_TAG = 'blogs';
+export const QUIZZES_CACHE_TAG = 'quizzes';
 
 const coursesCacheConfig = {
   revalidate: 3600,
   tags: [COURSES_CACHE_TAG],
+};
+
+const blogsCacheConfig = {
+  revalidate: 900,
+  tags: [BLOGS_CACHE_TAG],
+};
+
+const quizzesCacheConfig = {
+  revalidate: 900,
+  tags: [QUIZZES_CACHE_TAG],
 };
 
 /**
@@ -119,4 +131,121 @@ export const getPublishedCoursesSummaryData = unstable_cache(
 /** À appeler après toute mutation de cours côté admin (API routes / server actions). */
 export function invalidatePublishedCoursesCache() {
   revalidateTag(COURSES_CACHE_TAG);
+}
+
+/** Liste des blogs en base (tous statuts) pour lister ce qui est ajouté. */
+export const getAllBlogsData = unstable_cache(
+  async () => {
+    return prisma.blogPost.findMany({
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        excerpt: true,
+        content: true,
+        category: true,
+        tags: true,
+        ctaLink: true,
+        ctaText: true,
+        publishedAt: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  },
+  ['blogs-all-list'],
+  blogsCacheConfig
+);
+
+/** Blog par id ou slug (tous statuts). */
+export const getBlogByIdOrSlugData = unstable_cache(
+  async (idOrSlug: string) => {
+    const blog =
+      (await prisma.blogPost.findUnique({ where: { id: idOrSlug } })) ??
+      (await prisma.blogPost.findUnique({ where: { slug: idOrSlug } }));
+    return blog ?? null;
+  },
+  ['blogs-by-id-or-slug'],
+  blogsCacheConfig
+);
+
+/** Liste légère de quiz publiés, cacheable (API publiques). */
+export const getPublishedQuizListData = unstable_cache(
+  async (moduleSlug?: string, limit?: number) => {
+    const take = limit && Number.isFinite(limit) && limit > 0 ? Math.min(limit, 100) : undefined;
+
+    const quizzes = await prisma.quiz.findMany({
+      where: {
+        OR: [
+          {
+            module: {
+              course: {
+                status: 'published',
+              },
+            },
+          },
+          {
+            moduleId: null,
+          },
+        ],
+        ...(moduleSlug
+          ? {
+              module: {
+                slug: moduleSlug,
+                course: {
+                  status: 'published',
+                },
+              },
+            }
+          : {}),
+      },
+      ...(take ? { take } : {}),
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        description: true,
+        excerpt: true,
+        difficulty: true,
+        duration: true,
+        maxQuestions: true,
+        passingGrade: true,
+        randomizeOrder: true,
+        featuredImage: true,
+        featuredImageUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        module: {
+          select: {
+            slug: true,
+            title: true,
+          },
+        },
+        _count: {
+          select: {
+            questions: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return quizzes;
+  },
+  ['quizzes-published-list'],
+  quizzesCacheConfig
+);
+
+/** Invalidation centralisée pour toutes les lectures blog. */
+export function invalidatePublishedBlogsCache() {
+  revalidateTag(BLOGS_CACHE_TAG);
+}
+
+/** Invalidation centralisée pour toutes les lectures quiz. */
+export function invalidatePublishedQuizzesCache() {
+  revalidateTag(QUIZZES_CACHE_TAG);
 }

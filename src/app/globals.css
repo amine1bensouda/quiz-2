@@ -306,3 +306,96 @@
   
 }
 
+/* Blog article rendering: preserve editor semantics without editor UI */
+.blog-article-content {
+  padding: 0;
+  white-space: normal;
+}
+
+.blog-article-content p,
+.blog-article-content ul,
+.blog-article-content ol,
+.blog-article-content blockquote,
+.blog-article-content pre {
+  margin-bottom: 1rem;
+}
+
+.blog-article-content ul,
+.blog-article-content ol {
+  padding-left: 1.5rem;
+  list-style-position: outside;
+}
+
+.blog-article-content ul > li {
+  list-style-type: disc;
+}
+
+.blog-article-content ol > li {
+  list-style-type: decimal;
+}
+
+.blog-article-content .ql-indent-1 {
+  padding-left: 1.5rem;
+}
+
+.blog-article-content .ql-indent-2 {
+  padding-left: 3rem;
+}
+
+.blog-article-content .ql-indent-3 {
+  padding-left: 4.5rem;
+}
+
+.blog-article-content .ql-align-center {
+  text-align: center;
+}
+
+.blog-article-content .ql-align-right {
+  text-align: right;
+}
+
+.blog-article-content .ql-align-justify {
+  text-align: justify;
+}
+
+.blog-article-content .ql-size-small {
+  font-size: 0.875rem;
+}
+
+.blog-article-content .ql-size-large {
+  display: block;
+  font-size: 1.5rem;
+  line-height: 1.35;
+  font-weight: 700;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  color: #0f172a;
+}
+
+.blog-article-content .ql-size-huge {
+  display: block;
+  font-size: 2rem;
+  line-height: 1.25;
+  font-weight: 800;
+  margin-top: 2rem;
+  margin-bottom: 0.85rem;
+  color: #020617;
+}
+
+.blog-article-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+.blog-article-content iframe,
+.blog-article-content video {
+  width: 100%;
+  border-radius: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+.blog-article-content .ql-ui {
+  display: none;
+}

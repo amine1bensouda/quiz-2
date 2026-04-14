@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isFullRequest } from '@/lib/request-utils';
 import { revalidatePath } from 'next/cache';
+import { invalidatePublishedQuizzesCache } from '@/lib/cache';
 import { prisma } from '@/lib/db';
 import { generateSlug } from '@/lib/utils';
 
@@ -121,6 +122,7 @@ export async function PUT(
         });
 
     // Invalider le cache de la page quiz pour afficher les nouvelles données
+    invalidatePublishedQuizzesCache();
     revalidatePath(`/quiz/${quiz.slug}`);
 
     return NextResponse.json(quiz);
@@ -155,6 +157,7 @@ export async function DELETE(
       where: { id: params.id },
     });
 
+    invalidatePublishedQuizzesCache();
     revalidatePath('/admin/quizzes');
     revalidatePath('/');
     revalidatePath('/quiz');

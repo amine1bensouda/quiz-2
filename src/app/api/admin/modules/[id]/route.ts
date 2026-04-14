@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isFullRequest } from '@/lib/request-utils';
+import { invalidatePublishedCoursesCache, invalidatePublishedQuizzesCache } from '@/lib/cache';
 import { prisma } from '@/lib/db';
 
 
@@ -51,6 +52,8 @@ export async function PUT(
           },
         });
 
+    invalidatePublishedCoursesCache();
+    invalidatePublishedQuizzesCache();
     return NextResponse.json(moduleItem);
   } catch (error: any) {
     console.error(`Erreur mise à jour module ${params.id}:`, error);
@@ -82,6 +85,8 @@ export async function DELETE(
       where: { id: params.id },
     });
 
+    invalidatePublishedCoursesCache();
+    invalidatePublishedQuizzesCache();
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error(`Erreur suppression module ${params.id}:`, error);

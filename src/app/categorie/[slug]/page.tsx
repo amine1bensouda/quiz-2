@@ -1,10 +1,9 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getAllCategories, getQuizByModule } from '@/lib/quiz-service';
+import { getAllCategories, getCoursesByCategorySlug } from '@/lib/quiz-service';
 import type { Category } from '@/lib/types';
-import QuizCard from '@/components/Quiz/QuizCard';
+import CourseCard from '@/components/Quiz/CourseCard';
 import Navigation from '@/components/Layout/Navigation';
-import { SITE_NAME } from '@/lib/constants';
 
 export const revalidate = 3600;
 
@@ -49,8 +48,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   return {
-    title: `${category.name} Quizzes`,
-    description: `Discover all our quizzes on the topic of ${category.name}`,
+    title: `${category.name} Courses`,
+    description: `Discover all our courses on the topic of ${category.name}`,
   };
 }
 
@@ -62,7 +61,7 @@ export default async function CategoryPage({ params }: PageProps) {
     notFound();
   }
 
-  const quizs = await getQuizByModule(category.slug);
+  const courses = await getCoursesByCategorySlug(category.slug);
 
   return (
     <div>
@@ -79,21 +78,29 @@ export default async function CategoryPage({ params }: PageProps) {
             <p className="text-xl text-gray-600 mb-4 leading-relaxed max-w-3xl">{category.description}</p>
           )}
           <p className="text-lg text-gray-500">
-            {quizs.length} quiz{quizs.length !== 1 ? 'zes' : ''} available
+            {courses.length} course{courses.length !== 1 ? 's' : ''} available
           </p>
         </div>
 
-        {quizs.length > 0 ? (
+        {courses.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {quizs.map((quiz, index) => (
-              <QuizCard key={quiz.id} quiz={quiz} index={index} />
+            {courses.map((course) => (
+              <CourseCard
+                key={course.id}
+                id={course.id}
+                title={course.title}
+                description={course.description}
+                moduleCount={course.moduleCount}
+                totalQuizzes={course.totalQuizzes}
+                slug={course.slug}
+              />
             ))}
           </div>
         ) : (
           <div className="text-center py-16 card-modern">
             <div className="text-6xl mb-4">📚</div>
             <p className="text-gray-600 text-lg">
-              No quizzes available in this category at the moment.
+              No courses available in this category at the moment.
             </p>
           </div>
         )}

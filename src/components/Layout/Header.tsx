@@ -9,6 +9,7 @@ import { getCurrentUser } from '@/lib/auth-client';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [legalMenuOpen, setLegalMenuOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const [user, setUser] = useState<any>(null);
   const pathname = usePathname();
@@ -20,6 +21,10 @@ export default function Header() {
     }
     loadUser();
   }, [pathname]); // Re-vérifier après navigation (ex. retour de /login)
+
+  useEffect(() => {
+    setLegalMenuOpen(false);
+  }, [pathname]);
 
   const isActive = (path: string) => {
     if (path === '/') {
@@ -36,7 +41,7 @@ export default function Header() {
             href="/" 
             className="flex items-center gap-3 group animate-fade-in"
           >
-            <div className="relative">
+            <div className="relative ml-3">
               {logoError ? (
                 <div className="w-14 h-14 bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-110 border-2 border-gray-800">
                   <span className="text-white font-bold text-xl">M</span>
@@ -87,19 +92,6 @@ export default function Header() {
               )}
             </Link>
             <Link
-              href="/lessons"
-              className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
-                isActive('/lessons')
-                  ? 'bg-gray-100 rounded-lg'
-                  : 'hover:text-gray-900'
-              }`}
-            >
-              Lessons
-              {isActive('/lessons') && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800 rounded-full"></span>
-              )}
-            </Link>
-            <Link
               href="/about-us"
               className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
                 isActive('/about-us') 
@@ -125,6 +117,53 @@ export default function Header() {
                 <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800 rounded-full"></span>
               )}
             </Link>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setLegalMenuOpen((prev) => !prev)}
+                className={`px-6 py-3 font-medium text-gray-800 transition-colors rounded-lg flex items-center gap-2 ${
+                  isActive('/terms-of-service') ||
+                  isActive('/privacy-policy') ||
+                  isActive('/contact-us')
+                    ? 'bg-gray-100'
+                    : 'hover:text-gray-900'
+                }`}
+                aria-expanded={legalMenuOpen}
+                aria-haspopup="true"
+                aria-label="Open legal links menu"
+              >
+                <svg
+                  className={`w-4 h-4 transition-transform ${legalMenuOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {legalMenuOpen && (
+                <div className="absolute right-0 mt-2 w-52 rounded-xl border border-gray-200 bg-white shadow-lg py-2 z-50">
+                  <Link
+                    href="/terms-of-service"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  >
+                    Terms of Service
+                  </Link>
+                  <Link
+                    href="/privacy-policy"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  >
+                    Privacy Policy
+                  </Link>
+                  <Link
+                    href="/contact-us"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  >
+                    Contact Us
+                  </Link>
+                </div>
+              )}
+            </div>
           </nav>
 
           {/* User menu */}
@@ -212,17 +251,6 @@ export default function Header() {
                 About us
               </Link>
               <Link
-                href="/lessons"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
-                  isActive('/lessons')
-                    ? 'bg-gray-100'
-                    : 'hover:bg-gray-50'
-                }`}
-              >
-                Lessons
-              </Link>
-              <Link
                 href="/blogs"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
@@ -232,6 +260,40 @@ export default function Header() {
                 }`}
               >
                 Blogs
+              </Link>
+              <div className="border-t border-gray-200 my-2"></div>
+              <Link
+                href="/terms-of-service"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
+                  isActive('/terms-of-service')
+                    ? 'bg-gray-100'
+                    : 'hover:bg-gray-50'
+                }`}
+              >
+                Terms of Service
+              </Link>
+              <Link
+                href="/privacy-policy"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
+                  isActive('/privacy-policy')
+                    ? 'bg-gray-100'
+                    : 'hover:bg-gray-50'
+                }`}
+              >
+                Privacy Policy
+              </Link>
+              <Link
+                href="/contact-us"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
+                  isActive('/contact-us')
+                    ? 'bg-gray-100'
+                    : 'hover:bg-gray-50'
+                }`}
+              >
+                Contact Us
               </Link>
               <div className="border-t border-gray-200 my-2"></div>
               {user ? (

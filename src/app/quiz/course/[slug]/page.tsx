@@ -1,7 +1,4 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import Navigation from '@/components/Layout/Navigation';
 import AnimatedShapes from '@/components/Layout/AnimatedShapes';
@@ -9,114 +6,20 @@ import BackgroundPattern from '@/components/Layout/BackgroundPattern';
 import Accordion from '@/components/Layout/Accordion';
 import QuizCard from '@/components/Quiz/QuizCard';
 import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
-import LoadingSpinner from '@/components/Layout/LoadingSpinner';
-import type { Quiz } from '@/lib/types';
+import { getCourseBySlug } from '@/lib/course-service';
 
-interface Lesson {
-  id: string;
-  title: string;
-  slug: string;
-  order: number;
-  videoPlaybackSeconds: number | null;
-  allowPreview: boolean;
+export const revalidate = 300;
+
+interface PageProps {
+  params: Promise<{ slug: string }> | { slug: string };
 }
 
-interface Module {
-  id: string;
-  title: string;
-  slug: string;
-  order: number;
-  quizzes: Quiz[];
-  lessons: Lesson[];
-  _count: {
-    quizzes: number;
-    lessons: number;
-  };
-}
-
-interface Course {
-  id: string;
-  title: string;
-  slug: string;
-  description: string | null;
-  modules: Module[];
-}
-
-export default function CoursePage() {
-  const params = useParams();
-  const router = useRouter();
-  const slug = params.slug as string;
-  
-  const [course, setCourse] = useState<Course | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadCourse() {
-      try {
-        const response = await fetch(`/api/courses/${slug}`);
-        if (response.ok) {
-          const courseData = await response.json();
-          setCourse(courseData);
-        } else if (response.status === 404) {
-          // Rediriger vers la page 404 ou la liste des cours
-          router.push('/quiz');
-        }
-      } catch (error) {
-        console.error('Erreur chargement cours:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (slug) {
-      loadCourse();
-    }
-  }, [slug, router]);
-
-  if (loading) {
-    return (
-      <div className="relative bg-gradient-to-br from-slate-50 via-indigo-50/30 to-violet-50 min-h-screen">
-        <Navigation />
-        <div className="container mx-auto px-4 sm:px-5 md:px-6 py-20 sm:py-28 md:py-36 max-w-[100vw]">
-          <div className="flex flex-col items-center justify-center gap-8 animate-fade-in">
-            {/* Carte principale */}
-            <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-xl shadow-gray-200/80 border border-white/60 p-10 sm:p-14 flex flex-col items-center gap-6">
-              <LoadingSpinner size="lg" />
-              {/* Barres skeleton pour simuler le contenu à venir */}
-              <div className="w-full space-y-3 mt-2">
-                <div className="h-4 w-48 bg-gray-200 rounded-full animate-pulse mx-auto" />
-                <div className="h-3 w-36 bg-gray-100 rounded-full animate-pulse mx-auto" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+export default async function CoursePage({ params }: PageProps) {
+  const { slug } = await Promise.resolve(params);
+  const course = await getCourseBySlug(slug);
 
   if (!course) {
-    return (
-      <div className="relative bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 min-h-screen">
-        <Navigation />
-        <div className="container mx-auto px-4 sm:px-5 md:px-6 py-12 sm:py-16 md:py-20 max-w-[100vw]">
-          <div className="text-center">
-            <div className="inline-block backdrop-blur-xl bg-white/80 rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-8 md:p-12 border border-white/40 max-w-full">
-              <div className="text-5xl sm:text-6xl mb-4 sm:mb-6">📚</div>
-              <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2 sm:mb-3">
-                Course not found
-              </h3>
-              <p className="text-gray-700 text-sm sm:text-lg mb-4 sm:mb-6">The requested course does not exist.</p>
-              <Link
-                href="/quiz"
-                className="inline-block px-5 py-2.5 sm:px-6 sm:py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm sm:text-base"
-              >
-                Back to courses
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    redirect('/quiz');
   }
 
   const totalQuizzes = course.modules.reduce((sum, module) => sum + module._count.quizzes, 0);

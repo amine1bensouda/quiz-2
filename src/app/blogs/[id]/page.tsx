@@ -6,7 +6,7 @@ import {
   getAllBlogPostsFromDB,
 } from '@/lib/blog-data';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 900;
 
 interface PageProps {
   params: Promise<{ id: string }> | { id: string };
@@ -48,46 +48,47 @@ export default async function BlogPostPage({ params }: PageProps) {
   });
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Editorial header: full-width dark band */}
-      <header className="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white">
-        <div className="container mx-auto px-4 sm:px-5 md:px-6 py-6 sm:py-8 md:py-10 max-w-[100vw]">
-          <div className="max-w-3xl">
+    <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-white">
+      <header className="border-b border-slate-200/80 bg-white/90 backdrop-blur">
+        <div className="container mx-auto px-4 sm:px-5 md:px-6 py-7 sm:py-9 md:py-12 max-w-[100vw]">
+          <div className="max-w-4xl mx-auto">
             <Link
               href="/blogs"
-              className="inline-flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white mb-6 transition-colors"
+              className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 mb-6 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               All articles
             </Link>
-            <p className="text-xs font-semibold uppercase tracking-wider text-amber-400/90 mb-3">
-              {post.category}
-            </p>
-            <h1 className="text-2xl min-[400px]:text-3xl sm:text-4xl md:text-5xl font-bold leading-tight tracking-tight text-white">
+            <div className="mb-3">
+              <span className="inline-flex rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-700">
+                {post.category}
+              </span>
+            </div>
+            <h1 className="text-3xl min-[400px]:text-4xl sm:text-5xl font-bold leading-tight tracking-tight text-slate-900">
               {post.title}
             </h1>
-            <time
-              dateTime={post.date}
-              className="mt-4 block text-sm text-slate-400"
-            >
-              {formattedDate}
-            </time>
+            <div className="mt-5 inline-flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 shadow-sm">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              <time dateTime={post.date}>{formattedDate}</time>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Main: content + sidebar */}
-      <div className="container mx-auto px-4 sm:px-5 md:px-6 py-8 sm:py-10 md:py-12 max-w-[100vw]">
-        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row lg:gap-12">
-          {/* Article body - reading column */}
-          <article className="flex-1 min-w-0 lg:max-w-[65%]">
+      <div className="container mx-auto px-4 sm:px-5 md:px-6 py-8 sm:py-10 md:py-14 max-w-[100vw]">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
+          <article className="lg:col-span-8 min-w-0">
             <div
-              className="prose prose-slate prose-lg max-w-none
+              className="blog-article-content prose prose-slate prose-lg max-w-none rounded-3xl border border-slate-200 bg-white px-6 py-7 sm:px-9 sm:py-10 shadow-[0_16px_45px_-30px_rgba(15,23,42,0.45)]
                 prose-headings:font-bold prose-headings:text-slate-900 prose-headings:tracking-tight
-                prose-h2:mt-10 prose-h2:mb-4 prose-h2:text-xl sm:prose-h2:text-2xl prose-h2:border-b prose-h2:border-slate-200 prose-h2:pb-2
-                prose-p:text-slate-700 prose-p:leading-[1.75]
+                prose-h1:mt-2 prose-h1:mb-5 prose-h1:text-3xl
+                prose-h2:mt-10 prose-h2:mb-4 prose-h2:text-xl sm:prose-h2:text-2xl prose-h2:border-b prose-h2:border-slate-200 prose-h2:pb-2 prose-h2:relative
+                prose-h3:mt-8 prose-h3:mb-3 prose-h3:text-lg sm:prose-h3:text-xl
+                prose-p:text-slate-700 prose-p:leading-[1.8]
+                prose-ul:my-4 prose-ol:my-4 prose-li:my-1
+                prose-blockquote:border-indigo-300 prose-blockquote:text-slate-700 prose-blockquote:bg-indigo-50/40 prose-blockquote:rounded-r-lg prose-blockquote:py-1
                 prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
@@ -110,16 +111,14 @@ export default async function BlogPostPage({ params }: PageProps) {
             )}
           </article>
 
-          {/* Sidebar - sticky on desktop */}
-          <aside className="mt-10 lg:mt-0 lg:w-[35%] lg:max-w-sm lg:flex-shrink-0">
+          <aside className="lg:col-span-4">
             <div className="lg:sticky lg:top-24 space-y-8">
-              {/* CTA */}
               {(post.ctaLink && post.ctaText) && (
-                <div className="p-5 sm:p-6 rounded-2xl bg-slate-900 text-white">
-                  <p className="text-sm font-semibold text-amber-400/90 mb-2">Next step</p>
+                <div className="p-5 sm:p-6 rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-sky-50 text-slate-900">
+                  <p className="text-sm font-semibold text-indigo-700 mb-2">Next step</p>
                   <Link
                     href={post.ctaLink}
-                    className="inline-flex items-center gap-2 mt-2 px-4 py-3 bg-white text-slate-900 font-semibold rounded-xl hover:bg-slate-100 transition-colors text-sm"
+                    className="inline-flex items-center gap-2 mt-2 px-4 py-3 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-800 transition-colors text-sm"
                   >
                     {post.ctaText}
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -129,10 +128,9 @@ export default async function BlogPostPage({ params }: PageProps) {
                 </div>
               )}
 
-              {/* Related */}
               {related.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4">
+                <div className="rounded-2xl border border-slate-200 bg-white p-5">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">
                     Related articles
                   </h3>
                   <ul className="space-y-3">
@@ -153,10 +151,9 @@ export default async function BlogPostPage({ params }: PageProps) {
                 </div>
               )}
 
-              {/* Back to list */}
               <Link
                 href="/blogs"
-                className="block text-center py-3 text-sm font-medium text-slate-500 hover:text-slate-900 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors"
+                className="block text-center py-3 text-sm font-medium text-slate-600 hover:text-slate-900 border border-slate-200 rounded-xl hover:border-slate-300 bg-white transition-colors"
               >
                 ← Back to all articles
               </Link>

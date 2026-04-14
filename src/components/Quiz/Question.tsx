@@ -305,11 +305,13 @@ export default function Question({
                   <div className="flex-1 min-w-0">
                     {answer.imageUrl && (
                       <div className="mb-3 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 max-w-sm max-h-40 w-full">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        <Image
                           src={answer.imageUrl}
                           alt=""
+                          width={480}
+                          height={320}
                           className="object-contain w-full h-32 sm:h-40"
+                          sizes="(max-width: 640px) 100vw, 480px"
                         />
                       </div>
                     )}

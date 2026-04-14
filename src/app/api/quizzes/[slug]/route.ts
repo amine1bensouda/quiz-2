@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getQuizBySlug } from '@/lib/quiz-service';
+import { withCacheHeaders } from '@/lib/http-cache';
+import { addResponseObservability } from '@/lib/traffic-guard';
 
-
-export const dynamic = 'force-dynamic';
 
 export const revalidate = 3600; // Revalider toutes les heures
 
@@ -14,22 +14,27 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { slug: string } }
 ) {
+  const startTime = Date.now();
   try {
     const quiz = await getQuizBySlug(params.slug);
 
     if (!quiz) {
-      return NextResponse.json(
+      return addResponseObservability(NextResponse.json(
         { error: 'Quiz not found' },
         { status: 404 }
-      );
+      ), startTime, '/api/quizzes/[slug]');
     }
 
-    return NextResponse.json(quiz);
+    return addResponseObservability(withCacheHeaders(NextResponse.json(quiz), {
+      sMaxAge: 300,
+      staleWhileRevalidate: 3600,
+      maxAge: 60,
+    }), startTime, '/api/quizzes/[slug]');
   } catch (error) {
     console.error(`Erreur API quiz ${params.slug}:`, error);
-    return NextResponse.json(
+    return addResponseObservability(NextResponse.json(
       { error: 'Failed to fetch quiz' },
       { status: 500 }
-    );
+    ), startTime, '/api/quizzes/[slug]');
   }
 }

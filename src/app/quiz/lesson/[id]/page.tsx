@@ -1,12 +1,10 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import Navigation from '@/components/Layout/Navigation';
 import BackgroundPattern from '@/components/Layout/BackgroundPattern';
 import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
-import LoadingSpinner from '@/components/Layout/LoadingSpinner';
+import { getLessonByIdOrSlug } from '@/lib/lesson-service';
 
 interface Lesson {
   id: string;
@@ -31,62 +29,22 @@ interface Lesson {
   } | null;
 }
 
-export default function LessonPage() {
-  const params = useParams();
-  const router = useRouter();
-  const slugOrId = params.id as string;
-  const [lesson, setLesson] = useState<Lesson | null>(null);
-  const [loading, setLoading] = useState(true);
+export const revalidate = 300;
 
-  useEffect(() => {
-    async function loadLesson() {
-      try {
-        const res = await fetch(`/api/lessons/${slugOrId}`);
-        if (res.ok) {
-          const data = await res.json();
-          setLesson(data);
-          if (data.slug && data.slug !== slugOrId) {
-            router.replace(`/quiz/lesson/${data.slug}`);
-          }
-        } else if (res.status === 404) {
-          router.push('/quiz');
-        }
-      } catch (e) {
-        console.error('Erreur chargement lesson:', e);
-      } finally {
-        setLoading(false);
-      }
-    }
-    if (slugOrId) loadLesson();
-  }, [slugOrId, router]);
+interface PageProps {
+  params: Promise<{ id: string }> | { id: string };
+}
 
-  if (loading) {
-    return (
-      <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-violet-50">
-        <Navigation />
-        <div className="container mx-auto px-4 py-20 sm:py-28 flex justify-center">
-          <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-xl shadow-gray-200/80 border border-white/60 p-10 sm:p-14 flex flex-col items-center gap-6">
-            <LoadingSpinner size="lg" />
-            <div className="w-full space-y-3 mt-2">
-              <div className="h-4 w-48 bg-gray-200 rounded-full animate-pulse mx-auto" />
-              <div className="h-3 w-36 bg-gray-100 rounded-full animate-pulse mx-auto" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+export default async function LessonPage({ params }: PageProps) {
+  const { id: slugOrId } = await Promise.resolve(params);
+  const lesson = await getLessonByIdOrSlug(slugOrId);
 
   if (!lesson) {
-    return (
-      <div className="relative min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
-        <Navigation />
-        <div className="container mx-auto px-4 py-16 text-center">
-          <p className="text-gray-700 mb-4">Lesson not found.</p>
-          <Link href="/quiz" className="text-indigo-600 hover:underline">Back to courses</Link>
-        </div>
-      </div>
-    );
+    redirect('/quiz');
+  }
+
+  if (lesson.slug && lesson.slug !== slugOrId) {
+    redirect(`/quiz/lesson/${lesson.slug}`);
   }
 
   const courseSlug = lesson.module?.course.slug;
@@ -113,11 +71,14 @@ export default function LessonPage() {
         <article className="rounded-2xl bg-white/90 backdrop-blur-md border border-white/60 shadow-xl overflow-hidden">
           {lesson.featuredImageUrl && (
             <div className="aspect-video w-full bg-gray-100">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={lesson.featuredImageUrl}
                 alt=""
+                width={1280}
+                height={720}
                 className="w-full h-full object-cover"
+                sizes="(max-width: 1024px) 100vw, 1024px"
+                priority
               />
             </div>
           )}

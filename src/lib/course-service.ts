@@ -43,17 +43,39 @@ export async function getCourseBySlug(slug: string) {
         slug,
         status: 'published',
       },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        createdAt: true,
+        updatedAt: true,
         modules: {
-          include: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            description: true,
+            order: true,
             quizzes: {
-              include: {
-                questions: {
-                  include: {
-                    answers: true,
-                  },
-                  orderBy: {
-                    order: 'asc',
+              select: {
+                id: true,
+                slug: true,
+                title: true,
+                description: true,
+                excerpt: true,
+                duration: true,
+                difficulty: true,
+                passingGrade: true,
+                randomizeOrder: true,
+                maxQuestions: true,
+                featuredImage: true,
+                featuredImageUrl: true,
+                createdAt: true,
+                updatedAt: true,
+                _count: {
+                  select: {
+                    questions: true,
                   },
                 },
               },
@@ -62,7 +84,17 @@ export async function getCourseBySlug(slug: string) {
               },
             },
             lessons: {
-              orderBy: { order: 'asc' },
+              select: {
+                id: true,
+                title: true,
+                slug: true,
+                order: true,
+                videoPlaybackSeconds: true,
+                allowPreview: true,
+              },
+              orderBy: {
+                order: 'asc',
+              },
             },
             _count: {
               select: {

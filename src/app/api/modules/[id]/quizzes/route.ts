@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isFullRequest } from '@/lib/request-utils';
 import { prisma } from '@/lib/db';
 import { convertPrismaQuizToQuiz } from '@/lib/quiz-service';
+import { withCacheHeaders, withNoStoreHeaders } from '@/lib/http-cache';
 
-
-export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: NextRequest,
@@ -51,7 +50,14 @@ export async function GET(
 
     const converted = quizzes.map(convertPrismaQuizToQuiz);
 
-    return NextResponse.json(converted);
+    if (full) {
+      return withNoStoreHeaders(NextResponse.json(converted));
+    }
+    return withCacheHeaders(NextResponse.json(converted), {
+      sMaxAge: 300,
+      staleWhileRevalidate: 3600,
+      maxAge: 60,
+    });
   } catch (error: any) {
     console.error(`Erreur récupération quiz module ${params}:`, error);
     return NextResponse.json(

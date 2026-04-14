@@ -11,9 +11,11 @@
     "prisma:generate": "prisma generate",
     "script:difficulty-to-advanced": "tsx scripts/update-difficulty-hard-to-advanced.ts",
     "import:data": "tsx scripts/import-prisma-data-source-to-target.ts",
-    "health:db": "tsx scripts/health-check-db.ts"
+    "health:db": "tsx scripts/health-check-db.ts",
+    "migrate:images:r2": "tsx scripts/migrate-images-to-r2.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1021.0",
     "@prisma/client": "^6.19.2",
     "@vercel/analytics": "^1.6.1",
     "@vercel/speed-insights": "^2.0.0",

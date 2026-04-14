@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { invalidatePublishedCoursesCache, invalidatePublishedQuizzesCache } from '@/lib/cache';
 import { prisma } from '@/lib/db';
 
 
@@ -56,6 +57,8 @@ export async function PATCH(
       )
     );
 
+    invalidatePublishedCoursesCache();
+    invalidatePublishedQuizzesCache();
     return NextResponse.json({ ok: true });
   } catch (error: any) {
     console.error('Erreur reorder modules:', error);
