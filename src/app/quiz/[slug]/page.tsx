@@ -5,6 +5,7 @@ import { getQuizBySlug } from '@/lib/wordpress';
 import QuizPlayer from '@/components/Quiz/QuizPlayer';
 import QuizSchema from '@/components/SEO/QuizSchema';
 import BreadcrumbSchema from '@/components/SEO/BreadcrumbSchema';
+import FaqSchema from '@/components/SEO/FaqSchema';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
 import { stripHtml, formatDuration, generateSlug, difficultyToEnglish, categoryToEnglish } from '@/lib/utils';
 
@@ -43,15 +44,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const description = stripHtml(quiz.excerpt?.rendered || quiz.content.rendered);
   const image = quiz.featured_media_url || '';
 
+  const canonicalSlug = quiz.slug || params.slug;
+  const canonical = `/quiz/${encodeURIComponent(canonicalSlug)}`;
+
   return {
     title,
     description,
+    alternates: {
+      canonical,
+    },
     openGraph: {
       title,
       description,
       images: image ? [{ url: image }] : [],
       type: 'article',
-      url: `${SITE_URL}/quiz/${params.slug}`,
+      url: `${SITE_URL}${canonical}`,
     },
     twitter: {
       card: 'summary_large_image',
@@ -105,10 +112,29 @@ export default async function QuizPage({ params }: PageProps) {
     { name: title, url: `${SITE_URL}/quiz/${params.slug}` },
   ];
 
+  const faqItems = (quiz.acf?.questions || [])
+    .map((question) => {
+      const questionText = stripHtml(question.texte_question || question.title?.rendered || '');
+      const explanation = stripHtml(question.explication || question.acf?.explication || '');
+      const correctAnswer = stripHtml(
+        question.reponses?.find((answer) => answer.correcte)?.texte ||
+        question.acf?.reponses?.find((answer) => answer.correcte)?.texte ||
+        ''
+      );
+
+      return {
+        question: questionText,
+        answer: explanation || correctAnswer,
+      };
+    })
+    .filter((item) => item.question && item.answer)
+    .slice(0, 8);
+
   return (
     <>
       <QuizSchema quiz={quiz} />
       <BreadcrumbSchema items={breadcrumbItems} />
+      <FaqSchema items={faqItems} />
 
       <div className="bg-gradient-to-b from-white via-gray-50 to-white">
         <div className="container mx-auto px-4 py-8 md:py-12">
@@ -213,6 +239,33 @@ export default async function QuizPage({ params }: PageProps) {
           </div>
 
         <QuizPlayer quiz={quiz} />
+
+        {faqItems.length > 0 && (
+          <section className="mt-12 md:mt-16 bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-200">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Quick answers based on this quiz content.
+            </p>
+            <div className="space-y-3">
+              {faqItems.map((item, index) => (
+                <details
+                  key={`${generateSlug(item.question)}-${index}`}
+                  className="group rounded-xl border border-gray-200 bg-gray-50/60 p-4"
+                >
+                  <summary className="cursor-pointer list-none font-semibold text-gray-900 flex items-center justify-between gap-3">
+                    <span>{item.question}</span>
+                    <span className="text-gray-500 group-open:rotate-180 transition-transform">⌄</span>
+                  </summary>
+                  <p className="mt-3 text-gray-700 leading-relaxed">
+                    {item.answer}
+                  </p>
+                </details>
+              ))}
+            </div>
+          </section>
+        )}
         </div>
       </div>
     </>

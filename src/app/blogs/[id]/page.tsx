@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { notFound, redirect } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import Link from 'next/link';
 import {
   getBlogPostFromDB,
@@ -16,12 +16,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { id: idOrSlug } = await Promise.resolve(params);
   const post = await getBlogPostFromDB(idOrSlug);
   if (!post) return { title: 'Blog' };
+
+  const canonical = `/blogs/${encodeURIComponent(post.slug)}`;
+
   return {
     title: `${post.title} | The School of Mathematics`,
     description: post.excerpt,
+    alternates: { canonical },
     openGraph: {
       title: post.title,
       description: post.excerpt,
+      type: 'article',
     },
   };
 }
@@ -34,7 +39,7 @@ export default async function BlogPostPage({ params }: PageProps) {
     notFound();
   }
   if (idOrSlug !== post.slug) {
-    redirect(`/blogs/${post.slug}`);
+    permanentRedirect(`/blogs/${post.slug}`);
   }
 
   const allPosts = await getAllBlogPostsFromDB();

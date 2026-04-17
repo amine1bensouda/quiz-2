@@ -1,5 +1,11 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://theschoolofmathematics.com/sitemap.xml
+Disallow: /api/
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+Disallow: /maintenance
+Disallow: /en-construction
 
+Sitemap: https://www.theschoolofmathematics.com/sitemap.xml

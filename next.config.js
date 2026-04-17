@@ -6,16 +6,12 @@ const nextConfig = {
   // Vercel : éviter les timeouts si beaucoup de routes touchent la DB au build
   staticPageGenerationTimeout: 180,
   images: {
-    // Optimisation d'images activée pour la production
     unoptimized: false,
-    domains: [
-      'theschoolofmathematics.com',
-      'www.theschoolofmathematics.com',
-      'picsum.photos',
-      'images.unsplash.com',
-      process.env.WORDPRESS_API_URL?.replace('https://', '').replace('http://', '').split('/')[0] || ''
-    ].filter(Boolean),
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'theschoolofmathematics.com',
+      },
       {
         protocol: 'https',
         hostname: '**.theschoolofmathematics.com',
@@ -32,6 +28,16 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      ...(process.env.WORDPRESS_API_URL
+        ? [
+            {
+              protocol: /^https:/.test(process.env.WORDPRESS_API_URL) ? 'https' : 'http',
+              hostname: process.env.WORDPRESS_API_URL
+                .replace(/^https?:\/\//, '')
+                .split('/')[0],
+            },
+          ]
+        : []),
     ],
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -40,6 +46,15 @@ const nextConfig = {
   // Headers de sécurité pour la production
   async headers() {
     return [
+      {
+        source: '/profile/:path*',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow'
+          }
+        ]
+      },
       {
         source: '/:path*',
         headers: [
@@ -68,6 +83,20 @@ const nextConfig = {
             value: 'camera=(), microphone=(), geolocation=()'
           }
         ]
+      }
+    ];
+  },
+  async redirects() {
+    return [
+      {
+        source: '/a-propos',
+        destination: '/about-us',
+        permanent: true
+      },
+      {
+        source: '/categorie',
+        destination: '/quiz',
+        permanent: true
       }
     ];
   },

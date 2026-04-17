@@ -3,12 +3,15 @@ import { SITE_URL } from '@/lib/constants';
 import { getAllQuizSlugs } from '@/lib/quiz-service';
 import { getCourses } from '@/lib/cache';
 import { getAllCategories } from '@/lib/quiz-service';
+import { getAllBlogPostsFromDB } from '@/lib/blog-data';
 
 export const dynamic = 'force-dynamic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = SITE_URL;
   const currentDate = new Date();
+  const blogPosts = await getAllBlogPostsFromDB();
+  const hasBlogPosts = blogPosts.length > 0;
 
   // Pages statiques
   const staticPages: MetadataRoute.Sitemap = [
@@ -31,28 +34,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/blogs`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
       url: `${baseUrl}/quiz`,
       lastModified: currentDate,
       changeFrequency: 'daily',
       priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/login`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/register`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.5,
     },
     {
       url: `${baseUrl}/privacy-policy`,
@@ -66,13 +51,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'yearly',
       priority: 0.3,
     },
-    {
-      url: `${baseUrl}/categorie`,
+  ];
+
+  if (hasBlogPosts) {
+    staticPages.push({
+      url: `${baseUrl}/blogs`,
       lastModified: currentDate,
       changeFrequency: 'weekly',
-      priority: 0.7,
-    },
-  ];
+      priority: 0.8,
+    });
+  }
 
   // Récupérer tous les quiz
   let quizPages: MetadataRoute.Sitemap = [];
@@ -116,6 +104,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('Erreur récupération catégories pour sitemap:', error);
   }
 
+  // Pages d'articles de blog
+  const blogPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
+    url: `${baseUrl}/blogs/${encodeURIComponent(post.slug)}`,
+    lastModified: post.date ? new Date(post.date) : currentDate,
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }));
+
   // Combiner toutes les pages
-  return [...staticPages, ...quizPages, ...coursePages, ...categoryPages];
+  return [...staticPages, ...quizPages, ...coursePages, ...categoryPages, ...blogPages];
 }

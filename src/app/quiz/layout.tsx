@@ -4,6 +4,7 @@ import { SITE_NAME } from '@/lib/constants';
 export const metadata: Metadata = {
   title: 'All Exams',
   description: `Discover all our practice exams and interactive tests on mathematics topics at ${SITE_NAME}`,
+  alternates: { canonical: '/quiz' },
 };
 
 export default function QuizLayout({

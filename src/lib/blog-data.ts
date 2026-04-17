@@ -217,11 +217,15 @@ function fromPrisma(b: any): BlogPost {
 export async function getAllBlogPostsFromDB(): Promise<BlogPost[]> {
   try {
     const dbPosts = await getAllBlogsData();
-    return dbPosts.map(fromPrisma);
+    const normalizedDbPosts = dbPosts.map(fromPrisma);
+    if (normalizedDbPosts.length > 0) {
+      return normalizedDbPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }
   } catch {
     // DB indisponible
-    return [];
   }
+  // Fallback sur les articles statiques pour éviter une page /blogs vide.
+  return getAllBlogPosts();
 }
 
 /** Récupère un post par id ou slug (DB puis fallback statique). */
@@ -241,7 +245,8 @@ export async function getBlogPostFromDB(idOrSlug: string): Promise<BlogPost | un
   } catch {
     // DB indisponible
   }
-  return undefined;
+  // Fallback statique si la DB ne renvoie rien.
+  return getBlogPostBySlug(normalized) || getBlogPostById(String(idOrSlug));
 }
 
 /** Récupère tous les posts (pour la liste) — version synchrone (statiques uniquement). */

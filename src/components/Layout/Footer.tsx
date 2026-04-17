@@ -24,7 +24,7 @@ export default function Footer() {
               <h3 className="text-gray-900 font-bold text-lg">{SITE_NAME}</h3>
             </Link>
             <p className="text-sm text-gray-600 leading-relaxed">
-              Test your knowledge with our interactive mathematics quizzes. Learn while having fun!
+              Structured exam preparation with rigorous quizzes and targeted practice to improve your score.
             </p>
           </div>
 
@@ -77,22 +77,6 @@ export default function Footer() {
                   className="text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   All Exams
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  href="/categorie" 
-                  className="text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  Categories
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  href="/a-propos" 
-                  className="text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  About
                 </Link>
               </li>
             </ul>

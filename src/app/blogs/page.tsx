@@ -2,19 +2,28 @@ import { Metadata } from 'next';
 import { SITE_NAME } from '@/lib/constants';
 import Link from 'next/link';
 import { getAllBlogPostsFromDB } from '@/lib/blog-data';
-import AnimatedShapes from '@/components/Layout/AnimatedShapes';
-import BackgroundPattern from '@/components/Layout/BackgroundPattern';
+import AnimatedShapes from '@/components/Layout/AnimatedShapesClient';
+import BackgroundPattern from '@/components/Layout/BackgroundPatternClient';
 
 export const revalidate = 900;
 
-export const metadata: Metadata = {
-  title: 'Blog | Math Tips, Exam Prep & Free Practice',
-  description: `Read our latest articles, exam tips, and free practice guides from ${SITE_NAME}. ACT, SAT, algebra, and more.`,
-  openGraph: {
-    title: 'Blog | The School of Mathematics',
-    description: `Articles and tips to help you score higher. Free math practice for ACT, SAT, and more.`,
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const blogPosts = await getAllBlogPostsFromDB();
+  const hasPosts = blogPosts.length > 0;
+
+  return {
+    title: 'Blog | Math Tips, Exam Prep & Free Practice',
+    description: `Read our latest articles, exam tips, and free practice guides from ${SITE_NAME}. ACT, SAT, algebra, and more.`,
+    alternates: { canonical: '/blogs' },
+    openGraph: {
+      title: 'Blog | The School of Mathematics',
+      description: `Articles and tips to help you score higher. Free math practice for ACT, SAT, and more.`,
+    },
+    robots: hasPosts
+      ? { index: true, follow: true }
+      : { index: false, follow: false },
+  };
+}
 
 export default async function BlogsPage() {
   const blogPosts = await getAllBlogPostsFromDB();

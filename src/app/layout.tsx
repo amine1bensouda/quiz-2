@@ -8,14 +8,14 @@ import GoogleAnalytics from '@/components/Analytics/GoogleAnalytics';
 import NavigationProgress from '@/components/Layout/NavigationProgress';
 import ConditionalLayout from '@/components/Layout/ConditionalLayout';
 import CookieBanner from '@/components/Layout/CookieBanner';
+import SiteSchema from '@/components/SEO/SiteSchema';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from '@/lib/constants';
 
 const inter = Inter({ subsets: ['latin'] });
 
-/** Évite la pré-génération statique massive au build (DB / timeouts Vercel). */
-export const dynamic = 'force-dynamic';
-
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  applicationName: SITE_NAME,
   title: {
     default: SITE_NAME,
     template: `%s | ${SITE_NAME}`,
@@ -23,6 +23,9 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   keywords: ['quiz', 'test', 'mathematics', 'math', 'education', 'learning'],
   authors: [{ name: SITE_NAME }],
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -64,7 +67,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://www.google-analytics.com" />
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+      </head>
       <body className={inter.className}>
+        <SiteSchema />
         <GoogleAnalytics />
         <Suspense fallback={null}>
           <NavigationProgress />

@@ -1,17 +1,53 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import Navigation from '@/components/Layout/Navigation';
-import AnimatedShapes from '@/components/Layout/AnimatedShapes';
-import BackgroundPattern from '@/components/Layout/BackgroundPattern';
+import AnimatedShapes from '@/components/Layout/AnimatedShapesClient';
+import BackgroundPattern from '@/components/Layout/BackgroundPatternClient';
 import Accordion from '@/components/Layout/Accordion';
 import QuizCard from '@/components/Quiz/QuizCard';
 import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
+import CourseSchema from '@/components/SEO/CourseSchema';
 import { getCourseBySlug } from '@/lib/course-service';
+import { SITE_NAME, SITE_URL } from '@/lib/constants';
+import { excerptFromHtml, stripHtml } from '@/lib/utils';
 
 export const revalidate = 300;
 
 interface PageProps {
   params: Promise<{ slug: string }> | { slug: string };
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await Promise.resolve(params);
+  const course = await getCourseBySlug(slug);
+
+  if (!course) {
+    return { title: 'Course' };
+  }
+
+  const title = stripHtml(course.title);
+  const description =
+    excerptFromHtml(course.description || '', 160) ||
+    `${title} course on ${SITE_NAME}.`;
+  const canonical = `/quiz/course/${encodeURIComponent(course.slug)}`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      title,
+      description,
+      type: 'article',
+      url: `${SITE_URL}${canonical}`,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+  };
 }
 
 export default async function CoursePage({ params }: PageProps) {
@@ -27,6 +63,13 @@ export default async function CoursePage({ params }: PageProps) {
 
   return (
     <div className="relative bg-gradient-to-br from-slate-50 via-indigo-50/30 to-violet-50 min-h-screen">
+      <CourseSchema
+        slug={course.slug}
+        title={course.title}
+        description={course.description}
+        moduleCount={course.modules.length}
+        totalQuizzes={totalQuizzes}
+      />
       <AnimatedShapes variant="hero" count={6} intensity="medium" />
       <BackgroundPattern variant="luxury" opacity={0.08} />
       <Navigation />

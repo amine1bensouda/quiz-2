@@ -6,8 +6,8 @@ import { getAllPublishedCourses } from '@/lib/course-service';
 import QuizCard from '@/components/Quiz/QuizCard';
 import { SITE_NAME, SITE_DESCRIPTION } from '@/lib/constants';
 import { formatNumber } from '@/lib/utils';
-import AnimatedShapes from '@/components/Layout/AnimatedShapes';
-import BackgroundPattern from '@/components/Layout/BackgroundPattern';
+import AnimatedShapes from '@/components/Layout/AnimatedShapesClient';
+import BackgroundPattern from '@/components/Layout/BackgroundPatternClient';
 
 export const metadata: Metadata = {
   title: 'Home',

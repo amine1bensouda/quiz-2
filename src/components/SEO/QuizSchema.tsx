@@ -1,5 +1,6 @@
 import type { Quiz } from '@/lib/types';
 import { SITE_URL } from '@/lib/constants';
+import { stripHtml } from '@/lib/utils';
 
 interface QuizSchemaProps {
   quiz: Quiz;
@@ -8,12 +9,14 @@ interface QuizSchemaProps {
 export default function QuizSchema({ quiz }: QuizSchemaProps) {
   const questions = quiz.acf?.questions || [];
   const questionCount = questions.length;
+  const title = stripHtml(quiz.title.rendered);
+  const description = stripHtml(quiz.excerpt?.rendered || quiz.content?.rendered || '');
 
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Quiz',
-    name: quiz.title.rendered,
-    description: quiz.excerpt?.rendered || quiz.content?.rendered,
+    name: title,
+    description,
     url: `${SITE_URL}/quiz/${quiz.slug}`,
     ...(quiz.featured_media_url && {
       image: quiz.featured_media_url,
@@ -25,6 +28,7 @@ export default function QuizSchema({ quiz }: QuizSchemaProps) {
       educationalLevel: quiz.acf.niveau_difficulte,
     }),
     numberOfQuestions: questionCount,
+    isAccessibleForFree: true,
     ...(quiz.acf?.categorie && {
       about: {
         '@type': 'Thing',
