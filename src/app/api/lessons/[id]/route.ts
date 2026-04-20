@@ -4,6 +4,8 @@ import { withCacheHeaders } from '@/lib/http-cache';
 import { addResponseObservability } from '@/lib/traffic-guard';
 
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/lessons/[id] — Récupère une lesson par slug (ou id legacy)
  */

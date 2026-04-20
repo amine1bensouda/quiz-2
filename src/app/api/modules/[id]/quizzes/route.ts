@@ -5,6 +5,8 @@ import { convertPrismaQuizToQuiz } from '@/lib/quiz-service';
 import { withCacheHeaders, withNoStoreHeaders } from '@/lib/http-cache';
 
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } }
