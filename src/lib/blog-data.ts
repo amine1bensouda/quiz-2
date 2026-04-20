@@ -1,9 +1,9 @@
 /**
  * Données des articles de blog — partagées entre liste et détail.
- * Les articles proviennent de la base de données (Prisma) avec fallback sur les données statiques.
+ * Les articles proviennent de la base de données (Prisma).
  */
 
-import { getAllBlogsData, getBlogByIdOrSlugData } from '@/lib/cache';
+import { getAllPublishedBlogsData, getPublishedBlogByIdOrSlugData } from '@/lib/cache';
 
 export interface BlogPost {
   id: number | string;
@@ -197,6 +197,16 @@ export function normalizeBlogTags(tags: unknown): string[] {
   return tags.filter((t): t is string => typeof t === 'string');
 }
 
+/** Convertit date Prisma (Date|string|number) en YYYY-MM-DD. */
+function toDateOnly(value: unknown): string {
+  if (value instanceof Date) return value.toISOString().split('T')[0];
+  if (typeof value === 'string' || typeof value === 'number') {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().split('T')[0];
+  }
+  return new Date(0).toISOString().split('T')[0];
+}
+
 /** Convertit un blog Prisma en BlogPost. */
 function fromPrisma(b: any): BlogPost {
   return {
@@ -205,7 +215,7 @@ function fromPrisma(b: any): BlogPost {
     slug: b.slug,
     excerpt: b.excerpt || '',
     content: b.content || '',
-    date: (b.publishedAt || b.createdAt).toISOString().split('T')[0],
+    date: toDateOnly(b.publishedAt || b.createdAt),
     category: b.category || '',
     ctaLink: b.ctaLink || undefined,
     ctaText: b.ctaText || undefined,
@@ -213,30 +223,27 @@ function fromPrisma(b: any): BlogPost {
   };
 }
 
-/** Récupère tous les posts (DB uniquement). */
+/** Récupère tous les posts publiés (DB uniquement). */
 export async function getAllBlogPostsFromDB(): Promise<BlogPost[]> {
   try {
-    const dbPosts = await getAllBlogsData();
+    const dbPosts = await getAllPublishedBlogsData();
     const normalizedDbPosts = dbPosts.map(fromPrisma);
-    if (normalizedDbPosts.length > 0) {
-      return normalizedDbPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }
+    return normalizedDbPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   } catch {
-    // DB indisponible
+    // DB indisponible: on renvoie vide pour éviter le fallback statique.
+    return [];
   }
-  // Fallback sur les articles statiques pour éviter une page /blogs vide.
-  return getAllBlogPosts();
 }
 
-/** Récupère un post par id ou slug (DB puis fallback statique). */
+/** Récupère un post publié par id ou slug (DB uniquement). */
 export async function getBlogPostFromDB(idOrSlug: string): Promise<BlogPost | undefined> {
   const normalized = decodeURIComponent(String(idOrSlug)).trim().toLowerCase();
   try {
-    const blog = await getBlogByIdOrSlugData(idOrSlug);
+    const blog = await getPublishedBlogByIdOrSlugData(idOrSlug);
     if (blog) return fromPrisma(blog);
 
-    // Fallback robuste: certains slugs peuvent différer en casse/encodage.
-    const allDbPosts = await getAllBlogsData();
+    // Fallback robuste DB-only: certains slugs peuvent différer en casse/encodage.
+    const allDbPosts = await getAllPublishedBlogsData();
     const matched = allDbPosts.find((p) => {
       const dbSlug = String(p.slug || '').trim().toLowerCase();
       return dbSlug === normalized;
@@ -244,9 +251,9 @@ export async function getBlogPostFromDB(idOrSlug: string): Promise<BlogPost | un
     if (matched) return fromPrisma(matched);
   } catch {
     // DB indisponible
+    return undefined;
   }
-  // Fallback statique si la DB ne renvoie rien.
-  return getBlogPostBySlug(normalized) || getBlogPostById(String(idOrSlug));
+  return undefined;
 }
 
 /** Récupère tous les posts (pour la liste) — version synchrone (statiques uniquement). */

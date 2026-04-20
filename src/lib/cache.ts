@@ -8,6 +8,7 @@ import { prisma } from './db';
 export const COURSES_CACHE_TAG = 'courses';
 export const BLOGS_CACHE_TAG = 'blogs';
 export const QUIZZES_CACHE_TAG = 'quizzes';
+export const PAGES_CACHE_TAG = 'custom-pages';
 
 const coursesCacheConfig = {
   revalidate: 3600,
@@ -171,6 +172,58 @@ export const getBlogByIdOrSlugData = unstable_cache(
   blogsCacheConfig
 );
 
+/** Liste publique des blogs publiés (pages frontend). */
+export const getAllPublishedBlogsData = unstable_cache(
+  async () => {
+    return prisma.blogPost.findMany({
+      where: {
+        status: 'published',
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        excerpt: true,
+        content: true,
+        category: true,
+        tags: true,
+        ctaLink: true,
+        ctaText: true,
+        publishedAt: true,
+        createdAt: true,
+      },
+      orderBy: {
+        publishedAt: 'desc',
+      },
+    });
+  },
+  ['blogs-published-list'],
+  blogsCacheConfig
+);
+
+/** Blog public publié par id ou slug (pages frontend). */
+export const getPublishedBlogByIdOrSlugData = unstable_cache(
+  async (idOrSlug: string) => {
+    const byId = await prisma.blogPost.findFirst({
+      where: {
+        id: idOrSlug,
+        status: 'published',
+      },
+    });
+    if (byId) return byId;
+
+    const bySlug = await prisma.blogPost.findFirst({
+      where: {
+        slug: idOrSlug,
+        status: 'published',
+      },
+    });
+    return bySlug ?? null;
+  },
+  ['blogs-published-by-id-or-slug'],
+  blogsCacheConfig
+);
+
 /** Liste légère de quiz publiés, cacheable (API publiques). */
 export const getPublishedQuizListData = unstable_cache(
   async (moduleSlug?: string, limit?: number) => {
@@ -248,4 +301,54 @@ export function invalidatePublishedBlogsCache() {
 /** Invalidation centralisée pour toutes les lectures quiz. */
 export function invalidatePublishedQuizzesCache() {
   revalidateTag(QUIZZES_CACHE_TAG);
+}
+
+const pagesCacheConfig = {
+  revalidate: 900,
+  tags: [PAGES_CACHE_TAG],
+};
+
+/** Liste publique des pages custom publiées (pour sitemap). */
+export const getAllPublishedPagesData = unstable_cache(
+  async () => {
+    return prisma.customPage.findMany({
+      where: {
+        status: 'published',
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        metaTitle: true,
+        metaDescription: true,
+        noIndex: true,
+        publishedAt: true,
+        updatedAt: true,
+      },
+      orderBy: {
+        publishedAt: 'desc',
+      },
+    });
+  },
+  ['pages-published-list'],
+  pagesCacheConfig
+);
+
+/** Page custom publique par slug (front). */
+export const getPublishedPageBySlugData = unstable_cache(
+  async (slug: string) => {
+    return prisma.customPage.findFirst({
+      where: {
+        slug,
+        status: 'published',
+      },
+    });
+  },
+  ['pages-published-by-slug'],
+  pagesCacheConfig
+);
+
+/** Invalidation centralisée pour toutes les lectures de pages custom. */
+export function invalidatePublishedPagesCache() {
+  revalidateTag(PAGES_CACHE_TAG);
 }

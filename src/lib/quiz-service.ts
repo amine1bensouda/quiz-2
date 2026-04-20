@@ -421,6 +421,15 @@ export async function getCoursesByCategorySlug(categorySlug: string): Promise<
  * Convertit un quiz Prisma au format Quiz attendu par le frontend
  */
 export function convertPrismaQuizToQuiz(prismaQuiz: any): Quiz {
+  const toIsoString = (value: unknown): string => {
+    if (value instanceof Date) return value.toISOString();
+    if (typeof value === 'string' || typeof value === 'number') {
+      const parsed = new Date(value);
+      if (!Number.isNaN(parsed.getTime())) return parsed.toISOString();
+    }
+    return new Date(0).toISOString();
+  };
+
   const rawQuestions = Array.isArray(prismaQuiz.questions) ? prismaQuiz.questions : [];
   const questions = rawQuestions.map((q: any) => {
     const answers = Array.isArray(q.answers) ? q.answers : [];
@@ -474,7 +483,7 @@ export function convertPrismaQuizToQuiz(prismaQuiz: any): Quiz {
       questions: questions,
     },
     categories: prismaQuiz.module ? [prismaQuiz.module.slug] : [],
-    date: prismaQuiz.createdAt.toISOString(),
-    modified: prismaQuiz.updatedAt.toISOString(),
+    date: toIsoString(prismaQuiz.createdAt),
+    modified: toIsoString(prismaQuiz.updatedAt),
   };
 }

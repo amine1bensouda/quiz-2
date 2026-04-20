@@ -29,6 +29,7 @@ export default function AdminNav() {
     { href: '/admin/lessons', label: 'Lessons', icon: '📄' },
     { href: '/admin/quizzes', label: 'Quizzes', icon: '📝' },
     { href: '/admin/blogs', label: 'Blogs', icon: '📰' },
+    { href: '/admin/pages', label: 'Pages', icon: '📄' },
   ];
 
   return (

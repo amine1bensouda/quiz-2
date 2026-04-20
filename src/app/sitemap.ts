@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/constants';
 import { getAllQuizSlugs } from '@/lib/quiz-service';
-import { getCourses } from '@/lib/cache';
+import { getCourses, getAllPublishedPagesData } from '@/lib/cache';
 import { getAllCategories } from '@/lib/quiz-service';
 import { getAllBlogPostsFromDB } from '@/lib/blog-data';
 
@@ -112,6 +112,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
+  // Pages custom publiées (HTML/CSS depuis le panel admin), indexables uniquement
+  let customPages: MetadataRoute.Sitemap = [];
+  try {
+    const pages = await getAllPublishedPagesData();
+    customPages = pages
+      .filter((p) => !p.noIndex)
+      .map((p) => ({
+        url: `${baseUrl}/pages/${encodeURIComponent(p.slug)}`,
+        lastModified: p.updatedAt ? new Date(p.updatedAt) : currentDate,
+        changeFrequency: 'monthly' as const,
+        priority: 0.6,
+      }));
+  } catch (error) {
+    console.error('Erreur récupération pages custom pour sitemap:', error);
+  }
+
   // Combiner toutes les pages
-  return [...staticPages, ...quizPages, ...coursePages, ...categoryPages, ...blogPages];
+  return [
+    ...staticPages,
+    ...quizPages,
+    ...coursePages,
+    ...categoryPages,
+    ...blogPages,
+    ...customPages,
+  ];
 }

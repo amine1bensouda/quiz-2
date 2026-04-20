@@ -1,11 +1,16 @@
 User-agent: *
 Allow: /
 
+# Routes privées — bloquées au crawl (protégées par auth)
 Disallow: /api/
 Disallow: /admin/
-Disallow: /login
-Disallow: /register
-Disallow: /maintenance
-Disallow: /en-construction
+
+# Pages de comptes / auth : on laisse Google crawler la page pour qu'il
+# puisse lire le meta robots "noindex" et le header X-Robots-Tag "noindex".
+# Ne PAS mettre Disallow ici, sinon Google ne verra pas le noindex et
+# pourrait garder l'URL indexée sans contenu.
+#
+# Ces routes envoient déjà: X-Robots-Tag: noindex, nofollow, noarchive
+# (voir src/middleware.ts) et <meta name="robots" content="noindex, nofollow">
 
 Sitemap: https://www.theschoolofmathematics.com/sitemap.xml

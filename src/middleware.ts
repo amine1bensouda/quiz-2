@@ -10,6 +10,27 @@ const adminApiHits = new Map<string, { count: number; windowStart: number }>();
  * affichent l’écran « under construction » via rewrite interne vers /maintenance.
  * Désactiver : SITE_UNDER_CONSTRUCTION=0 ou supprimer la variable.
  */
+/**
+ * Routes qui ne doivent JAMAIS être indexées par Google (comptes utilisateurs,
+ * espace admin, pages d'auth, APIs). On envoie un header X-Robots-Tag qui
+ * force la désindexation même si l'URL est crawlée via un lien externe.
+ */
+const NO_INDEX_PATH_PATTERNS = [
+  /^\/login(\/|$)/,
+  /^\/register(\/|$)/,
+  /^\/dashboard(\/|$)/,
+  /^\/admin(\/|$)/,
+  /^\/account(\/|$)/,
+  /^\/profile(\/|$)/,
+  /^\/maintenance(\/|$)/,
+  /^\/en-construction(\/|$)/,
+  /^\/api(\/|$)/,
+];
+
+function shouldBlockIndexing(pathname: string): boolean {
+  return NO_INDEX_PATH_PATTERNS.some((pattern) => pattern.test(pathname));
+}
+
 export function middleware(request: NextRequest) {
   // Protection légère anti-burst sur /api/admin/* (instance locale/process only).
   const rateLimitOn = process.env.API_ADMIN_RATE_LIMIT !== '0';
@@ -31,11 +52,24 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  if (process.env.SITE_UNDER_CONSTRUCTION !== '1') {
-    return NextResponse.next();
-  }
-
   const { pathname } = request.nextUrl;
+
+  // Injection du header anti-indexation sur toutes les routes privées / comptes.
+  // Fonctionne même si la page est un Client Component, et empêche la page
+  // d'apparaître dans Google même si elle a été crawlée via un lien externe.
+  const attachNoIndexHeaders = (response: NextResponse) => {
+    if (shouldBlockIndexing(pathname)) {
+      response.headers.set(
+        'X-Robots-Tag',
+        'noindex, nofollow, noarchive, nosnippet, noimageindex'
+      );
+    }
+    return response;
+  };
+
+  if (process.env.SITE_UNDER_CONSTRUCTION !== '1') {
+    return attachNoIndexHeaders(NextResponse.next());
+  }
 
   if (
     pathname.startsWith('/api') ||
@@ -46,10 +80,12 @@ export function middleware(request: NextRequest) {
       pathname
     )
   ) {
-    return NextResponse.next();
+    return attachNoIndexHeaders(NextResponse.next());
   }
 
-  return NextResponse.rewrite(new URL('/maintenance', request.url));
+  return attachNoIndexHeaders(
+    NextResponse.rewrite(new URL('/maintenance', request.url))
+  );
 }
 
 export const config = {
