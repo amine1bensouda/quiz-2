@@ -5,6 +5,84 @@ const adminApiWindowMs = 60_000;
 const adminApiMaxRequests = 120;
 const adminApiHits = new Map<string, { count: number; windowStart: number }>();
 
+const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+const SIGNATURE_NAMESPACE = 'admin.v1.';
+
+function getSessionSecret(): string {
+  return (
+    process.env.ADMIN_SESSION_SECRET ||
+    process.env.ADMIN_PASSWORD_HASH ||
+    process.env.ADMIN_PASSWORD ||
+    'change-me-in-production'
+  );
+}
+
+function base64UrlEncode(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function hmacSign(secret: string, payload: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const signature = await crypto.subtle.sign(
+    'HMAC',
+    key,
+    encoder.encode(payload)
+  );
+  return base64UrlEncode(signature);
+}
+
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+async function verifyAdminSessionToken(token: string | undefined): Promise<boolean> {
+  if (!token) return false;
+  const parts = token.split('.');
+  if (parts.length !== 2) return false;
+
+  const [issuedAtStr, providedSig] = parts;
+  const issuedAtMs = Number(issuedAtStr);
+  if (!Number.isFinite(issuedAtMs) || issuedAtMs <= 0) return false;
+
+  const now = Date.now();
+  if (now - issuedAtMs > SESSION_DURATION_MS) return false;
+  if (issuedAtMs > now + 60_000) return false;
+
+  const expectedSig = await hmacSign(
+    getSessionSecret(),
+    `${SIGNATURE_NAMESPACE}${issuedAtMs}`
+  );
+  return timingSafeEqual(expectedSig, providedSig);
+}
+
+/**
+ * Routes /api/admin/* publiques (sans auth) : uniquement l'endpoint de login.
+ */
+function isPublicAdminApi(pathname: string): boolean {
+  return pathname.startsWith('/api/admin/auth/');
+}
+
+function isAdminApiRequest(pathname: string): boolean {
+  return pathname.startsWith('/api/admin/');
+}
+
 /**
  * Quand SITE_UNDER_CONSTRUCTION=1, toutes les pages (sauf API, assets, /maintenance)
  * affichent l’écran « under construction » via rewrite interne vers /maintenance.
@@ -31,10 +109,25 @@ function shouldBlockIndexing(pathname: string): boolean {
   return NO_INDEX_PATH_PATTERNS.some((pattern) => pattern.test(pathname));
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Protection auth: bloquer les accès non-authentifiés aux routes /api/admin/*
+  // sauf l'endpoint de login.
+  if (isAdminApiRequest(pathname) && !isPublicAdminApi(pathname)) {
+    const token = request.cookies.get('admin_token')?.value;
+    const valid = await verifyAdminSessionToken(token);
+    if (!valid) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+  }
+
   // Protection légère anti-burst sur /api/admin/* (instance locale/process only).
   const rateLimitOn = process.env.API_ADMIN_RATE_LIMIT !== '0';
-  if (rateLimitOn && request.nextUrl.pathname.startsWith('/api/admin/')) {
+  if (rateLimitOn && isAdminApiRequest(pathname)) {
     const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
     const now = Date.now();
     const entry = adminApiHits.get(ip);
@@ -51,8 +144,6 @@ export function middleware(request: NextRequest) {
       }
     }
   }
-
-  const { pathname } = request.nextUrl;
 
   // Injection du header anti-indexation sur toutes les routes privées / comptes.
   // Fonctionne même si la page est un Client Component, et empêche la page

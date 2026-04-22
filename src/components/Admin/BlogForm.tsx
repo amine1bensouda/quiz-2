@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import RichTextEditor from './RichTextEditor';
 
 interface BlogFormData {
   id?: string;
@@ -24,6 +23,7 @@ interface BlogFormProps {
 export default function BlogForm({ initialData }: BlogFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'html' | 'preview'>('html');
   const [tagsInput, setTagsInput] = useState(initialData?.tags?.join(', ') || '');
   const [formData, setFormData] = useState<BlogFormData>({
     title: '',
@@ -63,6 +63,48 @@ export default function BlogForm({ initialData }: BlogFormProps) {
       .filter(Boolean);
     setFormData((prev) => ({ ...prev, tags: parsed }));
   };
+
+  const previewDocument = useMemo(() => {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${formData.title || 'Blog preview'}</title>
+<style>
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #0f172a;
+    background: #ffffff;
+  }
+  article {
+    max-width: 840px;
+    margin: 0 auto;
+    padding: 48px 20px 72px;
+    line-height: 1.7;
+  }
+  h1 { font-size: 2rem; line-height: 1.2; margin-bottom: 8px; }
+  .meta { color: #64748b; margin-bottom: 32px; }
+  img, video { max-width: 100%; height: auto; border-radius: 8px; }
+  blockquote {
+    border-left: 4px solid #cbd5e1;
+    margin: 20px 0;
+    padding: 8px 16px;
+    color: #334155;
+    background: #f8fafc;
+  }
+</style>
+</head>
+<body>
+  <article>
+    <h1>${formData.title || 'Untitled blog post'}</h1>
+    ${formData.excerpt ? `<p class="meta">${formData.excerpt}</p>` : ''}
+    ${formData.content || '<p>Start writing your HTML content...</p>'}
+  </article>
+</body>
+</html>`;
+  }, [formData.title, formData.excerpt, formData.content]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,16 +177,19 @@ export default function BlogForm({ initialData }: BlogFormProps) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Slug *
+              Slug (URL) *
             </label>
-            <input
-              type="text"
-              required
-              value={formData.slug}
-              onChange={(e) => setFormData((prev) => ({ ...prev, slug: e.target.value }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              placeholder="ex: 10-tips-master-algebra"
-            />
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500 whitespace-nowrap">/blogs/</span>
+              <input
+                type="text"
+                required
+                value={formData.slug}
+                onChange={(e) => setFormData((prev) => ({ ...prev, slug: e.target.value }))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                placeholder="ex: 10-tips-master-algebra"
+              />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -217,12 +262,63 @@ export default function BlogForm({ initialData }: BlogFormProps) {
 
       {/* Contenu */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-4">
-        <h2 className="text-2xl font-bold text-gray-900">Contenu</h2>
-        <RichTextEditor
-          value={formData.content}
-          onChange={(value) => setFormData((prev) => ({ ...prev, content: value }))}
-          placeholder="Write the blog content..."
-        />
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-gray-900">Blog source</h2>
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            {(['html', 'preview'] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-1.5 rounded-md text-sm font-semibold transition ${
+                  activeTab === tab
+                    ? 'bg-white shadow text-indigo-700'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {tab.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {activeTab === 'html' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              HTML body
+            </label>
+            <textarea
+              spellCheck={false}
+              value={formData.content}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, content: e.target.value }))
+              }
+              rows={22}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-slate-50"
+              placeholder="<section>...</section>"
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              Paste any HTML for your blog content. The title/excerpt are rendered automatically above.
+            </p>
+          </div>
+        )}
+
+        {activeTab === 'preview' && (
+          <div>
+            <div className="rounded-lg border border-gray-200 overflow-hidden bg-white">
+              <iframe
+                title="Blog preview"
+                srcDoc={previewDocument}
+                className="w-full"
+                style={{ height: '640px', border: 0 }}
+                sandbox="allow-same-origin"
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Live preview of your title, excerpt and content.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* CTA (optionnel) */}
