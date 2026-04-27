@@ -16,6 +16,10 @@ export default function QuizCard({ quiz, index = 0 }: QuizCardProps) {
   const difficultyConfig = showDifficulty ? (DIFFICULTY_LEVELS[difficulty as keyof typeof DIFFICULTY_LEVELS] || DIFFICULTY_LEVELS.Intermediate) : null;
   const duration = quiz.acf?.duree_estimee;
   const questionCount = quiz.acf?.nombre_questions || 0;
+  // Depuis la bascule vers un modèle d'abonnement, le verrou dépend
+  // uniquement de la session utilisateur côté server components :
+  // `isLocked === true` signifie qu'aucun abonnement ne couvre ce quiz.
+  const isLocked = quiz.isLocked === true;
 
   const getDifficultyStyles = () => {
     if (!difficultyConfig) return '';
@@ -53,23 +57,50 @@ export default function QuizCard({ quiz, index = 0 }: QuizCardProps) {
               {quiz.acf.categorie}
             </div>
           )}
+          {isLocked && (
+            <div className="absolute top-4 left-4 inline-flex items-center gap-1.5 bg-gray-900/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+              <svg
+                className="w-3.5 h-3.5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M10 2a4 4 0 014 4v2h1a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2v-7a2 2 0 012-2h1V6a4 4 0 014-4zm0 2a2 2 0 00-2 2v2h4V6a2 2 0 00-2-2z" />
+              </svg>
+              Locked
+            </div>
+          )}
         </div>
       )}
       
       <div className="p-6 flex flex-col h-full">
-        <div className="flex items-center justify-between mb-4">
-          {difficultyConfig && (
-            <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border ${getDifficultyStyles()}`}
-            >
-              <span className="text-base">{difficultyConfig.icon}</span>
-              {difficultyConfig.label}
-            </span>
-          )}
-          
-          {!quiz.featured_media_url && quiz.acf?.categorie && (
-            <span className="text-xs text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg font-medium">
-              {categoryToEnglish(quiz.acf.categorie)}
+        <div className="flex items-center justify-between mb-4 gap-2">
+          <div className="flex items-center gap-2">
+            {difficultyConfig && (
+              <span
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border ${getDifficultyStyles()}`}
+              >
+                <span className="text-base">{difficultyConfig.icon}</span>
+                {difficultyConfig.label}
+              </span>
+            )}
+
+            {!quiz.featured_media_url && quiz.acf?.categorie && (
+              <span className="text-xs text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg font-medium">
+                {categoryToEnglish(quiz.acf.categorie)}
+              </span>
+            )}
+          </div>
+
+          {isLocked && !quiz.featured_media_url && (
+            <span className="inline-flex items-center gap-1.5 bg-gray-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold">
+              <svg
+                className="w-3.5 h-3.5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M10 2a4 4 0 014 4v2h1a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2v-7a2 2 0 012-2h1V6a4 4 0 014-4zm0 2a2 2 0 00-2 2v2h4V6a2 2 0 00-2-2z" />
+              </svg>
+              Locked
             </span>
           )}
         </div>
@@ -110,7 +141,7 @@ export default function QuizCard({ quiz, index = 0 }: QuizCardProps) {
           </div>
           
           <span className="inline-flex items-center gap-2 text-gray-900 font-semibold group-hover:text-black group-hover:gap-3 transition-all duration-300">
-            Start Quiz
+            {isLocked ? 'Unlock' : 'Start Quiz'}
             <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>

@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { SITE_NAME } from '@/lib/constants';
 
 export const metadata: Metadata = {
-  title: 'En construction',
-  description: 'Page temporaire — site en cours de mise à jour.',
+  title: 'Under construction',
+  description: 'Temporary page — site is being updated.',
   robots: { index: false, follow: false },
 };
 
@@ -17,11 +17,11 @@ export default function EnConstructionPage() {
         </div>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-            Site en construction
+            Site under construction
           </h1>
           <p className="mt-3 text-gray-600 leading-relaxed">
-            {SITE_NAME} est temporairement indisponible pendant une mise à jour. Merci de votre
-            patience — nous revenons bientôt.
+            {SITE_NAME} is temporarily unavailable while we push an update.
+            Thanks for your patience — we'll be back soon.
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
@@ -30,17 +30,17 @@ export default function EnConstructionPage() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500" />
             </span>
-            Travaux en cours
+            Work in progress
           </span>
         </div>
         <p className="text-xs text-gray-400 pt-4 border-t border-gray-100">
-          Page temporaire — à retirer ou à désactiver une fois la mise en ligne terminée.
+          Temporary page — remove or disable once the launch is complete.
         </p>
         <Link
           href="/"
           className="inline-block text-sm font-medium text-indigo-600 hover:text-indigo-800 underline-offset-4 hover:underline"
         >
-          Retour à l’accueil
+          Back to home
         </Link>
       </div>
     </div>

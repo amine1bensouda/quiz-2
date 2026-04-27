@@ -11,8 +11,11 @@ import CourseSchema from '@/components/SEO/CourseSchema';
 import { getCourseBySlug } from '@/lib/course-service';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
 import { excerptFromHtml, stripHtml } from '@/lib/utils';
+import { getCurrentUserFromSession } from '@/lib/auth-server';
+import { canUserAccessCourse } from '@/lib/subscription-access';
 
-export const revalidate = 300;
+// L'affichage dépend de l'état d'abonnement de l'utilisateur (lock banner).
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ slug: string }> | { slug: string };
@@ -60,6 +63,9 @@ export default async function CoursePage({ params }: PageProps) {
 
   const totalQuizzes = course.modules.reduce((sum, module) => sum + module._count.quizzes, 0);
   const totalLessons = course.modules.reduce((sum, module) => sum + (module._count.lessons ?? 0), 0);
+
+  const currentUser = await getCurrentUserFromSession();
+  const hasAccess = await canUserAccessCourse(currentUser?.id ?? null, course.id);
 
   return (
     <div className="relative bg-gradient-to-br from-slate-50 via-indigo-50/30 to-violet-50 min-h-screen">
@@ -119,6 +125,33 @@ export default async function CoursePage({ params }: PageProps) {
               )}
             </div>
           </header>
+
+          {!hasAccess && (
+            <div className="mb-8 rounded-2xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-violet-50 p-6 sm:p-8 shadow-lg animate-fade-in">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                <div className="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-1">
+                    Unlock this course
+                  </h2>
+                  <p className="text-sm sm:text-base text-gray-700">
+                    $7/month for this course alone, or $25/month for all
+                    courses. 48h free trial — no charge before.
+                  </p>
+                </div>
+                <Link
+                  href={`/subscribe?courseId=${course.id}`}
+                  className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 text-white font-semibold shadow-sm hover:bg-indigo-700 whitespace-nowrap"
+                >
+                  Start 48h trial
+                </Link>
+              </div>
+            </div>
+          )}
 
           {/* Liste des modules */}
           {course.modules.length > 0 ? (

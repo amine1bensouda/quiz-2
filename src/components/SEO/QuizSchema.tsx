@@ -12,6 +12,7 @@ export default function QuizSchema({ quiz }: QuizSchemaProps) {
   const title = stripHtml(quiz.title.rendered);
   const description = stripHtml(quiz.excerpt?.rendered || quiz.content?.rendered || '');
 
+  // Plateforme par abonnement : l'accès est toujours payant (subscription-only).
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Quiz',
@@ -28,7 +29,7 @@ export default function QuizSchema({ quiz }: QuizSchemaProps) {
       educationalLevel: quiz.acf.niveau_difficulte,
     }),
     numberOfQuestions: questionCount,
-    isAccessibleForFree: true,
+    isAccessibleForFree: false,
     ...(quiz.acf?.categorie && {
       about: {
         '@type': 'Thing',

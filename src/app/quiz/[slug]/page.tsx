@@ -3,12 +3,17 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { getQuizBySlug } from '@/lib/wordpress';
 import QuizPlayer from '@/components/Quiz/QuizPlayer';
+import SubscriptionPaywall from '@/components/Subscription/SubscriptionPaywall';
 import QuizSchema from '@/components/SEO/QuizSchema';
 import BreadcrumbSchema from '@/components/SEO/BreadcrumbSchema';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
 import { stripHtml, formatDuration, difficultyToEnglish, categoryToEnglish } from '@/lib/utils';
+import { getCurrentUserFromSession } from '@/lib/auth-server';
+import { canUserAccessQuiz } from '@/lib/subscription-access';
+import { prisma } from '@/lib/db';
 
-export const revalidate = 3600; // Revalider toutes les heures
+// L'affichage dépend de la session (verrouillage paywall) : dynamique.
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: {
@@ -83,6 +88,26 @@ export default async function QuizPage({ params }: PageProps) {
   if (!quiz) {
     notFound();
   }
+
+  // Verrouillage paywall : on affiche SubscriptionPaywall si l'utilisateur
+  // n'a pas d'abonnement couvrant le cours parent du quiz (ou un ALL_ACCESS
+  // pour les quizzes autonomes).
+  const currentUser = await getCurrentUserFromSession();
+  const hasAccess = await canUserAccessQuiz(currentUser?.id ?? null, {
+    id: quiz.prismaId ?? '',
+    moduleId: quiz.courseId ? 'present' : null,
+    module: quiz.courseId ? { courseId: quiz.courseId } : null,
+  });
+  const showPaywall = !hasAccess;
+
+  // Si paywall, récupérer la liste des cours publiés pour le sélecteur.
+  const coursesForPaywall = showPaywall
+    ? await prisma.course.findMany({
+        where: { status: 'published' },
+        select: { id: true, title: true, slug: true },
+        orderBy: { createdAt: 'desc' },
+      })
+    : [];
 
   const title = stripHtml(quiz.title.rendered);
   const description = quiz.excerpt?.rendered || '';
@@ -218,7 +243,18 @@ export default async function QuizPage({ params }: PageProps) {
             </div>
           </div>
 
-        <QuizPlayer quiz={quiz} />
+        {showPaywall ? (
+          <SubscriptionPaywall
+            courses={coursesForPaywall}
+            defaultCourseId={quiz.courseId ?? null}
+            isAuthenticated={!!currentUser}
+            title="Unlock this quiz"
+            subtitle="This quiz is included in your subscription. 48h free trial, no commitment."
+            returnUrl={`/quiz/${params.slug}`}
+          />
+        ) : (
+          <QuizPlayer quiz={quiz} />
+        )}
         </div>
       </div>
     </>

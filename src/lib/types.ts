@@ -28,6 +28,10 @@ export interface Quiz {
   categories?: number[];
   date: string;
   modified: string;
+  /** Id du cours parent (via le module), null pour les quizzes autonomes. */
+  courseId?: string | null;
+  /** true si l'utilisateur courant n'a pas d'abonnement couvrant ce quiz. */
+  isLocked?: boolean;
 }
 
 // Types pour les Questions

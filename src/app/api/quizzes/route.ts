@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isFullRequest } from '@/lib/request-utils';
 import { getAllQuiz, getQuizList } from '@/lib/quiz-service';
+import { getCurrentUserFromSession } from '@/lib/auth-server';
+import {
+  getAccessibleQuizIds,
+  stripQuizContentForPaywall,
+} from '@/lib/subscription-access';
 import { withCacheHeaders, withNoStoreHeaders } from '@/lib/http-cache';
 import {
   addResponseObservability,
@@ -81,6 +86,18 @@ export async function GET(request: NextRequest) {
     if (limit) {
       quizzes = quizzes.slice(0, limit);
     }
+
+    // Mode full : la réponse contient les questions. On en retire le contenu
+    // pour les quiz non couverts par l'abonnement de l'utilisateur courant.
+    const user = await getCurrentUserFromSession();
+    const accessibleIds = await getAccessibleQuizIds(user?.id ?? null);
+    quizzes = quizzes.map((q) => {
+      if (accessibleIds === null) return { ...q, isLocked: false };
+      if (q.prismaId && accessibleIds.has(q.prismaId)) {
+        return { ...q, isLocked: false };
+      }
+      return { ...stripQuizContentForPaywall(q), isLocked: true };
+    });
 
     const response = withNoStoreHeaders(NextResponse.json(quizzes));
     response.headers.set('X-RateLimit-Remaining', String(rate.remaining));

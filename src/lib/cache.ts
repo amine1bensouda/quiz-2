@@ -274,6 +274,7 @@ export const getPublishedQuizListData = unstable_cache(
           select: {
             slug: true,
             title: true,
+            courseId: true,
           },
         },
         _count: {

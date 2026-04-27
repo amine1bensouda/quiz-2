@@ -9,14 +9,15 @@ datasource db {
 }
 
 model Course {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  description String?
-  status      String   @default("draft")
-  modules     Module[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String         @id @default(cuid())
+  title         String
+  slug          String         @unique
+  description   String?
+  status        String         @default("draft")
+  modules       Module[]
+  subscriptions Subscription[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   @@map("courses")
   @@index([status])
@@ -68,24 +69,24 @@ model Lesson {
 }
 
 model Quiz {
-  id               String         @id @default(cuid())
+  id               String        @id @default(cuid())
   moduleId         String?
-  module           Module?        @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+  module           Module?       @relation(fields: [moduleId], references: [id], onDelete: SetNull)
   title            String
-  slug             String         @unique
+  slug             String        @unique
   description      String?
   excerpt          String?
-  duration         Int            @default(10)
+  duration         Int           @default(10)
   difficulty       String?
-  passingGrade     Int            @default(70)
-  randomizeOrder   Boolean        @default(false)
+  passingGrade     Int           @default(70)
+  randomizeOrder   Boolean       @default(false)
   maxQuestions     Int?
   featuredImage    String?
   featuredImageUrl String?
   questions        Question[]
   quizAttempts     QuizAttempt[]
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   @@map("quizzes")
   @@index([slug])
@@ -130,13 +131,14 @@ model Answer {
 }
 
 model User {
-  id           String        @id @default(cuid())
-  email        String        @unique
-  name         String
-  password     String
-  quizAttempts QuizAttempt[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id            String         @id @default(cuid())
+  email         String         @unique
+  name          String
+  password      String
+  quizAttempts  QuizAttempt[]
+  subscriptions Subscription[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   @@map("users")
   @@index([email])
@@ -203,4 +205,30 @@ model QuizAttempt {
   @@index([userId])
   @@index([quizId])
   @@index([completedAt])
+}
+
+model Subscription {
+  id                     String    @id @default(cuid())
+  userId                 String
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                   String
+  courseId               String?
+  course                 Course?   @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  provider               String
+  providerCustomerId     String?
+  providerSubscriptionId String?   @unique
+  status                 String    @default("incomplete")
+  trialEndsAt            DateTime?
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  cancelAtPeriodEnd      Boolean   @default(false)
+  canceledAt             DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([userId, status])
+  @@index([courseId])
+  @@index([status])
+  @@map("subscriptions")
 }

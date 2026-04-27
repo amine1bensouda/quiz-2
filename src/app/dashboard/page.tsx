@@ -7,10 +7,51 @@ import { getCurrentUser, getQuizStats, logout, type QuizAttempt, type User } fro
 import { formatDuration } from '@/lib/utils';
 import LoadingSpinner from '@/components/Layout/LoadingSpinner';
 
+interface SubscriptionInfo {
+  id: string;
+  plan: 'SINGLE_COURSE' | 'ALL_ACCESS' | string;
+  status: string;
+  provider: 'stripe' | 'paypal' | string;
+  trialEndsAt: string | null;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+  canceledAt: string | null;
+  course: { id: string; title: string; slug: string } | null;
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const palette: Record<string, string> = {
+    trialing: 'bg-blue-100 text-blue-800 border-blue-200',
+    active: 'bg-green-100 text-green-800 border-green-200',
+    past_due: 'bg-amber-100 text-amber-800 border-amber-200',
+    incomplete: 'bg-gray-100 text-gray-700 border-gray-200',
+    canceled: 'bg-red-100 text-red-700 border-red-200',
+    expired: 'bg-red-100 text-red-700 border-red-200',
+  };
+  const label: Record<string, string> = {
+    trialing: 'Trial active',
+    active: 'Active',
+    past_due: 'Past due',
+    incomplete: 'Incomplete',
+    canceled: 'Canceled',
+    expired: 'Expired',
+  };
+  const cls = palette[status] || 'bg-gray-100 text-gray-700 border-gray-200';
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-sm font-semibold border ${cls}`}
+    >
+      {label[status] || status}
+    </span>
+  );
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [stats, setStats] = useState<any>(null);
+  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
+  const [managing, setManaging] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,8 +63,14 @@ export default function DashboardPage() {
           return;
         }
         setUser(currentUser);
-        const userStats = await getQuizStats();
+        const [userStats, subRes] = await Promise.all([
+          getQuizStats(),
+          fetch('/api/users/me/subscription', { credentials: 'include' })
+            .then((r) => (r.ok ? r.json() : { subscription: null }))
+            .catch(() => ({ subscription: null })),
+        ]);
         setStats(userStats);
+        setSubscription(subRes.subscription || null);
       } catch (error) {
         console.error('Error loading user:', error);
         router.push('/login');
@@ -39,6 +86,50 @@ export default function DashboardPage() {
     router.push('/');
     router.refresh();
   };
+
+  async function openStripePortal() {
+    setManaging(true);
+    try {
+      const res = await fetch('/api/subscriptions/stripe/portal', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+        return;
+      }
+      alert(data.error || 'Unable to open billing portal');
+    } catch (err: any) {
+      alert(err?.message || 'Unable to open billing portal');
+    } finally {
+      setManaging(false);
+    }
+  }
+
+  async function cancelPaypal() {
+    if (!confirm('Confirm cancellation of your PayPal subscription?')) return;
+    setManaging(true);
+    try {
+      const res = await fetch('/api/subscriptions/paypal/cancel', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        alert(
+          'Subscription canceled. You keep access until the end of the current period.'
+        );
+        window.location.reload();
+        return;
+      }
+      alert(data.error || 'Unable to cancel subscription');
+    } catch (err: any) {
+      alert(err?.message || 'Unable to cancel subscription');
+    } finally {
+      setManaging(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -147,6 +238,126 @@ export default function DashboardPage() {
             </div>
             <div className="text-sm text-gray-600">Time Spent</div>
           </div>
+        </div>
+
+        {/* Subscription status */}
+        <div className="mb-8 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="p-6 border-b border-gray-200 flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">My Subscription</h2>
+              <p className="text-sm text-gray-600 mt-1">
+                {subscription
+                  ? 'Details of your active subscription.'
+                  : "You don't have a subscription yet."}
+              </p>
+            </div>
+            {!subscription && (
+              <Link
+                href="/subscribe"
+                className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 text-sm"
+              >
+                Start 48h free trial
+              </Link>
+            )}
+          </div>
+
+          {subscription ? (
+            <div className="p-6 grid gap-6 md:grid-cols-2">
+              <div>
+                <div className="text-xs uppercase tracking-wide text-gray-500">Plan</div>
+                <div className="text-lg font-semibold text-gray-900">
+                  {subscription.plan === 'ALL_ACCESS'
+                    ? 'All Access — $25/month'
+                    : subscription.plan === 'SINGLE_COURSE'
+                    ? 'Single Course — $7/month'
+                    : subscription.plan}
+                </div>
+                {subscription.course && (
+                  <div className="text-sm text-gray-600 mt-1">
+                    Course:{' '}
+                    <Link
+                      href={`/quiz/course/${subscription.course.slug}`}
+                      className="text-indigo-600 hover:underline"
+                    >
+                      {subscription.course.title}
+                    </Link>
+                  </div>
+                )}
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-wide text-gray-500">Status</div>
+                <div className="text-lg font-semibold">
+                  <StatusBadge status={subscription.status} />
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  via <span className="capitalize">{subscription.provider}</span>
+                  {subscription.cancelAtPeriodEnd ? ' • cancellation scheduled' : ''}
+                </div>
+              </div>
+              {subscription.trialEndsAt && subscription.status === 'trialing' && (
+                <div>
+                  <div className="text-xs uppercase tracking-wide text-gray-500">
+                    Trial ends
+                  </div>
+                  <div className="text-lg font-semibold text-gray-900">
+                    {formatDate(subscription.trialEndsAt)}
+                  </div>
+                </div>
+              )}
+              {subscription.currentPeriodEnd && (
+                <div>
+                  <div className="text-xs uppercase tracking-wide text-gray-500">
+                    {subscription.cancelAtPeriodEnd
+                      ? 'Access until'
+                      : 'Next billing date'}
+                  </div>
+                  <div className="text-lg font-semibold text-gray-900">
+                    {formatDate(subscription.currentPeriodEnd)}
+                  </div>
+                </div>
+              )}
+              <div className="md:col-span-2 flex flex-wrap gap-3 pt-2 border-t border-gray-100">
+                {subscription.provider === 'stripe' && (
+                  <button
+                    type="button"
+                    onClick={openStripePortal}
+                    disabled={managing}
+                    className="px-4 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold transition-all disabled:opacity-60"
+                  >
+                    {managing ? 'Opening…' : 'Manage / Cancel (Stripe)'}
+                  </button>
+                )}
+                {subscription.provider === 'paypal' && subscription.status !== 'canceled' && (
+                  <button
+                    type="button"
+                    onClick={cancelPaypal}
+                    disabled={managing}
+                    className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-all disabled:opacity-60"
+                  >
+                    {managing ? 'Canceling…' : 'Cancel PayPal subscription'}
+                  </button>
+                )}
+                <Link
+                  href="/subscribe"
+                  className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-semibold transition-all"
+                >
+                  Change plan
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="p-8 text-center">
+              <p className="text-gray-600 mb-4">
+                Unlock access to courses and quizzes with a monthly subscription.
+              </p>
+              <Link
+                href="/subscribe"
+                className="inline-block px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700"
+              >
+                View plans
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Quiz History */}

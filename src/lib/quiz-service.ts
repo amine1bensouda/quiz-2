@@ -485,5 +485,44 @@ export function convertPrismaQuizToQuiz(prismaQuiz: any): Quiz {
     categories: prismaQuiz.module ? [prismaQuiz.module.slug] : [],
     date: toIsoString(prismaQuiz.createdAt),
     modified: toIsoString(prismaQuiz.updatedAt),
+    courseId: prismaQuiz.module?.courseId ?? null,
   };
+}
+
+/**
+ * Variante "safe" de getQuizBySlug pour une réponse publique : renvoie la
+ * vue complète pour les utilisateurs avec un abonnement couvrant le cours
+ * parent du quiz (ou un abo `ALL_ACCESS` pour les quizzes autonomes), et
+ * une vue expurgée (sans questions/réponses) sinon. Dans tous les cas
+ * inclut un flag `isLocked`.
+ *
+ * Le filtre est opéré ici pour éviter que les consommateurs oublient de
+ * le réappliquer avant de renvoyer des questions.
+ */
+export async function getPublicQuizBySlug(
+  slug: string,
+  userId: string | null | undefined,
+): Promise<Quiz | null> {
+  const quiz = await getQuizBySlug(slug);
+  if (!quiz) return null;
+
+  const { canUserAccessQuiz, stripQuizContentForPaywall } = await import(
+    './subscription-access'
+  );
+
+  const prismaId = quiz.prismaId;
+  if (!prismaId) {
+    return { ...stripQuizContentForPaywall(quiz), isLocked: true };
+  }
+
+  const canAccess = await canUserAccessQuiz(userId ?? null, {
+    id: prismaId,
+    moduleId: quiz.categories && quiz.categories.length > 0 ? 'present' : null,
+    module: quiz.courseId ? { courseId: quiz.courseId } : null,
+  });
+
+  if (canAccess) {
+    return { ...quiz, isLocked: false };
+  }
+  return { ...stripQuizContentForPaywall(quiz), isLocked: true };
 }

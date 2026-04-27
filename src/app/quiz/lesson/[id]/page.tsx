@@ -4,7 +4,11 @@ import Image from 'next/image';
 import Navigation from '@/components/Layout/Navigation';
 import BackgroundPattern from '@/components/Layout/BackgroundPattern';
 import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
+import SubscriptionPaywall from '@/components/Subscription/SubscriptionPaywall';
 import { getLessonByIdOrSlug } from '@/lib/lesson-service';
+import { getCurrentUserFromSession } from '@/lib/auth-server';
+import { canUserAccessLesson } from '@/lib/subscription-access';
+import { prisma } from '@/lib/db';
 
 interface Lesson {
   id: string;
@@ -29,7 +33,8 @@ interface Lesson {
   } | null;
 }
 
-export const revalidate = 300;
+// L'affichage dépend de l'état d'abonnement de l'utilisateur.
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ id: string }> | { id: string };
@@ -48,6 +53,22 @@ export default async function LessonPage({ params }: PageProps) {
   }
 
   const courseSlug = lesson.module?.course.slug;
+
+  const currentUser = await getCurrentUserFromSession();
+  const hasAccess = await canUserAccessLesson(currentUser?.id ?? null, {
+    id: lesson.id,
+    moduleId: lesson.module?.id ?? null,
+    allowPreview: lesson.allowPreview,
+    module: lesson.module ? { courseId: lesson.module.course.id } : null,
+  });
+
+  const coursesForPaywall = !hasAccess
+    ? await prisma.course.findMany({
+        where: { status: 'published' },
+        select: { id: true, title: true, slug: true },
+        orderBy: { createdAt: 'desc' },
+      })
+    : [];
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-violet-50">
@@ -68,6 +89,16 @@ export default async function LessonPage({ params }: PageProps) {
           <span className="text-gray-900 font-medium">{lesson.title}</span>
         </nav>
 
+        {!hasAccess ? (
+          <SubscriptionPaywall
+            courses={coursesForPaywall}
+            defaultCourseId={lesson.module?.course.id ?? null}
+            isAuthenticated={!!currentUser}
+            title="Unlock this lesson"
+            subtitle="This lesson is included in your subscription. 48h free trial, no commitment."
+            returnUrl={`/quiz/lesson/${lesson.slug}`}
+          />
+        ) : (
         <article className="rounded-2xl bg-white/90 backdrop-blur-md border border-white/60 shadow-xl overflow-hidden">
           {lesson.featuredImageUrl && (
             <div className="aspect-video w-full bg-gray-100">
@@ -142,6 +173,7 @@ export default async function LessonPage({ params }: PageProps) {
             )}
           </div>
         </article>
+        )}
 
         <div className="mt-6">
           {lesson.module && courseSlug ? (
