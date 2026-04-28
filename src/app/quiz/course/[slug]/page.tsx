@@ -12,6 +12,7 @@ import { getCourseBySlug } from '@/lib/course-service';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
 import { excerptFromHtml, stripHtml } from '@/lib/utils';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
+import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { canUserAccessCourse } from '@/lib/subscription-access';
 
 // L'affichage dépend de l'état d'abonnement de l'utilisateur (lock banner).
@@ -65,7 +66,8 @@ export default async function CoursePage({ params }: PageProps) {
   const totalLessons = course.modules.reduce((sum, module) => sum + (module._count.lessons ?? 0), 0);
 
   const currentUser = await getCurrentUserFromSession();
-  const hasAccess = await canUserAccessCourse(currentUser?.id ?? null, course.id);
+  const isAdmin = await isAdminAuthenticated();
+  const hasAccess = await canUserAccessCourse(currentUser?.id ?? null, course.id, isAdmin);
 
   return (
     <div className="relative bg-gradient-to-br from-slate-50 via-indigo-50/30 to-violet-50 min-h-screen">

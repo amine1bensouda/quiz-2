@@ -1,8 +1,8 @@
 // Site constants
 
-export const SITE_NAME = 'The School of Mathematics';
+export const SITE_NAME = 'Crack The Curve';
 export const SITE_DESCRIPTION = 'Test your knowledge with our interactive mathematics quizzes';
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theschoolofmathematics.com';
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://crackthecurve.com';
 
 // Difficulty levels (Fundamental, Intermediate, Advanced + legacy for backward compatibility)
 export const DIFFICULTY_LEVELS: Record<string, { label: string; color: string; icon: string }> = {

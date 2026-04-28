@@ -109,7 +109,7 @@ export default function PrivacyPolicyPage() {
               <li>The right to data portability</li>
             </ul>
             <p className="mt-4">
-              To exercise these rights, please contact us at: <a href="mailto:contact@schoolofmathematics.com" className="text-gray-900 underline">contact@schoolofmathematics.com</a>
+              To exercise these rights, please contact us at: <a href="mailto:contact@crackthecurve.com" className="text-gray-900 underline">contact@crackthecurve.com</a>
             </p>
           </section>
 
@@ -136,8 +136,8 @@ export default function PrivacyPolicyPage() {
               If you have any questions about this Privacy Policy, please contact us:
             </p>
             <div className="mt-4 space-y-2">
-              <p><strong>Email:</strong> <a href="mailto:contact@schoolofmathematics.com" className="text-gray-900 underline">contact@schoolofmathematics.com</a></p>
-              <p><strong>Support:</strong> <a href="mailto:support@schoolofmathematics.com" className="text-gray-900 underline">support@schoolofmathematics.com</a></p>
+              <p><strong>Email:</strong> <a href="mailto:contact@crackthecurve.com" className="text-gray-900 underline">contact@crackthecurve.com</a></p>
+              <p><strong>Support:</strong> <a href="mailto:support@crackthecurve.com" className="text-gray-900 underline">support@crackthecurve.com</a></p>
             </div>
           </section>
         </div>

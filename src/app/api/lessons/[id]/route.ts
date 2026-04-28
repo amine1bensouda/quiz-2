@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { withCacheHeaders, withNoStoreHeaders } from '@/lib/http-cache';
 import { addResponseObservability } from '@/lib/traffic-guard';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
+import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { canUserAccessLesson } from '@/lib/subscription-access';
 
 
@@ -61,12 +62,13 @@ export async function GET(
     }
 
     const user = await getCurrentUserFromSession();
+    const isAdmin = await isAdminAuthenticated();
     const canAccess = await canUserAccessLesson(user?.id ?? null, {
       id: lesson.id,
       moduleId: lesson.moduleId,
       allowPreview: lesson.allowPreview,
       module: lesson.module ? { courseId: lesson.module.courseId } : null,
-    });
+    }, isAdmin);
 
     if (!canAccess) {
       const stripped = {

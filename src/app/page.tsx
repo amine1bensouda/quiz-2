@@ -97,7 +97,7 @@ export default async function HomePage() {
             <div className="max-w-4xl mx-auto mb-8 sm:mb-10">
               <div className="bg-white rounded-xl sm:rounded-2xl p-5 sm:p-6 md:p-8 lg:p-10 shadow-lg">
                 <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed">
-                  <span className="font-semibold text-gray-900">The School of Mathematics</span> is a free online platform offering high-quality math practice problems for standardized exams in the United States. Improve your skills and prepare for any major math test with{' '}
+                  <span className="font-semibold text-gray-900">Crack The Curve</span> is a free online platform offering high-quality math practice problems for standardized exams in the United States. Improve your skills and prepare for any major math test with{' '}
                   <span className="font-bold text-blue-600">thousands of exam-style questions</span>.
                 </p>
               </div>
@@ -192,7 +192,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* How The School of Mathematics Helps You Score Higher Section */}
+      {/* How Crack The Curve Helps You Score Higher Section */}
       <section className="relative py-12 sm:py-16 md:py-20 lg:py-24 bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 overflow-hidden">
         <AnimatedShapes variant="section" count={6} intensity="medium" />
         <BackgroundPattern variant="grid" opacity={0.1} />
@@ -200,7 +200,7 @@ export default async function HomePage() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-8 sm:mb-12 md:mb-16">
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-cyan-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent mb-4 sm:mb-6 px-1">
-                How The School of Mathematics Helps You Score Higher
+                How Crack The Curve Helps You Score Higher
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
@@ -242,7 +242,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Why Students Use The School of Mathematics Section */}
+      {/* Why Students Use Crack The Curve Section */}
       <section className="relative py-12 sm:py-16 md:py-20 lg:py-24 bg-gradient-to-br from-slate-50 via-violet-50 to-rose-50 overflow-hidden">
         <AnimatedShapes variant="floating" count={7} intensity="medium" />
         <BackgroundPattern variant="circular" opacity={0.12} />
@@ -250,7 +250,7 @@ export default async function HomePage() {
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-8 sm:mb-12 md:mb-16">
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-slate-900 via-violet-900 to-rose-900 bg-clip-text text-transparent mb-4 sm:mb-6 px-1">
-                Why Students Use The School of Mathematics
+                Why Students Use Crack The Curve
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">

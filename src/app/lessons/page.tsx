@@ -7,7 +7,7 @@ import BackgroundPattern from '@/components/Layout/BackgroundPattern';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Lessons | The School of Mathematics',
+  title: 'Lessons | Crack The Curve',
   description: 'Browse all math lessons and start learning step by step.',
 };
 

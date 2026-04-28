@@ -7,8 +7,8 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # Redirection www vers non-www (ou inversement selon votre préférence)
 # Décommentez la ligne suivante si vous voulez rediriger www vers non-www
-# RewriteCond %{HTTP_HOST} ^www\.theschoolofmathematics\.com [NC]
-# RewriteRule ^(.*)$ https://theschoolofmathematics.com/$1 [L,R=301]
+# RewriteCond %{HTTP_HOST} ^www\.crackthecurve\.com [NC]
+# RewriteRule ^(.*)$ https://crackthecurve.com/$1 [L,R=301]
 
 # Gestion des routes Next.js (pour export statique)
 RewriteCond %{REQUEST_FILENAME} !-f

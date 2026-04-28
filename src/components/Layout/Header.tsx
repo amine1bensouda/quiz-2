@@ -12,12 +12,23 @@ export default function Header() {
   const [legalMenuOpen, setLegalMenuOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isAdminSession, setIsAdminSession] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
     async function loadUser() {
-      const currentUser = await getCurrentUser();
+      const [currentUser, adminStatus] = await Promise.all([
+        getCurrentUser(),
+        fetch('/api/admin/auth/status', { credentials: 'include' })
+          .then(async (res) => {
+            if (!res.ok) return false;
+            const data = await res.json().catch(() => ({}));
+            return Boolean(data?.authenticated);
+          })
+          .catch(() => false),
+      ]);
       setUser(currentUser);
+      setIsAdminSession(adminStatus);
     }
     loadUser();
   }, [pathname]); // Re-vérifier après navigation (ex. retour de /login)
@@ -35,6 +46,19 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 backdrop-blur-xl bg-white/95 shadow-lg">
+      {isAdminSession && !pathname?.startsWith('/admin') && (
+        <div className="bg-gradient-to-r from-indigo-700 to-violet-700 text-white border-b border-indigo-500/40">
+          <div className="container mx-auto px-4 py-2.5 text-xs sm:text-sm flex items-center justify-between gap-3">
+            <span className="font-semibold tracking-wide">Admin mode active</span>
+            <Link
+              href="/admin"
+              className="inline-flex items-center rounded-md bg-white/15 px-3 py-1 font-medium hover:bg-white/25 transition-colors"
+            >
+              Open Admin Panel
+            </Link>
+          </div>
+        </div>
+      )}
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link 

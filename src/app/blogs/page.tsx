@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description: `Read our latest articles, exam tips, and free practice guides from ${SITE_NAME}. ACT, SAT, algebra, and more.`,
     alternates: { canonical: '/blogs' },
     openGraph: {
-      title: 'Blog | The School of Mathematics',
+      title: 'Blog | Crack The Curve',
       description: `Articles and tips to help you score higher. Free math practice for ACT, SAT, and more.`,
     },
     robots: hasPosts

@@ -77,7 +77,9 @@ export async function getUserActiveSubscription(
 export async function canUserAccessCourse(
   userId: string | null | undefined,
   courseId: string | null | undefined,
+  hasAdminAccess: boolean = false,
 ): Promise<boolean> {
+  if (hasAdminAccess) return true;
   if (!userId || !courseId) return false;
   const sub = await getUserActiveSubscription(userId);
   if (!sub) return false;
@@ -95,7 +97,9 @@ export interface QuizWithCourseResolvable {
 export async function canUserAccessQuiz(
   userId: string | null | undefined,
   quiz: QuizWithCourseResolvable | null | undefined,
+  hasAdminAccess: boolean = false,
 ): Promise<boolean> {
+  if (hasAdminAccess) return true;
   if (!quiz) return false;
   if (!userId) return false;
 
@@ -119,7 +123,9 @@ export interface LessonWithCourseResolvable {
 export async function canUserAccessLesson(
   userId: string | null | undefined,
   lesson: LessonWithCourseResolvable | null | undefined,
+  hasAdminAccess: boolean = false,
 ): Promise<boolean> {
+  if (hasAdminAccess) return true;
   if (!lesson) return false;
   if (lesson.allowPreview) return true;
   if (!userId) return false;
@@ -134,8 +140,9 @@ export async function canUserAccessLesson(
 export async function canUserAccessModule(
   userId: string | null | undefined,
   moduleCourseId: string | null | undefined,
+  hasAdminAccess: boolean = false,
 ): Promise<boolean> {
-  return canUserAccessCourse(userId, moduleCourseId);
+  return canUserAccessCourse(userId, moduleCourseId, hasAdminAccess);
 }
 
 /**
@@ -145,7 +152,9 @@ export async function canUserAccessModule(
  */
 export async function getAccessibleQuizIds(
   userId: string | null | undefined,
+  hasAdminAccess: boolean = false,
 ): Promise<Set<string> | null> {
+  if (hasAdminAccess) return null;
   if (!userId) return new Set<string>();
   const sub = await getUserActiveSubscription(userId);
   if (!sub) return new Set<string>();

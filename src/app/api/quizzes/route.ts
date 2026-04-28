@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isFullRequest } from '@/lib/request-utils';
 import { getAllQuiz, getQuizList } from '@/lib/quiz-service';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
+import { isAdminAuthenticated } from '@/lib/admin-auth';
 import {
   getAccessibleQuizIds,
   stripQuizContentForPaywall,
@@ -90,7 +91,8 @@ export async function GET(request: NextRequest) {
     // Mode full : la réponse contient les questions. On en retire le contenu
     // pour les quiz non couverts par l'abonnement de l'utilisateur courant.
     const user = await getCurrentUserFromSession();
-    const accessibleIds = await getAccessibleQuizIds(user?.id ?? null);
+    const isAdmin = await isAdminAuthenticated();
+    const accessibleIds = await getAccessibleQuizIds(user?.id ?? null, isAdmin);
     quizzes = quizzes.map((q) => {
       if (accessibleIds === null) return { ...q, isLocked: false };
       if (q.prismaId && accessibleIds.has(q.prismaId)) {

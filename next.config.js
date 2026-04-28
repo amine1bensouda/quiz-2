@@ -10,15 +10,15 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'theschoolofmathematics.com',
+        hostname: 'crackthecurve.com',
       },
       {
         protocol: 'https',
-        hostname: '**.theschoolofmathematics.com',
+        hostname: '**.crackthecurve.com',
       },
       {
         protocol: 'http',
-        hostname: '**.theschoolofmathematics.com',
+        hostname: '**.crackthecurve.com',
       },
       {
         protocol: 'https',

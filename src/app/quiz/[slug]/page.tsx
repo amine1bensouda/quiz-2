@@ -9,6 +9,7 @@ import BreadcrumbSchema from '@/components/SEO/BreadcrumbSchema';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
 import { stripHtml, formatDuration, difficultyToEnglish, categoryToEnglish } from '@/lib/utils';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
+import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { canUserAccessQuiz } from '@/lib/subscription-access';
 import { prisma } from '@/lib/db';
 
@@ -93,11 +94,12 @@ export default async function QuizPage({ params }: PageProps) {
   // n'a pas d'abonnement couvrant le cours parent du quiz (ou un ALL_ACCESS
   // pour les quizzes autonomes).
   const currentUser = await getCurrentUserFromSession();
+  const isAdmin = await isAdminAuthenticated();
   const hasAccess = await canUserAccessQuiz(currentUser?.id ?? null, {
     id: quiz.prismaId ?? '',
     moduleId: quiz.courseId ? 'present' : null,
     module: quiz.courseId ? { courseId: quiz.courseId } : null,
-  });
+  }, isAdmin);
   const showPaywall = !hasAccess;
 
   // Si paywall, récupérer la liste des cours publiés pour le sélecteur.

@@ -7,6 +7,7 @@ import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
 import SubscriptionPaywall from '@/components/Subscription/SubscriptionPaywall';
 import { getLessonByIdOrSlug } from '@/lib/lesson-service';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
+import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { canUserAccessLesson } from '@/lib/subscription-access';
 import { prisma } from '@/lib/db';
 
@@ -55,12 +56,13 @@ export default async function LessonPage({ params }: PageProps) {
   const courseSlug = lesson.module?.course.slug;
 
   const currentUser = await getCurrentUserFromSession();
+  const isAdmin = await isAdminAuthenticated();
   const hasAccess = await canUserAccessLesson(currentUser?.id ?? null, {
     id: lesson.id,
     moduleId: lesson.module?.id ?? null,
     allowPreview: lesson.allowPreview,
     module: lesson.module ? { courseId: lesson.module.course.id } : null,
-  });
+  }, isAdmin);
 
   const coursesForPaywall = !hasAccess
     ? await prisma.course.findMany({

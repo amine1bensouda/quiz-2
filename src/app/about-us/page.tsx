@@ -10,14 +10,14 @@ export default function AboutUsPage() {
   return (
     <div className="bg-white min-h-screen">
       <div className="container mx-auto px-4 py-12 md:py-16 max-w-4xl">
-        {/* About The School of Mathematics */}
+        {/* About Crack The Curve */}
         <section className="mb-12">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-            About The School of Mathematics
+            About Crack The Curve
           </h1>
           <div className="space-y-4 text-gray-700 leading-relaxed">
             <p>
-              The School of Mathematics is an independent educational platform dedicated to helping students strengthen their math skills through high-quality, exam-style practice problems.
+              Crack The Curve is an independent educational platform dedicated to helping students strengthen their math skills through high-quality, exam-style practice problems.
             </p>
             <p>
               Our goal is to make effective math practice accessible to students preparing for standardized exams such as the ACT, SAT, PSAT, AP, and more as well as anyone looking to improve their mathematical understanding.
@@ -35,7 +35,7 @@ export default function AboutUsPage() {
               We provide free math practice problems organized by exam, topic, and difficulty level. Each problem includes a detailed, step-by-step solution designed to help students understand concepts, improve accuracy, and build confidence.
             </p>
             <p>
-              As the platform grows, The School of Mathematics will continue expanding to include instructional lessons, video explanations, and curated math resources.
+              As the platform grows, Crack The Curve will continue expanding to include instructional lessons, video explanations, and curated math resources.
             </p>
           </div>
         </section>
@@ -46,7 +46,7 @@ export default function AboutUsPage() {
             Who This Platform Is For
           </h2>
           <p className="text-gray-700 leading-relaxed">
-            The School of Mathematics is designed for middle school students, high school students, early college students, and independent learners who want to practice math in a structured and effective way.
+            Crack The Curve is designed for middle school students, high school students, early college students, and independent learners who want to practice math in a structured and effective way.
           </p>
         </section>
 
@@ -57,7 +57,7 @@ export default function AboutUsPage() {
           </h2>
           <div className="bg-gray-100 rounded-lg p-6 border border-gray-200">
             <p className="text-gray-700 leading-relaxed">
-              The School of Mathematics is an independent educational resource and is not affiliated with or endorsed by ACT, SAT, College Board, or any other testing organization. All trademarks belong to their respective owners.
+              Crack The Curve is an independent educational resource and is not affiliated with or endorsed by ACT, SAT, College Board, or any other testing organization. All trademarks belong to their respective owners.
             </p>
           </div>
         </section>

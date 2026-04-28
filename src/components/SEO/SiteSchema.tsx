@@ -16,7 +16,7 @@ export default function SiteSchema() {
         '@id': `${SITE_URL}#website`,
         url: SITE_URL,
         name: SITE_NAME,
-        alternateName: 'theschoolofmathematics.com',
+        alternateName: 'crackthecurve.com',
         description: SITE_DESCRIPTION,
         publisher: {
           '@id': `${SITE_URL}#organization`,

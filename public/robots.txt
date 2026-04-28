@@ -13,4 +13,4 @@ Disallow: /admin/
 # Ces routes envoient déjà: X-Robots-Tag: noindex, nofollow, noarchive
 # (voir src/middleware.ts) et <meta name="robots" content="noindex, nofollow">
 
-Sitemap: https://www.theschoolofmathematics.com/sitemap.xml
+Sitemap: https://crackthecurve.com/sitemap.xml

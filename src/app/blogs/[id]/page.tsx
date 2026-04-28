@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const canonical = `/blogs/${encodeURIComponent(post.slug)}`;
 
   return {
-    title: `${post.title} | The School of Mathematics`,
+    title: `${post.title} | Crack The Curve`,
     description: post.excerpt,
     alternates: { canonical },
     openGraph: {
