@@ -1,7 +1,19 @@
+import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import Link from 'next/link';
 import DeleteModuleButton from '@/components/Admin/DeleteModuleButton';
 import ModuleTableWithReorder from '@/components/Admin/ModuleTableWithReorder';
+
+const adminModuleInclude = {
+  course: true,
+  _count: {
+    select: {
+      quizzes: true,
+    },
+  },
+} satisfies Prisma.ModuleInclude;
+
+type AdminModuleWithCourse = Prisma.ModuleGetPayload<{ include: typeof adminModuleInclude }>;
 
 export default async function AdminModulesPage({
   searchParams,
@@ -10,21 +22,14 @@ export default async function AdminModulesPage({
 }) {
   const where = searchParams.courseId ? { courseId: searchParams.courseId } : {};
 
-  let modules: Awaited<ReturnType<typeof prisma.module.findMany>> = [];
+  let modules: AdminModuleWithCourse[] = [];
   let courses: Awaited<ReturnType<typeof prisma.course.findMany>> = [];
   let dbError: string | null = null;
 
   try {
     modules = await prisma.module.findMany({
       where,
-      include: {
-        course: true,
-        _count: {
-          select: {
-            quizzes: true,
-          },
-        },
-      },
+      include: adminModuleInclude,
       orderBy: [
         { course: { title: 'asc' } },
         { order: 'asc' },
