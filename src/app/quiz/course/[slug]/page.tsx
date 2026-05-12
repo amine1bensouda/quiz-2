@@ -24,7 +24,13 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await Promise.resolve(params);
-  const course = await getCourseBySlug(slug);
+  let course = null;
+  try {
+    course = await getCourseBySlug(slug);
+  } catch (error) {
+    console.error(`Erreur metadata course (${slug}):`, error);
+    return { title: 'Course' };
+  }
 
   if (!course) {
     return { title: 'Course' };
@@ -56,7 +62,38 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function CoursePage({ params }: PageProps) {
   const { slug } = await Promise.resolve(params);
-  const course = await getCourseBySlug(slug);
+  let course = null;
+  let hasDatabaseError = false;
+  try {
+    course = await getCourseBySlug(slug);
+  } catch (error) {
+    console.error(`Erreur chargement course (${slug}):`, error);
+    hasDatabaseError = true;
+  }
+
+  if (hasDatabaseError) {
+    return (
+      <div className="relative min-h-screen bg-[#080810] text-[#eeeaf4]">
+        <AnimatedShapes variant="hero" count={4} intensity="low" />
+        <BackgroundPattern variant="luxury" opacity={0.05} />
+        <Navigation />
+        <div className="container relative z-10 mx-auto px-4 py-16">
+          <div className="mx-auto max-w-2xl rounded-2xl border border-[#f5c14a]/35 bg-[#111121]/90 p-8 shadow-2xl shadow-black/40">
+            <h1 className="mb-3 text-2xl font-bold text-[#f5c14a]">Course temporarily unavailable</h1>
+            <p className="mb-6 text-[#d4d0dc]">
+              We cannot load this course right now because the database connection is unavailable.
+            </p>
+            <Link
+              href="/quiz"
+              className="inline-flex items-center rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-[#f5c14a]/50 hover:text-[#f5c14a]"
+            >
+              Back to all courses
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!course) {
     redirect('/quiz');

@@ -28,30 +28,45 @@ function SpinnerContent({
 
   return (
     <div className={`${sizeClasses[size]} relative flex items-center justify-center ${className}`}>
-      {/* Anneau tournant avec dégradé */}
+      {/* Anneaux tournants adaptés au thème dark premium */}
       <div
-        className={`absolute inset-0 rounded-full border-2 border-transparent border-t-gray-900 border-r-gray-900/30 animate-[spin_0.8s_linear_infinite] ${sizeClasses[size]}`}
-        style={{ borderRightColor: 'transparent' }}
+        className={`absolute inset-0 rounded-full border-2 border-transparent animate-[spin_1s_linear_infinite] ${sizeClasses[size]}`}
+        style={{
+          borderTopColor: 'rgba(245, 193, 74, 0.95)',
+          borderRightColor: 'transparent',
+        }}
       />
       <div
-        className={`absolute rounded-full border-2 border-transparent border-b-indigo-500 border-l-indigo-500/30 animate-[spin_1.2s_linear_infinite_reverse] ${size === 'sm' ? 'inset-[2px]' : size === 'lg' ? 'inset-[4px]' : 'inset-[3px]'}`}
-        style={{ borderLeftColor: 'transparent' }}
+        className={`absolute rounded-full border-2 border-transparent animate-[spin_1.4s_linear_infinite_reverse] ${size === 'sm' ? 'inset-[2px]' : size === 'lg' ? 'inset-[4px]' : 'inset-[3px]'}`}
+        style={{
+          borderBottomColor: 'rgba(179, 136, 255, 0.9)',
+          borderLeftColor: 'transparent',
+        }}
       />
       {/* Points pulsés au centre */}
       <div className="flex items-center justify-center gap-0.5">
         <span
-          className={`${dotSizes[size]} bg-gray-900 rounded-full animate-pulse-scale`}
-          style={{ animationDelay: '0ms' }}
+          className={`${dotSizes[size]} rounded-full animate-pulse-scale`}
+          style={{ backgroundColor: '#f5c14a', animationDelay: '0ms' }}
         />
         <span
-          className={`${dotSizes[size]} bg-indigo-500 rounded-full animate-pulse-scale`}
-          style={{ animationDelay: '150ms' }}
+          className={`${dotSizes[size]} rounded-full animate-pulse-scale`}
+          style={{ backgroundColor: '#b388ff', animationDelay: '140ms' }}
         />
         <span
-          className={`${dotSizes[size]} bg-gray-900 rounded-full animate-pulse-scale`}
-          style={{ animationDelay: '300ms' }}
+          className={`${dotSizes[size]} rounded-full animate-pulse-scale`}
+          style={{ backgroundColor: '#2be4c8', animationDelay: '280ms' }}
         />
       </div>
+      <div
+        className="pointer-events-none absolute -z-10 rounded-full blur-2xl"
+        style={{
+          width: size === 'sm' ? '36px' : size === 'md' ? '56px' : '84px',
+          height: size === 'sm' ? '36px' : size === 'md' ? '56px' : '84px',
+          background:
+            'radial-gradient(circle, rgba(245,193,74,0.28) 0%, rgba(179,136,255,0.14) 45%, rgba(43,228,200,0.04) 100%)',
+        }}
+      />
     </div>
   );
 }
@@ -63,28 +78,15 @@ export default function LoadingSpinner({
 }: LoadingSpinnerProps) {
   if (variant === 'card') {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center py-12 px-4"
-        style={{
-          background: `
-            linear-gradient(135deg, rgb(248 250 252) 0%, rgb(241 245 249) 50%, rgb(238 242 255) 100%),
-            radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.06) 0%, transparent 50%),
-            radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.06) 0%, transparent 50%)
-          `,
-        }}
-      >
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage: `
-              radial-gradient(circle at 1px 1px, #64748b 1px, transparent 0),
-              radial-gradient(circle at 1px 1px, #64748b 1px, transparent 0)
-            `,
-            backgroundSize: '24px 24px',
-          }}
-        />
-        <div className="relative flex flex-col items-center gap-8">
-          <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-xl shadow-gray-200/80 border border-white/60 p-10 sm:p-12 flex flex-col items-center justify-center transition-all duration-300 hover:shadow-2xl hover:scale-[1.02]">
+      <div className="relative min-h-screen overflow-hidden bg-[#080810] px-4 py-12">
+        <div className="pointer-events-none absolute -left-20 top-24 h-64 w-64 rounded-full bg-[#f5c14a]/12 blur-3xl" />
+        <div className="pointer-events-none absolute right-[-3rem] top-28 h-72 w-72 rounded-full bg-[#b388ff]/15 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-20 left-1/3 h-64 w-64 rounded-full bg-[#2be4c8]/10 blur-3xl" />
+        <div className="relative flex min-h-screen items-center justify-center">
+          <div className="rounded-3xl border border-white/10 bg-[#12121f]/90 px-10 py-9 shadow-2xl shadow-black/40 backdrop-blur-xl sm:px-12 sm:py-11">
+            <div className="mb-4 text-center text-[10px] font-semibold uppercase tracking-[0.24em] text-[#f5c14a]/90">
+              Loading
+            </div>
             <SpinnerContent size={size} />
           </div>
         </div>

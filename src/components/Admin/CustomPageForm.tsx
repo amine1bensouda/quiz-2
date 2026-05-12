@@ -54,7 +54,7 @@ const DEFAULT_CSS = `.page-hero {
 .btn-primary {
   display: inline-block;
   padding: 12px 24px;
-  background: #4f46e5;
+  background: #f5c14a;
   color: white;
   border-radius: 12px;
   text-decoration: none;

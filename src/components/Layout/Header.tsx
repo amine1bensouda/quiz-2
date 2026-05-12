@@ -1,16 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { SITE_NAME } from '@/lib/constants';
 import { getCurrentUser } from '@/lib/auth-client';
+import ThemeToggle from './ThemeToggle';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [legalMenuOpen, setLegalMenuOpen] = useState(false);
-  const [logoError, setLogoError] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [isAdminSession, setIsAdminSession] = useState(false);
   const pathname = usePathname();
@@ -33,10 +31,6 @@ export default function Header() {
     loadUser();
   }, [pathname]); // Re-vérifier après navigation (ex. retour de /login)
 
-  useEffect(() => {
-    setLegalMenuOpen(false);
-  }, [pathname]);
-
   const isActive = (path: string) => {
     if (path === '/') {
       return pathname === '/';
@@ -45,9 +39,9 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-200 backdrop-blur-xl bg-white/95 shadow-lg">
+    <header className="sticky top-0 z-50 border-b border-white/10 backdrop-blur-xl bg-[#080810]/95 shadow-[0_8px_30px_rgba(0,0,0,0.45)]">
       {isAdminSession && !pathname?.startsWith('/admin') && (
-        <div className="bg-gradient-to-r from-indigo-700 to-violet-700 text-white border-b border-indigo-500/40">
+        <div className="bg-gradient-to-r from-indigo-700 to-violet-700 text-white border-b border-indigo-400/40">
           <div className="container mx-auto px-4 py-2.5 text-xs sm:text-sm flex items-center justify-between gap-3">
             <span className="font-semibold tracking-wide">Admin mode active</span>
             <Link
@@ -63,142 +57,80 @@ export default function Header() {
         <div className="flex items-center justify-between">
           <Link 
             href="/" 
-            className="flex items-center gap-3 group animate-fade-in"
+            className="flex items-center gap-3 group animate-fade-in ml-1"
           >
-            <div className="relative ml-3">
-              {logoError ? (
-                <div className="w-14 h-14 bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-110 border-2 border-gray-800">
-                  <span className="text-white font-bold text-xl">M</span>
-                </div>
-              ) : (
-                <div className="w-14 h-14 relative rounded-2xl overflow-hidden shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-110 bg-white border-2 border-gray-200 p-2">
-                  <Image
-                    src="/logo_maths.svg"
-                    alt={`Logo ${SITE_NAME}`}
-                    width={56}
-                    height={56}
-                    className="object-contain w-full h-full"
-                    priority
-                    onError={() => setLogoError(true)}
-                  />
-                </div>
-              )}
-              <div className="absolute -inset-1 bg-gradient-to-r from-gray-800 via-black to-gray-800 rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
-            </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-black to-gray-900 bg-clip-text text-transparent tracking-tight">{SITE_NAME}</span>
+            <span className="text-xl font-semibold tracking-[1px] text-[#eeeaf4]">
+              <span className="text-[#f5c14a]">CRACK</span>
+              <span className="text-[rgba(238,234,244,0.45)] mx-1">×</span>
+              <span>THECURVE</span>
+            </span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-0">
-            <Link
-              href="/"
-              className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
-                isActive('/') 
-                  ? 'bg-gray-100 rounded-lg' 
-                  : 'hover:text-gray-900'
-              }`}
-            >
-              Home
-              {isActive('/') && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800 rounded-full"></span>
-              )}
-            </Link>
+          <nav className="hidden md:flex items-center gap-1">
             <Link
               href="/quiz"
-              className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
-                isActive('/quiz') 
-                  ? 'bg-gray-100 rounded-lg' 
-                  : 'hover:text-gray-900'
+              className={`px-5 py-2.5 text-sm font-medium text-[rgba(238,234,244,0.55)] transition-colors relative ${
+                isActive('/quiz')
+                  ? 'text-[#eeeaf4]' 
+                  : 'hover:text-[#eeeaf4]'
               }`}
             >
-              Exams
+              QBanks
               {isActive('/quiz') && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800 rounded-full"></span>
+                <span className="absolute bottom-0 left-3 right-3 h-px bg-[#f5c14a] rounded-full"></span>
               )}
             </Link>
             <Link
-              href="/about-us"
-              className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
-                isActive('/about-us') 
-                  ? 'bg-gray-100 rounded-lg' 
-                  : 'hover:text-gray-900'
+              href="/#how"
+              className={`px-5 py-2.5 text-sm font-medium text-[rgba(238,234,244,0.55)] transition-colors relative ${
+                pathname === '/' 
+                  ? 'text-[#eeeaf4]' 
+                  : 'hover:text-[#eeeaf4]'
               }`}
             >
-              About us
-              {isActive('/about-us') && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800 rounded-full"></span>
+              How it works
+              {pathname === '/' && (
+                <span className="absolute bottom-0 left-3 right-3 h-px bg-[#f5c14a] rounded-full"></span>
+              )}
+            </Link>
+            <Link
+              href="/#qbanks"
+              className={`px-5 py-2.5 text-sm font-medium text-[rgba(238,234,244,0.55)] transition-colors relative ${
+                pathname === '/'
+                  ? 'text-[#eeeaf4]' 
+                  : 'hover:text-[#eeeaf4]'
+              }`}
+            >
+              Pricing
+              {pathname === '/' && (
+                <span className="absolute bottom-0 left-3 right-3 h-px bg-[#f5c14a] rounded-full"></span>
               )}
             </Link>
             <Link
               href="/blogs"
-              className={`px-6 py-3 font-medium text-gray-800 transition-colors relative ${
+              className={`px-5 py-2.5 text-sm font-medium text-[rgba(238,234,244,0.55)] transition-colors relative ${
                 isActive('/blogs') 
-                  ? 'bg-gray-100 rounded-lg' 
-                  : 'hover:text-gray-900'
+                  ? 'text-[#eeeaf4]' 
+                  : 'hover:text-[#eeeaf4]'
               }`}
             >
-              Blogs
+              Blog
               {isActive('/blogs') && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800 rounded-full"></span>
+                <span className="absolute bottom-0 left-3 right-3 h-px bg-[#f5c14a] rounded-full"></span>
               )}
             </Link>
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setLegalMenuOpen((prev) => !prev)}
-                className={`px-6 py-3 font-medium text-gray-800 transition-colors rounded-lg flex items-center gap-2 ${
-                  isActive('/terms-of-service') ||
-                  isActive('/privacy-policy') ||
-                  isActive('/contact-us')
-                    ? 'bg-gray-100'
-                    : 'hover:text-gray-900'
-                }`}
-                aria-expanded={legalMenuOpen}
-                aria-haspopup="true"
-                aria-label="Open legal links menu"
-              >
-                <svg
-                  className={`w-4 h-4 transition-transform ${legalMenuOpen ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {legalMenuOpen && (
-                <div className="absolute right-0 mt-2 w-52 rounded-xl border border-gray-200 bg-white shadow-lg py-2 z-50">
-                  <Link
-                    href="/terms-of-service"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                  >
-                    Terms of Service
-                  </Link>
-                  <Link
-                    href="/privacy-policy"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                  >
-                    Privacy Policy
-                  </Link>
-                  <Link
-                    href="/contact-us"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                  >
-                    Contact Us
-                  </Link>
-                </div>
-              )}
-            </div>
           </nav>
 
           {/* User menu */}
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             {user ? (
               <Link
                 href="/dashboard"
-                className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 ${
+                  className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
                   isActive('/dashboard') 
-                    ? 'bg-gray-900 text-white' 
-                    : 'bg-gray-900 text-white hover:bg-black'
+                    ? 'bg-[#f5c14a] text-[#0c0a00]' 
+                    : 'bg-[#f5c14a] text-[#0c0a00] hover:bg-[#f9d06a]'
                 }`}
               >
                 Dashboard
@@ -207,15 +139,15 @@ export default function Header() {
               <>
                 <Link
                   href="/login"
-                  className="px-5 py-2.5 rounded-xl text-gray-700 hover:text-black font-semibold transition-all duration-300 hover:bg-gray-100 relative group border border-transparent hover:border-gray-300"
+                  className="px-5 py-2.5 rounded-full text-[rgba(238,234,244,0.65)] hover:text-[#eeeaf4] text-sm font-semibold transition-all duration-300 border border-white/10 hover:border-white/20"
                 >
-                  Login
+                  Sign In
                 </Link>
                 <Link
                   href="/register"
-                  className="px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 bg-gray-900 text-white hover:bg-black"
+                  className="px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 bg-[#f5c14a] text-[#0c0a00] hover:bg-[#f9d06a]"
                 >
-                  Sign Up
+                  Free trial →
                 </Link>
               </>
             )}
@@ -224,7 +156,7 @@ export default function Header() {
           {/* Menu mobile */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-gray-700 hover:text-black rounded-xl hover:bg-gray-100 transition-all duration-200 border border-gray-200 hover:border-gray-300"
+            className="md:hidden p-2 text-[rgba(238,234,244,0.8)] hover:text-[#eeeaf4] rounded-xl hover:bg-white/5 transition-all duration-200 border border-white/10 hover:border-white/20"
             aria-label="Menu"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -239,92 +171,62 @@ export default function Header() {
 
         {/* Menu mobile déroulant */}
         {mobileMenuOpen && (
-          <nav className="md:hidden mt-4 pb-4 animate-slide-in border-t border-gray-200 pt-4">
+          <nav className="md:hidden mt-4 pb-4 animate-slide-in border-t border-white/10 pt-4">
             <div className="flex flex-col gap-1">
-              <Link
-                href="/"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
-                  isActive('/') 
-                    ? 'bg-gray-100' 
-                    : 'hover:bg-gray-50'
-                }`}
-              >
-                Home
-              </Link>
               <Link
                 href="/quiz"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
+                className={`px-4 py-3 font-medium text-[rgba(238,234,244,0.75)] transition-colors rounded-lg ${
                   isActive('/quiz') 
-                    ? 'bg-gray-100' 
-                    : 'hover:bg-gray-50'
+                    ? 'bg-white/10 text-[#eeeaf4]' 
+                    : 'hover:bg-white/5'
                 }`}
               >
-                Exams
+                QBanks
               </Link>
               <Link
-                href="/about-us"
+                href="/#how"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
-                  isActive('/about-us') 
-                    ? 'bg-gray-100' 
-                    : 'hover:bg-gray-50'
+                className={`px-4 py-3 font-medium text-[rgba(238,234,244,0.75)] transition-colors rounded-lg ${
+                  pathname === '/'
+                    ? 'bg-white/10 text-[#eeeaf4]' 
+                    : 'hover:bg-white/5'
                 }`}
               >
-                About us
+                How it works
+              </Link>
+              <Link
+                href="/#qbanks"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`px-4 py-3 font-medium text-[rgba(238,234,244,0.75)] transition-colors rounded-lg ${
+                  pathname === '/'
+                    ? 'bg-white/10 text-[#eeeaf4]' 
+                    : 'hover:bg-white/5'
+                }`}
+              >
+                Pricing
               </Link>
               <Link
                 href="/blogs"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
+                className={`px-4 py-3 font-medium text-[rgba(238,234,244,0.75)] transition-colors rounded-lg ${
                   isActive('/blogs') 
-                    ? 'bg-gray-100' 
-                    : 'hover:bg-gray-50'
+                    ? 'bg-white/10 text-[#eeeaf4]' 
+                    : 'hover:bg-white/5'
                 }`}
               >
-                Blogs
+                Blog
               </Link>
-              <div className="border-t border-gray-200 my-2"></div>
-              <Link
-                href="/terms-of-service"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
-                  isActive('/terms-of-service')
-                    ? 'bg-gray-100'
-                    : 'hover:bg-gray-50'
-                }`}
-              >
-                Terms of Service
-              </Link>
-              <Link
-                href="/privacy-policy"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
-                  isActive('/privacy-policy')
-                    ? 'bg-gray-100'
-                    : 'hover:bg-gray-50'
-                }`}
-              >
-                Privacy Policy
-              </Link>
-              <Link
-                href="/contact-us"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 font-medium text-gray-800 transition-colors rounded-lg ${
-                  isActive('/contact-us')
-                    ? 'bg-gray-100'
-                    : 'hover:bg-gray-50'
-                }`}
-              >
-                Contact Us
-              </Link>
-              <div className="border-t border-gray-200 my-2"></div>
+              <div className="border-t border-white/10 my-2"></div>
+              <div className="px-4 py-2">
+                <ThemeToggle />
+              </div>
+              <div className="border-t border-white/10 my-2"></div>
               {user ? (
                 <Link
                   href="/dashboard"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-4 py-3 font-medium text-gray-800 hover:bg-gray-50 transition-colors rounded-lg"
+                  className="px-4 py-3 font-medium text-[rgba(238,234,244,0.75)] hover:bg-white/5 transition-colors rounded-lg"
                 >
                   Dashboard
                 </Link>
@@ -333,16 +235,16 @@ export default function Header() {
                   <Link
                     href="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="px-4 py-3 font-medium text-gray-800 hover:bg-gray-50 transition-colors rounded-lg"
+                    className="px-4 py-3 font-medium text-[rgba(238,234,244,0.75)] hover:bg-white/5 transition-colors rounded-lg"
                   >
-                    Login
+                    Sign In
                   </Link>
                   <Link
                     href="/register"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="px-4 py-3 font-medium bg-gray-900 text-white hover:bg-black transition-colors rounded-lg"
+                    className="px-4 py-3 font-medium bg-[#f5c14a] text-[#0c0a00] hover:bg-[#f9d06a] transition-colors rounded-lg"
                   >
-                    Sign Up
+                    Free trial →
                   </Link>
                 </>
               )}

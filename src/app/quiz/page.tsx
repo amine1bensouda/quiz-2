@@ -48,37 +48,65 @@ export default function QuizListPage() {
   }, []);
 
   return (
-    <div className="relative bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 min-h-screen">
-      <AnimatedShapes variant="hero" count={8} intensity="high" />
-      <BackgroundPattern variant="luxury" opacity={0.12} />
+    <div className="quiz-page relative min-h-screen overflow-hidden bg-[#080810] text-[#eeeaf4]">
+      <AnimatedShapes variant="hero" count={6} intensity="medium" />
+      <BackgroundPattern variant="luxury" opacity={0.06} />
+      <div className="pointer-events-none absolute -left-24 top-24 h-72 w-72 rounded-full bg-[#f5c14a]/15 blur-3xl" />
+      <div className="pointer-events-none absolute right-[-3rem] top-40 h-80 w-80 rounded-full bg-[#b388ff]/15 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-20 left-1/3 h-72 w-72 rounded-full bg-[#2be4c8]/10 blur-3xl" />
       <Navigation />
-      <div className="container mx-auto px-4 py-12 md:py-16 relative z-10">
+      <div className="container relative z-10 mx-auto px-4 py-12 md:py-16">
         {/* Hero Section */}
-        <div className="text-center mb-16 animate-fade-in">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-indigo-900 via-purple-900 to-pink-900 bg-clip-text text-transparent mb-6 leading-tight">
+        <div className="mb-14 animate-fade-in text-center">
+          <span className="mb-5 inline-flex rounded-full border border-[#f5c14a]/35 bg-[#f5c14a]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#f5c14a]">
+            Crack The Curve
+          </span>
+          <h1 className="mb-6 font-['Instrument_Serif',serif] text-5xl leading-tight md:text-6xl lg:text-7xl">
             All Exams
           </h1>
           {!loading && (
-            <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto backdrop-blur-sm bg-white/40 rounded-2xl p-6 inline-block">
+            <p className="quiz-hero-note mx-auto inline-block max-w-3xl rounded-2xl border border-white/10 bg-white/5 px-6 py-5 text-base text-[#d4d0dc] backdrop-blur-sm md:text-xl">
               {totalQuizzes} exam{totalQuizzes !== 1 ? 's' : ''} available to test your knowledge and improve your mathematics skills
             </p>
+          )}
+          {!loading && courses.length > 0 && (
+            <div className="mx-auto mt-8 grid max-w-4xl grid-cols-2 gap-3 text-left md:grid-cols-4">
+              <div className="quiz-stat-card rounded-xl border border-white/10 bg-[#111121]/80 p-4">
+                <p className="text-2xl font-bold text-[#f5c14a]">{courses.length}</p>
+                <p className="quiz-muted text-xs uppercase tracking-wider text-[#9d98ab]">Exam banks</p>
+              </div>
+              <div className="quiz-stat-card rounded-xl border border-white/10 bg-[#111121]/80 p-4">
+                <p className="text-2xl font-bold text-[#b388ff]">{totalQuizzes}</p>
+                <p className="quiz-muted text-xs uppercase tracking-wider text-[#9d98ab]">Total exams</p>
+              </div>
+              <div className="quiz-stat-card rounded-xl border border-white/10 bg-[#111121]/80 p-4">
+                <p className="text-2xl font-bold text-[#2be4c8]">
+                  {courses.reduce((sum, course) => sum + (course.moduleCount || 0), 0)}
+                </p>
+                <p className="quiz-muted text-xs uppercase tracking-wider text-[#9d98ab]">Modules</p>
+              </div>
+              <div className="quiz-stat-card rounded-xl border border-white/10 bg-[#111121]/80 p-4">
+                <p className="text-2xl font-bold text-[#ff5f7e]">48h</p>
+                <p className="quiz-muted text-xs uppercase tracking-wider text-[#9d98ab]">Free trial</p>
+              </div>
+            </div>
           )}
         </div>
 
         {loading ? (
           <div className="flex justify-center py-20">
-            <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-xl shadow-gray-200/80 border border-white/60 p-10 sm:p-14 flex flex-col items-center gap-6">
+            <div className="quiz-loading-card flex flex-col items-center gap-6 rounded-3xl border border-white/10 bg-[#111121]/90 p-10 shadow-2xl shadow-black/40 backdrop-blur-md sm:p-14">
               <LoadingSpinner size="lg" />
               <div className="w-full space-y-3 mt-2">
-                <div className="h-4 w-48 bg-gray-200 rounded-full animate-pulse mx-auto" />
-                <div className="h-3 w-36 bg-gray-100 rounded-full animate-pulse mx-auto" />
+                <div className="mx-auto h-4 w-48 animate-pulse rounded-full bg-white/15" />
+                <div className="mx-auto h-3 w-36 animate-pulse rounded-full bg-white/10" />
               </div>
             </div>
           </div>
         ) : courses.length > 0 ? (
           <div className="space-y-8">
             {/* Cartes des cours */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {courses.map((course) => {
                 return (
                   <CourseCard
@@ -96,12 +124,12 @@ export default function QuizListPage() {
           </div>
         ) : (
           <div className="text-center py-20">
-            <div className="inline-block backdrop-blur-xl bg-white/80 rounded-3xl shadow-2xl p-12 border border-white/40">
+            <div className="quiz-empty-card inline-block rounded-3xl border border-white/10 bg-[#111121]/90 p-12 shadow-2xl shadow-black/40 backdrop-blur-xl">
               <div className="text-6xl mb-6">📚</div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-3">
+              <h3 className="mb-3 text-2xl font-bold text-[#f5c14a]">
                 No Courses Available
               </h3>
-              <p className="text-gray-700 text-lg">Check back soon for new courses!</p>
+              <p className="quiz-muted text-lg text-[#c8c3d2]">Check back soon for new courses!</p>
             </div>
           </div>
         )}
