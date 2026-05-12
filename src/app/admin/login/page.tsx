@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import ThemeToggle from '@/components/Layout/ThemeToggle';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -37,25 +38,35 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center py-12 px-4">
-      <div className="max-w-md w-full space-y-8 backdrop-blur-xl bg-white/80 rounded-3xl shadow-2xl p-10 border border-white/40">
+    <div className="admin-app relative min-h-screen flex items-center justify-center overflow-hidden bg-[#080810] py-12 px-4">
+      <div className="absolute right-4 top-4 z-20 sm:right-6 sm:top-6">
+        <ThemeToggle />
+      </div>
+      <div className="pointer-events-none absolute -left-24 top-0 h-72 w-72 rounded-full bg-[#f5c14a]/12 blur-[100px]" aria-hidden />
+      <div className="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-[#2be4c8]/10 blur-[100px]" aria-hidden />
+
+      <div className="relative z-10 max-w-md w-full space-y-8 rounded-3xl border border-white/10 bg-[#12121f]/95 p-10 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl">
         <div className="text-center">
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            Administration
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#f5c14a]/90">
+            Crack The Curve
+          </p>
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            <span className="text-[#f5c14a]">Admin</span>
+            <span className="text-[#eeeaf4]">istration</span>
           </h2>
-          <p className="text-gray-600">Login to manage quizzes</p>
+          <p className="mt-2 text-sm text-[rgba(238,234,244,0.55)]">Sign in to manage quizzes and content.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
               {error}
             </div>
           )}
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Admin Password
+            <label htmlFor="password" className="mb-2 block text-sm font-medium text-[rgba(238,234,244,0.75)]">
+              Admin password
             </label>
             <input
               id="password"
@@ -63,7 +74,7 @@ export default function AdminLoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="w-full rounded-xl border border-white/15 bg-[#0e0e1a] px-4 py-3 text-[#eeeaf4] placeholder:text-[rgba(238,234,244,0.35)] transition-all focus:border-[#f5c14a]/50 focus:outline-none focus:ring-2 focus:ring-[#f5c14a]/25"
               placeholder="Enter password"
             />
           </div>
@@ -71,18 +82,18 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+            className="flex w-full justify-center rounded-full border border-[#f5c14a] bg-[#f5c14a] px-4 py-3 text-sm font-semibold text-[#0c0a00] shadow-lg shadow-black/30 transition-all hover:bg-[#f9d06a] focus:outline-none focus:ring-2 focus:ring-[#f5c14a]/40 focus:ring-offset-2 focus:ring-offset-[#12121f] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? 'Connecting...' : 'Login'}
+            {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
 
         <div className="text-center">
           <Link
             href="/"
-            className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+            className="text-sm font-medium text-[rgba(238,234,244,0.55)] transition-colors hover:text-[#f5c14a]"
           >
-            ← Back to home
+            ← Back to site
           </Link>
         </div>
       </div>

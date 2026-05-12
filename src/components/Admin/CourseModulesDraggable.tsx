@@ -92,7 +92,7 @@ export default function CourseModulesDraggable({ courseId, modules: initialModul
         Modules:
         {modules.length > 0 && (
           <span className="ml-2 text-gray-500 font-normal">
-            Glissez une carte pour modifier l&apos;ordre
+            Drag a card to reorder
           </span>
         )}
       </h3>

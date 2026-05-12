@@ -272,9 +272,7 @@ export async function getQuizByModule(moduleSlug: string): Promise<Quiz[]> {
           },
         },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
     });
 
     return quizzes.map(convertPrismaQuizToQuiz);

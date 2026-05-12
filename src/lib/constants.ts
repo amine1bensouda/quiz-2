@@ -16,22 +16,22 @@ export const DIFFICULTY_LEVELS: Record<string, { label: string; color: string; i
   Expert: { label: 'Advanced', color: 'red', icon: '🔴' },
   Facile: { label: 'Fundamental', color: 'green', icon: '🟢' },
   Moyen: { label: 'Intermediate', color: 'yellow', icon: '🟡' },
-  Difficile: { label: 'Difficile', color: 'orange', icon: '🟠' },
+  Difficile: { label: 'Advanced', color: 'orange', icon: '🟠' },
 };
 
-// Default categories
+// Default categories (display / seed labels)
 export const DEFAULT_CATEGORIES = [
-  'Histoire',
-  'Géographie',
+  'History',
+  'Geography',
   'Science',
-  'Sport',
-  'Culture générale',
-  'Littérature',
-  'Cinéma',
-  'Musique',
+  'Sports',
+  'General knowledge',
+  'Literature',
+  'Cinema',
+  'Music',
 ] as const;
 
-// Configuration AdSense
+// AdSense configuration
 export const ADSENSE_CONFIG = {
   clientId: process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || '',
   adSlot: {
@@ -41,6 +41,6 @@ export const ADSENSE_CONFIG = {
   },
 } as const;
 
-// Temps de revalidation ISR
+// ISR revalidation interval
 export const REVALIDATE_TIME = parseInt(process.env.NEXT_REVALIDATE_TIME || '3600', 10);
 

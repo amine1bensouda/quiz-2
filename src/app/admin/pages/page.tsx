@@ -161,7 +161,7 @@ export default async function AdminPagesListPage() {
       </div>
     );
   } catch (error: any) {
-    console.error('Erreur AdminPagesListPage:', error);
+    console.error('AdminPagesListPage:', error);
     return (
       <div className="space-y-6">
         <div>

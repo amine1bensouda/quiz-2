@@ -39,7 +39,7 @@ html.light header {
   box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08) !important;
 }
 
-html.light main {
+html.light main:not(.admin-app-main) {
   background: #f8fafc !important;
   color: #0f172a !important;
 }
@@ -57,8 +57,157 @@ html.light .border-white\/10 {
 html.light .text-\[\#eeeaf4\],
 html.light .text-\[rgba\(238\,234\,244\,0\.75\)\],
 html.light .text-\[rgba\(238\,234\,244\,0\.65\)\],
-html.light .text-\[rgba\(238\,234\,244\,0\.55\)\] {
+html.light .text-\[rgba\(238\,234\,244\,0\.55\)\],
+html.light .text-\[rgba\(238\,234\,244\,0\.88\)\] {
   color: #0f172a !important;
+}
+
+/* Admin : annule les overrides `html.light` ci-dessus (sinon texte sombre sur cartes sombres). */
+html.light .admin-app .text-\[\#eeeaf4\] {
+  color: #eeeaf4 !important;
+}
+html.light .admin-app .text-\[rgba\(238\,234\,244\,0\.75\)\] {
+  color: rgba(238, 234, 244, 0.75) !important;
+}
+html.light .admin-app .text-\[rgba\(238\,234\,244\,0\.65\)\] {
+  color: rgba(238, 234, 244, 0.65) !important;
+}
+html.light .admin-app .text-\[rgba\(238\,234\,244\,0\.55\)\] {
+  color: rgba(238, 234, 244, 0.55) !important;
+}
+html.light .admin-app .text-\[rgba\(238\,234\,244\,0\.5\)\] {
+  color: rgba(238, 234, 244, 0.5) !important;
+}
+html.light .admin-app .text-\[rgba\(238\,234\,244\,0\.35\)\] {
+  color: rgba(238, 234, 244, 0.35) !important;
+}
+
+html.light .admin-app .placeholder\:text-\[rgba\(238\,234\,244\,0\.35\)\]::placeholder {
+  color: rgba(238, 234, 244, 0.35) !important;
+}
+
+/* Panneau admin : fond clair en mode clair (le toggle modifie bien l’affichage). */
+html.light .admin-app {
+  background-color: #e8edf3 !important;
+  color: #0f172a !important;
+}
+
+html.light .admin-app nav.admin-nav {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Tableau de bord admin — mode clair (cartes claires, texte lisible, alerte contrastée) */
+html.light .admin-app .admin-dashboard-intro h1 {
+  color: #0f172a !important;
+}
+html.light .admin-app .admin-dashboard-intro p {
+  color: rgba(15, 23, 42, 0.62) !important;
+}
+
+html.light .admin-app .admin-dashboard-alert {
+  border-color: rgba(180, 83, 9, 0.45) !important;
+  background-color: #fef3c7 !important;
+  color: #78350f !important;
+}
+
+html.light .admin-app .admin-surface {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07) !important;
+}
+
+html.light .admin-app .admin-surface h2,
+html.light .admin-app .admin-surface h3 {
+  color: #0f172a !important;
+}
+
+html.light .admin-app .admin-surface .text-\[rgba\(238\,234\,244\,0\.55\)\],
+html.light .admin-app .admin-surface .text-\[rgba\(238\,234\,244\,0\.5\)\],
+html.light .admin-app .admin-surface .text-\[rgba\(238\,234\,244\,0\.65\)\] {
+  color: rgba(15, 23, 42, 0.55) !important;
+}
+
+html.light .admin-app .admin-surface .text-\[\#eeeaf4\] {
+  color: #0f172a !important;
+}
+
+html.light .admin-app .admin-row {
+  background: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+html.light .admin-app .admin-row h3 {
+  color: #0f172a !important;
+}
+
+html.light .admin-app .admin-row .text-\[rgba\(238\,234\,244\,0\.5\)\] {
+  color: rgba(15, 23, 42, 0.5) !important;
+}
+
+html.light .admin-app .admin-btn-secondary {
+  border-color: rgba(15, 23, 42, 0.2) !important;
+  color: #0f172a !important;
+  background: #ffffff !important;
+}
+
+html.light .admin-app .admin-btn-secondary:hover {
+  border-color: rgba(217, 119, 6, 0.55) !important;
+  color: #92400e !important;
+}
+
+html.light .admin-app .admin-surface a.border-white\/15 {
+  border-color: rgba(15, 23, 42, 0.18) !important;
+  color: #0f172a !important;
+}
+
+html.light .admin-app .admin-surface a.border-white\/15:hover {
+  border-color: rgba(217, 119, 6, 0.55) !important;
+  color: #b45309 !important;
+}
+
+html.light .admin-app .admin-surface .bg-emerald-500\/20 {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  color: #047857 !important;
+}
+
+html.light .admin-app .admin-surface .bg-white\/10 {
+  background-color: rgba(15, 23, 42, 0.06) !important;
+  color: rgba(15, 23, 42, 0.65) !important;
+}
+
+html.light .admin-app .admin-dashboard-error {
+  background-color: #fef2f2 !important;
+  border-color: rgba(220, 38, 38, 0.35) !important;
+}
+
+html.light .admin-app .admin-dashboard-error h2 {
+  color: #991b1b !important;
+}
+
+html.light .admin-app .admin-dashboard-error p,
+html.light .admin-app .admin-dashboard-error details {
+  color: #7f1d1d !important;
+}
+
+html.light .admin-app .admin-dashboard-error summary {
+  color: #991b1b !important;
+}
+
+html.light .admin-app .admin-dashboard-error pre {
+  background: rgba(254, 242, 242, 0.9) !important;
+  color: #450a0a !important;
+}
+
+html.light .admin-app .admin-theme-toggle {
+  border-color: rgba(15, 23, 42, 0.22) !important;
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html.light .admin-app .admin-theme-toggle:hover {
+  background-color: #cbd5e1 !important;
 }
 
 @layer components {

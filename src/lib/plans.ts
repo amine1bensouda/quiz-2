@@ -1,12 +1,12 @@
 /**
- * Configuration centrale des plans d'abonnement.
+ * Central subscription plan configuration.
  *
- * Tarifs fixes (hardcodés) :
- *  - SINGLE_COURSE : 7 USD/mois, accès à UN cours au choix.
- *  - ALL_ACCESS    : 25 USD/mois, accès à tous les cours (et aux quizzes autonomes).
+ * Fixed prices:
+ *  - SINGLE_COURSE: $7/month — access to one course of your choice.
+ *  - ALL_ACCESS: $25/month — full catalog (and standalone quizzes).
  *
- * Essai : 48h gratuits, informations de paiement collectées upfront.
- * Le premier prélèvement intervient à `now + TRIAL_HOURS`.
+ * Trial: 48 hours free; payment method collected up front.
+ * First charge at `now + TRIAL_HOURS`.
  */
 
 export const TRIAL_HOURS = 48;
@@ -73,10 +73,10 @@ export function formatPlanPrice(plan: PlanDefinition): string {
 }
 
 /**
- * Statuts considérés comme "accès autorisé" côté logique métier.
- * `trialing` => pendant l'essai 48h. `active` => après le premier paiement.
- * `past_due` est tolérant : l'utilisateur garde l'accès pendant que le provider
- * retente le paiement, puis le webhook bascule en `canceled`/`expired`.
+ * Subscription statuses that still grant access.
+ * `trialing` = within the 48h trial. `active` = after first successful payment.
+ * `past_due` is lenient: user keeps access while the provider retries billing;
+ * webhooks eventually move the row to `canceled` / `expired`.
  */
 export const ACTIVE_SUBSCRIPTION_STATUSES = ['trialing', 'active', 'past_due'] as const;
 export type ActiveSubscriptionStatus = (typeof ACTIVE_SUBSCRIPTION_STATUSES)[number];
@@ -85,8 +85,6 @@ export function isActiveStatus(status: string | null | undefined): boolean {
   return !!status && (ACTIVE_SUBSCRIPTION_STATUSES as readonly string[]).includes(status);
 }
 
-/**
- * Provider codes normalisés pour la colonne `Subscription.provider`.
- */
+/** Normalized provider codes for `Subscription.provider`. */
 export const SUBSCRIPTION_PROVIDERS = ['stripe', 'paypal'] as const;
 export type SubscriptionProvider = (typeof SUBSCRIPTION_PROVIDERS)[number];

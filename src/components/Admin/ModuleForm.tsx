@@ -8,6 +8,7 @@ interface Course {
   id: string;
   title: string;
   slug: string;
+  status?: string;
 }
 
 interface ModuleFormData {
@@ -147,6 +148,7 @@ export default function ModuleForm({ initialData, defaultCourseId }: ModuleFormP
                 {courses.map((course) => (
                   <option key={course.id} value={course.id}>
                     {course.title}
+                    {course.status !== 'published' ? ' (draft)' : ''}
                   </option>
                 ))}
               </select>

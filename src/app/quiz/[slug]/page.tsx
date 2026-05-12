@@ -7,7 +7,7 @@ import SubscriptionPaywall from '@/components/Subscription/SubscriptionPaywall';
 import QuizSchema from '@/components/SEO/QuizSchema';
 import BreadcrumbSchema from '@/components/SEO/BreadcrumbSchema';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
-import { stripHtml, formatDuration, difficultyToEnglish, categoryToEnglish } from '@/lib/utils';
+import { stripHtml, formatDuration, difficultyToEnglish, categoryToEnglish, shouldDisplayDifficulty } from '@/lib/utils';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { canUserAccessQuiz } from '@/lib/subscription-access';
@@ -102,7 +102,7 @@ export default async function QuizPage({ params }: PageProps) {
   }, isAdmin);
   const showPaywall = !hasAccess;
 
-  // Si paywall, récupérer la liste des cours publiés pour le sélecteur.
+  // When paywalled, load published courses for the picker.
   const coursesForPaywall = showPaywall
     ? await prisma.course.findMany({
         where: { status: 'published' },
@@ -117,9 +117,9 @@ export default async function QuizPage({ params }: PageProps) {
   const duration = quiz.acf?.duree_estimee;
   const questionCount = quiz.acf?.nombre_questions || 0;
   
-  // Ne pas afficher "Level" si vide ou ancienne valeur par défaut "Moyen"
-  const showDifficulty = difficulty && String(difficulty).trim() !== '' && difficulty !== 'Moyen';
-  // Compter le nombre de métadonnées à afficher
+  // Hide "Level" when empty or generic default difficulty
+  const showDifficulty = shouldDisplayDifficulty(difficulty);
+  // Count metadata chips for responsive grid
   const metadataCount = [
     duration && duration > 0,
     questionCount > 0,
@@ -145,7 +145,7 @@ export default async function QuizPage({ params }: PageProps) {
 
       <div className="bg-gradient-to-b from-white via-gray-50 to-white">
         <div className="container mx-auto px-4 py-8 md:py-12">
-          {/* En-tête du quiz moderne */}
+          {/* Quiz hero */}
           <div className="mb-12">
             {quiz.featured_media_url && (
               <div className="relative w-full h-64 md:h-80 rounded-2xl overflow-hidden mb-8 shadow-xl">
@@ -182,7 +182,7 @@ export default async function QuizPage({ params }: PageProps) {
                 />
               )}
 
-              {/* Métadonnées modernisées */}
+              {/* Metadata row */}
               {metadataCount > 0 && (
               <div className={`grid ${gridColsClass} gap-4`}>
                 {duration && duration > 0 && (

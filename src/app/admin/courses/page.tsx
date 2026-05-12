@@ -5,9 +5,20 @@ import PublishCourseButton from '@/components/Admin/PublishCourseButton';
 import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
 import CourseModulesDraggable from '@/components/Admin/CourseModulesDraggable';
 
-export default async function AdminCoursesPage() {
+export default async function AdminCoursesPage({
+  searchParams,
+}: {
+  searchParams?: { status?: string };
+}) {
   try {
+    const statusFilter = searchParams?.status;
+    const where =
+      statusFilter === 'published' || statusFilter === 'draft'
+        ? { status: statusFilter }
+        : {};
+
     const courses = await prisma.course.findMany({
+    where,
     include: {
       modules: {
         include: {
@@ -28,10 +39,11 @@ export default async function AdminCoursesPage() {
         },
       },
     },
-    orderBy: {
-      createdAt: 'desc',
-    },
+    orderBy: [{ status: 'asc' }, { updatedAt: 'desc' }],
   });
+
+    const draftCount = courses.filter((c) => c.status !== 'published').length;
+    const publishedCount = courses.filter((c) => c.status === 'published').length;
 
   return (
     <div className="space-y-6">
@@ -40,7 +52,47 @@ export default async function AdminCoursesPage() {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
             Course Management
           </h1>
-          <p className="text-gray-600">{courses.length} courses total</p>
+          <p className="text-gray-600">
+            {courses.length} course{courses.length !== 1 ? 's' : ''} shown
+            {!statusFilter || (statusFilter !== 'published' && statusFilter !== 'draft') ? (
+              <>
+                {' '}
+                · {publishedCount} published · {draftCount} draft{draftCount !== 1 ? 's' : ''}
+              </>
+            ) : null}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link
+              href="/admin/courses"
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                !statusFilter || (statusFilter !== 'published' && statusFilter !== 'draft')
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              All
+            </Link>
+            <Link
+              href="/admin/courses?status=published"
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                statusFilter === 'published'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Published only
+            </Link>
+            <Link
+              href="/admin/courses?status=draft"
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                statusFilter === 'draft'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Drafts only
+            </Link>
+          </div>
         </div>
         <Link
           href="/admin/courses/new"
@@ -140,8 +192,26 @@ export default async function AdminCoursesPage() {
       ) : (
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center">
           <div className="text-6xl mb-4">📚</div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">No courses</h3>
-          <p className="text-gray-600 mb-6">Start by creating your first course</p>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">
+            {statusFilter === 'draft'
+              ? 'No draft courses'
+              : statusFilter === 'published'
+                ? 'No published courses'
+                : 'No courses'}
+          </h3>
+          <p className="text-gray-600 mb-6">
+            {statusFilter === 'draft' || statusFilter === 'published' ? (
+              <>
+                <Link href="/admin/courses" className="text-indigo-600 hover:text-indigo-800 font-medium">
+                  Show all courses
+                </Link>
+                {' · '}
+              </>
+            ) : null}
+            {statusFilter === 'draft' || statusFilter === 'published'
+              ? 'Try another filter or create a course.'
+              : 'Start by creating your first course'}
+          </p>
           <Link
             href="/admin/courses/new"
             className="inline-block px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium"
@@ -153,7 +223,7 @@ export default async function AdminCoursesPage() {
     </div>
   );
   } catch (error: any) {
-    console.error('Erreur AdminCoursesPage:', error);
+    console.error('AdminCoursesPage:', error);
     return (
       <div className="space-y-6">
         <div>

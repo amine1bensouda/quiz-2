@@ -13,8 +13,13 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
     const full = isFullRequest(request);
+    const statusParam = request.nextUrl.searchParams.get('status');
+    const where =
+      statusParam === 'published' || statusParam === 'draft' ? { status: statusParam } : {};
+
     const courses = full
       ? await prisma.course.findMany({
+          where,
           include: {
             modules: {
               include: {
@@ -34,20 +39,17 @@ export async function GET(request: NextRequest) {
               },
             },
           },
-          orderBy: {
-            createdAt: 'desc',
-          },
+          orderBy: [{ status: 'asc' }, { updatedAt: 'desc' }],
         })
       : await prisma.course.findMany({
+          where,
           select: {
             id: true,
             title: true,
             slug: true,
             status: true,
           },
-          orderBy: {
-            createdAt: 'desc',
-          },
+          orderBy: [{ status: 'asc' }, { updatedAt: 'desc' }],
         });
 
     return NextResponse.json(courses);

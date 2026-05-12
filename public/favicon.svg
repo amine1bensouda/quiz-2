@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Crack The Curve">
+  <defs>
+    <linearGradient id="ctc-fg" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#e5a714"/>
+      <stop offset="100%" stop-color="#f5c14a"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="#0f172a"/>
+  <path
+    d="M5 21c6.5-11 14.5-11 22 1"
+    fill="none"
+    stroke="url(#ctc-fg)"
+    stroke-width="2.75"
+    stroke-linecap="round"
+  />
+  <path
+    d="M20 9.5l4.5 4.5"
+    fill="none"
+    stroke="#f5c14a"
+    stroke-width="2.4"
+    stroke-linecap="round"
+  />
+</svg>

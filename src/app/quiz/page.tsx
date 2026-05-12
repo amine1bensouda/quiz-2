@@ -38,7 +38,7 @@ export default function QuizListPage() {
           setTotalQuizzes(total);
         }
       } catch (error) {
-        console.error('Erreur chargement données:', error);
+        console.error('Failed to load quiz listing data:', error);
       } finally {
         setLoading(false);
       }

@@ -1,35 +1,27 @@
-// Fonctions utilitaires
+// Shared utilities
 
-/**
- * Formate une durée en minutes en format lisible
- */
+/** Human-readable duration from minutes */
 export function formatDuration(minutes: number): string {
   if (minutes < 60) {
     return `${minutes} min`;
   }
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
-  return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
+  return mins > 0 ? `${hours} h ${mins} min` : `${hours} h`;
 }
 
-/**
- * Calcule le pourcentage de score
- */
+/** Percentage score */
 export function calculatePercentage(score: number, total: number): number {
   if (total === 0) return 0;
   return Math.round((score / total) * 100);
 }
 
-/**
- * Formate un nombre avec séparateur de milliers
- */
+/** Thousands separator (US locale) */
 export function formatNumber(num: number): string {
-  return new Intl.NumberFormat('fr-FR').format(num);
+  return new Intl.NumberFormat('en-US').format(num);
 }
 
-/**
- * Génère un slug à partir d'un texte
- */
+/** URL slug from arbitrary text */
 export function generateSlug(text: string): string {
   return text
     .toLowerCase()
@@ -39,51 +31,13 @@ export function generateSlug(text: string): string {
     .replace(/(^-|-$)/g, '');
 }
 
-/**
- * Traduit le niveau de difficulté en français (si reçu en anglais depuis l'API)
- */
-const DIFFICULTY_FR: Record<string, string> = {
-  Fundamental: 'Fondamental',
-  Intermediate: 'Intermédiaire',
-  Advanced: 'Avancé',
-  Easy: 'Fondamental',
-  Medium: 'Intermédiaire',
-  Hard: 'Avancé',
-  Expert: 'Avancé',
-  Facile: 'Fondamental',
-  Moyen: 'Intermédiaire',
-  Difficile: 'Difficile',
-};
-export function translateDifficulty(value: string | undefined): string {
-  if (!value || !value.trim()) return '';
-  const trimmed = value.trim();
-  return DIFFICULTY_FR[trimmed] ?? trimmed;
-}
-
-/**
- * Traduit les noms de catégories courants en français (pour les cartes quiz, etc.)
- */
-const CATEGORY_FR: Record<string, string> = {
-  'Timed Mini Exams': 'Examens mini chronométrés',
-  'Mini Exams': 'Examens mini',
-  'Practice': 'Entraînement',
-  'Full Exam': 'Examen complet',
-};
-export function translateCategory(value: string | undefined): string {
-  if (!value || !value.trim()) return '';
-  const trimmed = value.trim();
-  return CATEGORY_FR[trimmed] ?? trimmed;
-}
-
-/**
- * Niveau de difficulté en anglais (pour la bannière quiz en anglais)
- */
 const DIFFICULTY_EN: Record<string, string> = {
   Fundamental: 'Fundamental',
   Intermediate: 'Intermediate',
   Advanced: 'Advanced',
   Fondamental: 'Fundamental',
   Intermediaire: 'Intermediate',
+  'Intermédiaire': 'Intermediate',
   Avancé: 'Advanced',
   Facile: 'Fundamental',
   Moyen: 'Intermediate',
@@ -93,42 +47,62 @@ const DIFFICULTY_EN: Record<string, string> = {
   Medium: 'Intermediate',
   Hard: 'Advanced',
 };
+
+/** True when difficulty is meaningful (hide empty / generic placeholders) */
+export function shouldDisplayDifficulty(value: unknown): boolean {
+  if (value == null) return false;
+  const t = String(value).trim();
+  if (!t) return false;
+  const generic = new Set(['Moyen', 'Medium', 'Intermediate']);
+  return !generic.has(t);
+}
+
+/** Normalize difficulty labels to English for UI */
 export function difficultyToEnglish(value: string | undefined): string {
   if (!value || !value.trim()) return '';
   const trimmed = value.trim();
   return DIFFICULTY_EN[trimmed] ?? trimmed;
 }
 
-/**
- * Catégorie en anglais (pour la bannière quiz en anglais)
- */
+/** @deprecated Use difficultyToEnglish — kept for imports */
+export const translateDifficulty = difficultyToEnglish;
+
 const CATEGORY_EN: Record<string, string> = {
   'Examens mini chronométrés': 'Timed Mini Exams',
   'Examens mini': 'Mini Exams',
-  'Entraînement': 'Practice',
+  Entraînement: 'Practice',
   'Examen complet': 'Full Exam',
+  Histoire: 'History',
+  Géographie: 'Geography',
+  Science: 'Science',
+  Sport: 'Sports',
+  'Culture générale': 'General knowledge',
+  Littérature: 'Literature',
+  Cinéma: 'Cinema',
+  Musique: 'Music',
 };
+
+/** Normalize category labels to English for UI */
 export function categoryToEnglish(value: string | undefined): string {
   if (!value || !value.trim()) return '';
   const trimmed = value.trim();
   return CATEGORY_EN[trimmed] ?? trimmed;
 }
 
-/**
- * Formate une date en français
- */
+/** @deprecated Use categoryToEnglish — kept for imports */
+export const translateCategory = categoryToEnglish;
+
+/** Long-form date in English */
 export function formatDate(date: string | Date): string {
   const d = typeof date === 'string' ? new Date(date) : date;
-  return new Intl.DateTimeFormat('fr-FR', {
+  return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   }).format(d);
 }
 
-/**
- * Mélange un tableau (algorithme Fisher-Yates)
- */
+/** Fisher–Yates shuffle */
 export function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -138,16 +112,11 @@ export function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
-/**
- * Délai en millisecondes
- */
 export function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/**
- * Extrait le texte d'un HTML (pour les excerpts)
- */
+/** Plain text from HTML */
 export function stripHtml(html: string): string {
   if (!html || typeof html !== 'string') return '';
   return html
@@ -160,10 +129,7 @@ export function stripHtml(html: string): string {
     .trim();
 }
 
-/**
- * Extrait court à partir de HTML (aperçu cartes cours / listes).
- * Supprime scripts/styles, puis tronque à la fin d’un mot quand c’est possible.
- */
+/** Short plain-text preview from HTML (course cards, lists) */
 export function excerptFromHtml(html: string, maxLength = 200): string {
   if (!html || typeof html !== 'string') return '';
   const noScripts = html
@@ -177,24 +143,21 @@ export function excerptFromHtml(html: string, maxLength = 200): string {
   return `${safe.trim()}…`;
 }
 
-/**
- * Détecte et nettoie les données PHP sérialisées
- * Retourne null si c'est du code sérialisé (pour éviter de l'afficher)
- */
+/** Detect serialized PHP blobs; return null to avoid rendering garbage */
 export function cleanSerializedData(text: string): string | null {
   if (!text || typeof text !== 'string') return null;
   
   // Détecter le format PHP sérialisé (commence par a: ou s: ou O:)
   const serializedPattern = /^(a:\d+:\{|s:\d+:|O:\d+:|i:\d+|b:[01]|d:|N;)/;
   if (serializedPattern.test(text.trim())) {
-    console.warn('⚠️ Données PHP sérialisées détectées:', text.substring(0, 100));
+    console.warn('⚠️ Serialized PHP data detected:', text.substring(0, 100));
     return null;
   }
   
   // Détecter si c'est principalement du code sérialisé (contient beaucoup de patterns sérialisés)
   const serializedMatches = text.match(/[a-z]:\d+:/g);
   if (serializedMatches && serializedMatches.length > 3) {
-    console.warn('⚠️ Texte contient trop de patterns sérialisés:', text.substring(0, 100));
+    console.warn('⚠️ Too many serialized patterns in text:', text.substring(0, 100));
     return null;
   }
   

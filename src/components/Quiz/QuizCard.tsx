@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { Quiz } from '@/lib/types';
 import { DIFFICULTY_LEVELS } from '@/lib/constants';
-import { formatDuration, stripHtml, categoryToEnglish } from '@/lib/utils';
+import { formatDuration, stripHtml, categoryToEnglish, shouldDisplayDifficulty } from '@/lib/utils';
 
 interface QuizCardProps {
   quiz: Quiz;
@@ -11,8 +11,7 @@ interface QuizCardProps {
 
 export default function QuizCard({ quiz, index = 0 }: QuizCardProps) {
   const difficulty = quiz.acf?.niveau_difficulte;
-  // Ne pas afficher le badge si vide ou ancienne valeur par défaut "Moyen"
-  const showDifficulty = difficulty && String(difficulty).trim() !== '' && difficulty !== 'Moyen';
+  const showDifficulty = shouldDisplayDifficulty(difficulty);
   const difficultyConfig = showDifficulty ? (DIFFICULTY_LEVELS[difficulty as keyof typeof DIFFICULTY_LEVELS] || DIFFICULTY_LEVELS.Intermediate) : null;
   const duration = quiz.acf?.duree_estimee;
   const questionCount = quiz.acf?.nombre_questions || 0;

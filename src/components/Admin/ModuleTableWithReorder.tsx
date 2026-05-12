@@ -93,7 +93,7 @@ export default function ModuleTableWithReorder({ modules: initialModules, course
                       onClick={() => reorder(index, 'up')}
                       disabled={index === 0 || loading !== null}
                       className="p-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600"
-                      title="Monter"
+                      title="Move up"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />

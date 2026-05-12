@@ -71,6 +71,7 @@ export async function getCourseBySlug(slug: string) {
                 maxQuestions: true,
                 featuredImage: true,
                 featuredImageUrl: true,
+                order: true,
                 createdAt: true,
                 updatedAt: true,
                 _count: {
@@ -79,9 +80,7 @@ export async function getCourseBySlug(slug: string) {
                   },
                 },
               },
-              orderBy: {
-                createdAt: 'desc',
-              },
+              orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
             },
             lessons: {
               select: {

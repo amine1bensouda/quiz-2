@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   try {
     course = await getCourseBySlug(slug);
   } catch (error) {
-    console.error(`Erreur metadata course (${slug}):`, error);
+    console.error(`Course metadata error (${slug}):`, error);
     return { title: 'Course' };
   }
 
@@ -67,7 +67,7 @@ export default async function CoursePage({ params }: PageProps) {
   try {
     course = await getCourseBySlug(slug);
   } catch (error) {
-    console.error(`Erreur chargement course (${slug}):`, error);
+    console.error(`Failed to load course (${slug}):`, error);
     hasDatabaseError = true;
   }
 

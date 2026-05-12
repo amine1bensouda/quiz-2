@@ -110,7 +110,7 @@ export default async function AdminBlogsPage() {
       </div>
     );
   } catch (error: any) {
-    console.error('Erreur AdminBlogsPage:', error);
+    console.error('AdminBlogsPage:', error);
     return (
       <div className="space-y-6">
         <div>

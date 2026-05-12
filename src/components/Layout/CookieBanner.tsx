@@ -1,21 +1,24 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
-const COOKIE_KEY = "cookie-consent";
+const COOKIE_KEY = 'cookie-consent';
 
 export default function CookieBanner() {
+  const pathname = usePathname();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === 'undefined') return;
     const stored = window.localStorage.getItem(COOKIE_KEY);
-    if (stored !== "accepted" && stored !== "rejected") {
+    if (stored !== 'accepted' && stored !== 'rejected') {
       setVisible(true);
     }
   }, []);
 
+  if (pathname?.startsWith('/admin')) return null;
   const acceptCookies = () => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(COOKIE_KEY, "accepted");

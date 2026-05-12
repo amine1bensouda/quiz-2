@@ -17,6 +17,7 @@ interface Course {
   id: string;
   title: string;
   slug: string;
+  status?: string;
   modules: Module[];
 }
 
@@ -144,7 +145,10 @@ export default function LessonForm({ initialData, defaultModuleId, hideModuleFie
               >
                 <option value="">Independent lesson (no module)</option>
                 {courses.map((course) => (
-                  <optgroup key={course.id} label={course.title}>
+                  <optgroup
+                    key={course.id}
+                    label={`${course.title}${course.status !== 'published' ? ' (draft)' : ''}`}
+                  >
                     {course.modules.map((mod) => (
                       <option key={mod.id} value={mod.id}>
                         {mod.title}

@@ -280,7 +280,7 @@ function normalizeTutorQuiz(tutorQuiz: any, questions: Question[] = []): Quiz {
     featured_media_url: tutorQuiz.featured_image_url || undefined,
     acf: {
       duree_estimee: duration && duration > 0 ? duration : undefined,
-      niveau_difficulte: tutorQuiz.difficulty || 'Moyen',
+      niveau_difficulte: tutorQuiz.difficulty || 'Intermediate',
       categorie: tutorQuiz.category || '',
       nombre_questions: maxQuestions || questions.length || 0,
       score_minimum: passingGrade,

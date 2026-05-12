@@ -83,6 +83,7 @@ model Quiz {
   maxQuestions     Int?
   featuredImage    String?
   featuredImageUrl String?
+  order            Int           @default(0)
   questions        Question[]
   quizAttempts     QuizAttempt[]
   createdAt        DateTime      @default(now())
@@ -91,7 +92,7 @@ model Quiz {
   @@map("quizzes")
   @@index([slug])
   @@index([moduleId])
-  @@index([moduleId, createdAt(sort: Desc)])
+  @@index([moduleId, order])
 }
 
 model Question {

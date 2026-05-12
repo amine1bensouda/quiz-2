@@ -24,7 +24,7 @@ export default async function CategoriesListPage() {
   try {
     courses = await getPublishedCoursesSummary();
   } catch (error) {
-    console.warn('Erreur lors de la récupération des cours:', error);
+    console.warn('Could not load courses:', error);
   }
 
   return (

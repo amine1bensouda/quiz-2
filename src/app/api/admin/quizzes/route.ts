@@ -58,6 +58,15 @@ export async function POST(request: NextRequest) {
     const maxQuestionsNum = (maxQuestions != null && maxQuestions !== '') ? Math.floor(Number(maxQuestions)) : NaN;
     const safeMaxQuestions = Number.isFinite(maxQuestionsNum) && maxQuestionsNum >= 0 ? maxQuestionsNum : null;
 
+    let nextOrderInModule = 0;
+    if (safeModuleId) {
+      const agg = await prisma.quiz.aggregate({
+        where: { moduleId: safeModuleId },
+        _max: { order: true },
+      });
+      nextOrderInModule = (agg._max.order ?? -1) + 1;
+    }
+
     const questionsPayload = Array.isArray(rawQuestions) ? rawQuestions : [];
     const questionsCreate = questionsPayload.map((q: any, index: number) => ({
       text: (q.text ?? q.texte_question ?? '').toString().trim() || 'Question',
@@ -82,6 +91,7 @@ export async function POST(request: NextRequest) {
         title: title.toString().trim(),
         slug: normalizedSlug,
         moduleId: safeModuleId,
+        order: nextOrderInModule,
         description: (description != null && description !== '') ? String(description) : null,
         excerpt: (excerpt != null && excerpt !== '') ? String(excerpt) : null,
         duration: safeDuration,

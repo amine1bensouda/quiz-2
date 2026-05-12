@@ -10,27 +10,54 @@ export default async function AdminModulesPage({
 }) {
   const where = searchParams.courseId ? { courseId: searchParams.courseId } : {};
 
-  const modules = await prisma.module.findMany({
-    where,
-    include: {
-      course: true,
-      _count: {
-        select: {
-          quizzes: true,
+  let modules: Awaited<ReturnType<typeof prisma.module.findMany>> = [];
+  let courses: Awaited<ReturnType<typeof prisma.course.findMany>> = [];
+  let dbError: string | null = null;
+
+  try {
+    modules = await prisma.module.findMany({
+      where,
+      include: {
+        course: true,
+        _count: {
+          select: {
+            quizzes: true,
+          },
         },
       },
-    },
-    orderBy: [
-      { course: { title: 'asc' } },
-      { order: 'asc' },
-    ],
-  });
+      orderBy: [
+        { course: { title: 'asc' } },
+        { order: 'asc' },
+      ],
+    });
 
-  const courses = searchParams.courseId
-    ? []
-    : await prisma.course.findMany({
-        orderBy: { title: 'asc' },
-      });
+    courses = searchParams.courseId
+      ? []
+      : await prisma.course.findMany({
+          orderBy: [{ status: 'asc' }, { title: 'asc' }],
+        });
+  } catch (e) {
+    console.error('AdminModulesPage:', e);
+    const msg = e instanceof Error ? e.message : 'Database error';
+    dbError = msg.includes('ENOTFOUND') || msg.includes('tenant/user')
+      ? 'PostgreSQL refused the connection (project or user not found). Check DATABASE_URL / DIRECT_URL in .env (e.g. Supabase: active project, password, session vs transaction pooler mode).'
+      : `Could not load modules: ${msg}`;
+  }
+
+  if (dbError) {
+    return (
+      <div className="admin-app space-y-4 rounded-2xl border border-red-500/40 bg-red-500/10 p-8 text-[#eeeaf4]">
+        <h1 className="text-2xl font-bold text-red-200">Modules — database unavailable</h1>
+        <p className="text-red-100/90">{dbError}</p>
+        <p className="text-sm text-[rgba(238,234,244,0.65)]">
+          Fix the connection and reload. Locally, PostgreSQL (Docker or similar) with a valid URL also works.
+        </p>
+        <Link href="/admin" className="inline-block text-sm font-semibold text-[#f5c14a] hover:underline">
+          ← Back to dashboard
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -77,6 +104,17 @@ export default async function AdminModulesPage({
                 }`}
               >
                 {course.title}
+                {course.status !== 'published' ? (
+                  <span
+                    className={
+                      searchParams.courseId === course.id
+                        ? 'ml-1 text-white/80 font-normal'
+                        : 'ml-1 text-amber-700/90'
+                    }
+                  >
+                    (draft)
+                  </span>
+                ) : null}
               </Link>
             ))}
           </div>
@@ -87,7 +125,7 @@ export default async function AdminModulesPage({
         searchParams.courseId ? (
           <>
             <p className="text-sm text-gray-600 mb-3">
-              Utilisez les flèches <span className="inline-block align-middle">↑</span> <span className="inline-block align-middle">↓</span> pour modifier l&apos;ordre des modules.
+              Use the <span className="inline-block align-middle">↑</span> <span className="inline-block align-middle">↓</span> arrows to change module order.
             </p>
             <ModuleTableWithReorder
             modules={modules.map((m) => ({

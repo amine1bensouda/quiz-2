@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState } from 'react';
+import ThemeToggle from '@/components/Layout/ThemeToggle';
 
 export default function AdminNav() {
   const router = useRouter();
@@ -33,47 +34,81 @@ export default function AdminNav() {
     { href: '/admin/pages', label: 'Pages', icon: '📄' },
   ];
 
+  const linkBase =
+    'whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-semibold transition-all sm:px-4 sm:text-[15px] sm:py-2.5';
+
   return (
-    <nav className="bg-white shadow-lg border-b border-gray-200">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center space-x-8">
+    <nav className="admin-nav sticky top-0 z-[60] border-b border-white/10 bg-[#080810]/98 shadow-[0_8px_32px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+          <div className="flex shrink-0 items-center justify-between gap-3 lg:justify-start">
             <Link
               href="/admin"
-              className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent"
+              className="text-lg font-semibold tracking-wide text-[#eeeaf4] sm:text-xl"
             >
-              Admin Panel
+              <span className="text-[#f5c14a]">CRACK</span>
+              <span className="text-[rgba(238,234,244,0.5)] mx-1">×</span>
+              <span className="text-[#eeeaf4]">ADMIN</span>
             </Link>
-            <div className="flex space-x-4">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                    pathname === item.href
-                      ? 'bg-indigo-100 text-indigo-700'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <span className="mr-2">{item.icon}</span>
-                  {item.label}
-                </Link>
-              ))}
+            <div className="flex items-center gap-2 lg:hidden">
+              <ThemeToggle className="admin-theme-toggle" />
+              <Link
+                href="/"
+                className="rounded-full border border-white/20 px-3 py-2 text-xs font-semibold text-[#eeeaf4] sm:text-sm"
+              >
+                View site
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="rounded-full bg-[#f5c14a] px-3 py-2 text-xs font-semibold text-[#0c0a00] disabled:opacity-50 sm:text-sm"
+              >
+                {loggingOut ? '…' : 'Logout'}
+              </button>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
+
+          <div className="min-w-0 flex-1 overflow-x-auto lg:order-none">
+            <div className="flex w-max min-w-full gap-1 lg:w-auto lg:min-w-0 lg:flex-wrap lg:justify-center">
+              {navItems.map((item) => {
+                const active =
+                  item.href === '/admin'
+                    ? pathname === '/admin'
+                    : pathname === item.href || pathname?.startsWith(`${item.href}/`);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`${linkBase} ${
+                      active
+                        ? 'bg-[#f5c14a] text-[#0c0a00] shadow-sm'
+                        : 'text-[rgba(238,234,244,0.88)] hover:bg-white/10 hover:text-[#eeeaf4]'
+                    }`}
+                  >
+                    <span className="mr-1.5 opacity-90">{item.icon}</span>
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="hidden shrink-0 items-center gap-2 lg:flex lg:gap-3">
+            <ThemeToggle className="admin-theme-toggle" />
             <Link
               href="/"
-              className="text-gray-600 hover:text-gray-900 font-medium"
+              className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-[#eeeaf4] transition-colors hover:border-[#f5c14a]/50 hover:text-[#f5c14a]"
             >
-              View Site
+              View site
             </Link>
             <button
+              type="button"
               onClick={handleLogout}
               disabled={loggingOut}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 font-medium"
+              className="rounded-full bg-[#f5c14a] px-4 py-2 text-sm font-semibold text-[#0c0a00] shadow-md transition-colors hover:bg-[#f9d06a] disabled:opacity-50"
             >
-              {loggingOut ? 'Logging out...' : 'Logout'}
+              {loggingOut ? 'Logging out…' : 'Logout'}
             </button>
           </div>
         </div>

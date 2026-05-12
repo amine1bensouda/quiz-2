@@ -1,5 +1,5 @@
 import DeleteQuizButton from '@/components/Admin/DeleteQuizButton';
-import { difficultyToEnglish, stripHtml } from '@/lib/utils';
+import { difficultyToEnglish, stripHtml, shouldDisplayDifficulty } from '@/lib/utils';
 import { getAllQuiz } from '@/lib/quiz-service';
 
 type GroupedQuizzes = {
@@ -193,10 +193,7 @@ export default async function AdminQuizzesPage({
                                   <td className="px-6 py-3">
                                     {(() => {
                                       const d = quiz.acf?.niveau_difficulte;
-                                      const isEmpty =
-                                        !d ||
-                                        String(d).trim() === '' ||
-                                        d === 'Moyen';
+                                      const isEmpty = !shouldDisplayDifficulty(d);
                                       const label = isEmpty
                                         ? 'Not specified'
                                         : difficultyToEnglish(d);

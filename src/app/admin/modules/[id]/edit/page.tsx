@@ -1,12 +1,22 @@
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import ModuleForm from '@/components/Admin/ModuleForm';
+import ModuleQuizzesReorder from '@/components/Admin/ModuleQuizzesReorder';
 
 export default async function EditModulePage({ params }: { params: { id: string } }) {
   const moduleItem = await prisma.module.findUnique({
     where: { id: params.id },
     include: {
       course: true,
+      quizzes: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          order: true,
+        },
+        orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+      },
     },
   });
 
@@ -32,6 +42,16 @@ export default async function EditModulePage({ params }: { params: { id: string 
         <p className="text-gray-600">Modify module information</p>
       </div>
       <ModuleForm initialData={moduleData} />
+
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Quiz order in this module</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Use the arrows to set the order quizzes appear on the course page (top to bottom).
+          </p>
+        </div>
+        <ModuleQuizzesReorder moduleId={moduleItem.id} quizzes={moduleItem.quizzes} />
+      </div>
     </div>
   );
 }

@@ -71,7 +71,7 @@ function normalizeTutorQuiz(tutorQuiz: any, questions: Question[] = []): Quiz {
     featured_media_url: tutorQuiz.featured_image_url || undefined,
     acf: {
       duree_estimee: tutorQuiz.time_limit ?? tutorQuiz.duration ?? undefined,
-      niveau_difficulte: tutorQuiz.difficulty || 'Moyen',
+      niveau_difficulte: tutorQuiz.difficulty || 'Intermediate',
       categorie: tutorQuiz.category || '',
       nombre_questions: questions.length || tutorQuiz.question_count || 0,
       score_minimum: tutorQuiz.passing_grade || 70,

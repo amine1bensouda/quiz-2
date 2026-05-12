@@ -33,9 +33,9 @@ export default function AdminLayoutWrapper({ children, isAuthenticated }: AdminL
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="admin-app min-h-screen bg-[#080810] text-[#eeeaf4]">
       <AdminNav />
-      <main className="container mx-auto px-4 py-8">{children}</main>
+      <main className="admin-app-main container mx-auto px-4 py-8">{children}</main>
     </div>
   );
 }

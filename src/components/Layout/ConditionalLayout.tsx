@@ -10,12 +10,12 @@ export default function ConditionalLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isAdminLogin = pathname === '/admin/login';
+  const isAdminArea = pathname?.startsWith('/admin') ?? false;
   const isEnConstruction = pathname === '/en-construction';
   const isMaintenance = pathname === '/maintenance';
 
-  // Pas de Header/Footer : login admin, pages temporaires, mode maintenance global
-  if (isAdminLogin || isEnConstruction || isMaintenance) {
+  // Pas de Header/Footer : tout le panneau admin (évite double barre avec le site public)
+  if (isAdminArea || isEnConstruction || isMaintenance) {
     return <>{children}</>;
   }
 

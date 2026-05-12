@@ -19,6 +19,7 @@ interface Module {
   course: {
     id: string;
     title: string;
+    status?: string;
   };
 }
 
@@ -338,7 +339,8 @@ export default function QuizForm({ initialData }: QuizFormProps) {
                 <option value="">No module</option>
                 {modules.map((module) => (
                   <option key={module.id} value={module.id}>
-                    {module.course.title} - {module.title}
+                    {module.course.title}
+                    {module.course.status !== 'published' ? ' (draft)' : ''} — {module.title}
                   </option>
                 ))}
               </select>
@@ -350,7 +352,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
                   <div className="space-y-3">
                     <input
                       type="text"
-                      placeholder="Titre du cours"
+                      placeholder="Course title"
                       value={newCourse.title}
                       onChange={(e) => {
                         const title = e.target.value;
@@ -391,7 +393,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
                         }}
                         className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 text-sm font-medium"
                       >
-                        Annuler
+                        Cancel
                       </button>
                     </div>
                   </div>
@@ -543,7 +545,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
             </div>
             <div className="md:col-span-2">
               <ImageUploadField
-                label="Image du quiz"
+                label="Quiz image"
                 value={formData.featuredImageUrl}
                 onChange={(url) => setFormData((prev) => ({ ...prev, featuredImageUrl: url }))}
                 placeholder="or paste a URL (https://...)"

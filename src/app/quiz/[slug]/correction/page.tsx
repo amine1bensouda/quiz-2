@@ -5,7 +5,7 @@ import QuizCorrection from '@/components/Quiz/QuizCorrection';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
 import { stripHtml } from '@/lib/utils';
 
-export const revalidate = 3600; // Revalider toutes les heures
+export const revalidate = 3600;
 
 interface PageProps {
   params: {
@@ -23,13 +23,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const title = stripHtml(quiz.title.rendered);
-  const description = `Correction du quiz: ${title}`;
+  const description = `Quiz answer key: ${title}`;
 
   return {
-    title: `Correction - ${title}`,
+    title: `Answer key — ${title}`,
     description,
     openGraph: {
-      title: `Correction - ${title}`,
+      title: `Answer key — ${title}`,
       description,
       type: 'article',
       url: `${SITE_URL}/quiz/${params.slug}/correction`,
@@ -49,7 +49,7 @@ export default async function QuizCorrectionPage({ params }: PageProps) {
       <div className="container mx-auto px-4 py-8 md:py-12">
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            Quiz Correction
+            Answer key
           </h1>
           <p className="text-lg text-gray-600">
             {stripHtml(quiz.title.rendered)}
