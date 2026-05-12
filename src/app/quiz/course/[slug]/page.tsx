@@ -27,6 +27,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   let course = null;
   try {
     course = await getCourseBySlug(slug);
+    if (!course && (await isAdminAuthenticated())) {
+      course = await getCourseBySlug(slug, { allowUnpublished: true });
+    }
   } catch (error) {
     console.error(`Course metadata error (${slug}):`, error);
     return { title: 'Course' };
@@ -36,6 +39,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: 'Course' };
   }
 
+  const isDraft = course.status === 'draft';
   const title = stripHtml(course.title);
   const description =
     excerptFromHtml(course.description || '', 160) ||
@@ -43,8 +47,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const canonical = `/quiz/course/${encodeURIComponent(course.slug)}`;
 
   return {
-    title,
+    title: isDraft ? `[Brouillon] ${title}` : title,
     description,
+    ...(isDraft ? { robots: { index: false, follow: false } } : {}),
     alternates: { canonical },
     openGraph: {
       title,
@@ -64,8 +69,12 @@ export default async function CoursePage({ params }: PageProps) {
   const { slug } = await Promise.resolve(params);
   let course = null;
   let hasDatabaseError = false;
+  const isAdmin = await isAdminAuthenticated();
   try {
     course = await getCourseBySlug(slug);
+    if (!course && isAdmin) {
+      course = await getCourseBySlug(slug, { allowUnpublished: true });
+    }
   } catch (error) {
     console.error(`Failed to load course (${slug}):`, error);
     hasDatabaseError = true;
@@ -103,18 +112,20 @@ export default async function CoursePage({ params }: PageProps) {
   const totalLessons = course.modules.reduce((sum, module) => sum + (module._count.lessons ?? 0), 0);
 
   const currentUser = await getCurrentUserFromSession();
-  const isAdmin = await isAdminAuthenticated();
   const hasAccess = await canUserAccessCourse(currentUser?.id ?? null, course.id, isAdmin);
+  const isDraftCourse = course.status === 'draft';
 
   return (
     <div className="relative bg-gradient-to-br from-slate-50 via-indigo-50/30 to-violet-50 min-h-screen">
-      <CourseSchema
-        slug={course.slug}
-        title={course.title}
-        description={course.description}
-        moduleCount={course.modules.length}
-        totalQuizzes={totalQuizzes}
-      />
+      {!isDraftCourse && (
+        <CourseSchema
+          slug={course.slug}
+          title={course.title}
+          description={course.description}
+          moduleCount={course.modules.length}
+          totalQuizzes={totalQuizzes}
+        />
+      )}
       <AnimatedShapes variant="hero" count={6} intensity="medium" />
       <BackgroundPattern variant="luxury" opacity={0.08} />
       <Navigation />
@@ -132,6 +143,16 @@ export default async function CoursePage({ params }: PageProps) {
           {/* Hero cours — design éditorial */}
           <header className="mb-8 sm:mb-10 md:mb-12 animate-fade-in">
             <div className="rounded-2xl sm:rounded-3xl bg-white/90 backdrop-blur-md border border-white/60 shadow-xl shadow-indigo-900/5 p-6 sm:p-8 md:p-10">
+              {isDraftCourse && isAdmin && (
+                <div
+                  className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+                  role="status"
+                >
+                  <strong className="font-semibold">Prévisualisation (brouillon)</strong>
+                  {' — '}
+                  Ce cours n’est pas publié. Seuls les administrateurs voient cette page.
+                </div>
+              )}
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

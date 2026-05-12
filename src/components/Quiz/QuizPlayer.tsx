@@ -130,51 +130,12 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
     if (dureeEstimee && dureeEstimee > 0) {
       // Convertir les minutes en secondes
       const quizDurationSeconds = dureeEstimee * 60;
-      
-      // Vérifier si on a un timer sauvegardé
-      if (typeof window !== 'undefined' && !shouldReset) {
-        const savedStartTime = localStorage.getItem(`quiz-start-time-${quiz.id}`);
-        const savedTimeRemaining = localStorage.getItem(`quiz-timer-${quiz.id}`);
-        
-        if (savedStartTime && savedTimeRemaining) {
-          try {
-            const startTimeSaved = parseInt(savedStartTime);
-            const timeRemainingSaved = parseInt(savedTimeRemaining);
-            const now = Date.now();
-            const elapsedSeconds = Math.floor((now - startTimeSaved) / 1000);
-            const remainingSeconds = timeRemainingSaved - elapsedSeconds;
-            
-            if (remainingSeconds > 0) {
-              // Continuer le timer depuis où il s'était arrêté
-              setQuizTimeRemaining(remainingSeconds);
-            } else {
-              // Le temps est écoulé, initialiser à 0
-              setQuizTimeRemaining(0);
-            }
-          } catch (error) {
-            if (process.env.NODE_ENV !== 'production') {
-              console.error('Error loading timer:', error);
-            }
-            setQuizTimeRemaining(quizDurationSeconds);
-            if (typeof window !== 'undefined') {
-              localStorage.setItem(`quiz-start-time-${quiz.id}`, Date.now().toString());
-            }
-          }
-        } else {
-          // Pas de timer sauvegardé, initialiser normalement
-          setQuizTimeRemaining(quizDurationSeconds);
-          // Sauvegarder l'heure de début
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(`quiz-start-time-${quiz.id}`, Date.now().toString());
-          }
-        }
-      } else {
-        // Reset ou première fois, initialiser normalement
-        setQuizTimeRemaining(quizDurationSeconds);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(`quiz-start-time-${quiz.id}`, Date.now().toString());
-        }
+      // Minuteur non persistant : chaque actualisation ou retour sur la page repart de la durée complète
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(`quiz-timer-${quiz.id}`);
+        localStorage.removeItem(`quiz-start-time-${quiz.id}`);
       }
+      setQuizTimeRemaining(quizDurationSeconds);
     } else {
       setQuizTimeRemaining(null);
     }
@@ -419,10 +380,6 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
           return 0;
         }
         const newTime = prev - 1;
-        // Sauvegarder le temps restant dans localStorage
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(`quiz-timer-${quiz.id}`, newTime.toString());
-        }
         return newTime;
       });
     }, 1000);

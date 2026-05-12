@@ -33,21 +33,29 @@ export async function getPublishedCoursesSummary() {
   }
 }
 
+export type GetCourseBySlugOptions = {
+  /**
+   * Si true, inclut les cours en brouillon (réservé au serveur, après vérif. admin).
+   */
+  allowUnpublished?: boolean;
+};
+
 /**
  * Récupère un cours par son slug avec ses modules et quiz
  */
-export async function getCourseBySlug(slug: string) {
+export async function getCourseBySlug(slug: string, options?: GetCourseBySlugOptions) {
   try {
     const course = await prisma.course.findFirst({
       where: {
         slug,
-        status: 'published',
+        ...(options?.allowUnpublished ? {} : { status: 'published' as const }),
       },
       select: {
         id: true,
         title: true,
         slug: true,
         description: true,
+        status: true,
         createdAt: true,
         updatedAt: true,
         modules: {

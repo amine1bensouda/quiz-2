@@ -137,6 +137,16 @@ export default async function AdminCoursesPage({
                   </code>
                 </div>
                 <div className="flex items-center gap-2">
+                  {course.status !== 'published' && (
+                    <Link
+                      href={`/quiz/course/${encodeURIComponent(course.slug)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 rounded-lg border border-amber-400 bg-amber-50 text-amber-900 hover:bg-amber-100 transition-colors text-sm font-medium"
+                    >
+                      Prévisualiser
+                    </Link>
+                  )}
                   <PublishCourseButton
                     courseId={course.id}
                     courseTitle={course.title}
