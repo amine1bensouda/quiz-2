@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
 import { prisma } from '@/lib/db';
+import { getUserActiveSubscription } from '@/lib/subscription-access';
 import { addResponseObservability } from '@/lib/traffic-guard';
 
 export const runtime = 'nodejs';
@@ -9,8 +10,9 @@ export const dynamic = 'force-dynamic';
 /**
  * GET /api/users/me/subscription
  *
- * Renvoie l'abonnement actif (ou le plus récent) de l'utilisateur courant
- * avec le cours associé (pour le plan SINGLE_COURSE).
+ * Renvoie l'abonnement qui donne réellement accès au contenu (même règles que
+ * getUserActiveSubscription), avec le cours pour SINGLE_COURSE — pas une ligne
+ * "incomplete" après abandon du Checkout.
  */
 export async function GET() {
   const startTime = Date.now();
@@ -24,9 +26,17 @@ export async function GET() {
       );
     }
 
-    const sub = await prisma.subscription.findFirst({
-      where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
+    const active = await getUserActiveSubscription(user.id);
+    if (!active) {
+      return addResponseObservability(
+        NextResponse.json({ subscription: null }),
+        startTime,
+        '/api/users/me/subscription'
+      );
+    }
+
+    const sub = await prisma.subscription.findUnique({
+      where: { id: active.id },
       include: {
         course: {
           select: { id: true, title: true, slug: true },

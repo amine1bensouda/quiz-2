@@ -109,13 +109,12 @@ async function syncStripeSubscriptionForUser(
         limit: 10,
       });
 
+      // Ne pas utiliser subscriptions.data[0] ni un simple match userId : on
+      // pourrait lier un ancien abonnement Stripe à une nouvelle ligne incomplete.
       stripeSub =
         subscriptions.data.find(
           (s) => s.metadata?.subscriptionId === latestStripeSub.id
-        ) ??
-        subscriptions.data.find((s) => s.metadata?.userId === userId) ??
-        subscriptions.data[0] ??
-        null;
+        ) ?? null;
     }
 
     if (!stripeSub) return null;

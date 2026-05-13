@@ -20,6 +20,17 @@ export default async function SubscribePage({ searchParams }: SubscribePageProps
   const params = (await searchParams) ?? {};
   const user = await getCurrentUserFromSession();
 
+  if (user && params.canceled) {
+    await prisma.subscription.deleteMany({
+      where: {
+        userId: user.id,
+        provider: 'stripe',
+        status: 'incomplete',
+        providerSubscriptionId: null,
+      },
+    });
+  }
+
   if (user) {
     const active = await getUserActiveSubscription(user.id);
     if (active) {
