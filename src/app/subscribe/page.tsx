@@ -34,10 +34,10 @@ export default async function SubscribePage({ searchParams }: SubscribePageProps
   });
 
   return (
-    <main className="min-h-screen bg-gray-50 py-10">
+    <main className="min-h-screen bg-slate-50 py-10 transition-colors dark:bg-[#080810]">
       {params.canceled && (
         <div className="max-w-5xl mx-auto px-4 mb-6">
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/35 dark:bg-amber-950/35 dark:text-amber-100">
             Payment canceled. No charge was made. You can try again whenever
             you want.
           </div>
@@ -45,7 +45,7 @@ export default async function SubscribePage({ searchParams }: SubscribePageProps
       )}
       {params.error && (
         <div className="max-w-5xl mx-auto px-4 mb-6">
-          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/35 dark:bg-red-950/40 dark:text-red-200">
             An error occurred while processing the payment. Please try again.
           </div>
         </div>

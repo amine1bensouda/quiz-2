@@ -1,5 +1,6 @@
 import { prisma } from './db';
 import { isActiveStatus, type PlanId } from './plans';
+import { getStripe } from './stripe';
 
 /**
  * Helpers centralisant la logique d'accès basée sur l'abonnement.
@@ -23,6 +24,137 @@ export interface ActiveSubscription {
   trialEndsAt: Date | null;
   currentPeriodEnd: Date | null;
   cancelAtPeriodEnd: boolean;
+}
+
+function toDate(ts: number | null | undefined): Date | null {
+  if (!ts || Number.isNaN(ts)) return null;
+  return new Date(ts * 1000);
+}
+
+function normalizeStripeStatus(stripeStatus: string): string {
+  switch (stripeStatus) {
+    case 'trialing':
+    case 'active':
+    case 'past_due':
+    case 'canceled':
+      return stripeStatus;
+    case 'incomplete':
+      return 'incomplete';
+    case 'incomplete_expired':
+    case 'unpaid':
+    case 'paused':
+      return 'expired';
+    default:
+      return String(stripeStatus);
+  }
+}
+
+function hasValidAccessWindow(
+  status: string,
+  trialEndsAt: Date | null,
+  currentPeriodEnd: Date | null
+): boolean {
+  const now = new Date();
+  if (status === 'trialing') {
+    return !!trialEndsAt && trialEndsAt.getTime() > now.getTime();
+  }
+  if (status === 'active' || status === 'past_due') {
+    return !!currentPeriodEnd && currentPeriodEnd.getTime() > now.getTime();
+  }
+  return false;
+}
+
+async function syncStripeSubscriptionForUser(
+  userId: string
+): Promise<ActiveSubscription | null> {
+  const latestStripeSub = await prisma.subscription.findFirst({
+    where: { userId, provider: 'stripe' },
+    orderBy: { createdAt: 'desc' },
+  });
+  if (!latestStripeSub) return null;
+
+  try {
+    const stripe = getStripe();
+    let stripeSub: any = null;
+    let customerId: string | null = latestStripeSub.providerCustomerId ?? null;
+
+    if (latestStripeSub.providerSubscriptionId) {
+      stripeSub = await stripe.subscriptions.retrieve(
+        latestStripeSub.providerSubscriptionId
+      );
+      if (!customerId) {
+        customerId =
+          typeof stripeSub.customer === 'string'
+            ? stripeSub.customer
+            : stripeSub.customer?.id ?? null;
+      }
+    } else {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true },
+      });
+      if (!user?.email) return null;
+
+      const customers = await stripe.customers.list({
+        email: user.email,
+        limit: 1,
+      });
+      const customer = customers.data[0];
+      if (!customer) return null;
+      customerId = customer.id;
+
+      const subscriptions = await stripe.subscriptions.list({
+        customer: customer.id,
+        status: 'all',
+        limit: 10,
+      });
+
+      stripeSub =
+        subscriptions.data.find(
+          (s) => s.metadata?.subscriptionId === latestStripeSub.id
+        ) ??
+        subscriptions.data.find((s) => s.metadata?.userId === userId) ??
+        subscriptions.data[0] ??
+        null;
+    }
+
+    if (!stripeSub) return null;
+
+    const normalizedStatus = normalizeStripeStatus(stripeSub.status);
+    const updated = await prisma.subscription.update({
+      where: { id: latestStripeSub.id },
+      data: {
+        providerSubscriptionId: stripeSub.id,
+        providerCustomerId: customerId,
+        status: normalizedStatus,
+        trialEndsAt: toDate((stripeSub as any).trial_end ?? null),
+        currentPeriodStart: toDate((stripeSub as any).current_period_start ?? null),
+        currentPeriodEnd: toDate((stripeSub as any).current_period_end ?? null),
+        cancelAtPeriodEnd: !!(stripeSub as any).cancel_at_period_end,
+        canceledAt: toDate((stripeSub as any).canceled_at ?? null),
+      },
+      select: {
+        id: true,
+        userId: true,
+        plan: true,
+        courseId: true,
+        provider: true,
+        providerSubscriptionId: true,
+        status: true,
+        trialEndsAt: true,
+        currentPeriodEnd: true,
+        cancelAtPeriodEnd: true,
+      },
+    });
+
+    if (isActiveStatus(updated.status) && hasValidAccessWindow(updated.status, updated.trialEndsAt, updated.currentPeriodEnd)) {
+      return updated as ActiveSubscription;
+    }
+  } catch (error) {
+    console.error('Stripe subscription sync failed:', error);
+  }
+
+  return null;
 }
 
 export async function getUserActiveSubscription(
@@ -49,25 +181,23 @@ export async function getUserActiveSubscription(
         cancelAtPeriodEnd: true,
       },
     });
-    if (!sub) return null;
-    if (!isActiveStatus(sub.status)) return null;
+    if (!sub) {
+      const synced = await syncStripeSubscriptionForUser(userId);
+      return synced;
+    }
+    if (!isActiveStatus(sub.status)) {
+      const synced = await syncStripeSubscriptionForUser(userId);
+      return synced;
+    }
 
-    const now = new Date();
-    if (sub.status === 'trialing') {
-      if (sub.trialEndsAt && sub.trialEndsAt.getTime() > now.getTime()) {
-        return sub as ActiveSubscription;
-      }
-      // Essai expiré sans bascule webhook : ne pas accorder l'accès.
-      return null;
+    if (hasValidAccessWindow(sub.status, sub.trialEndsAt, sub.currentPeriodEnd)) {
+      return sub as ActiveSubscription;
     }
-    if (sub.status === 'active' || sub.status === 'past_due') {
-      if (sub.currentPeriodEnd && sub.currentPeriodEnd.getTime() > now.getTime()) {
-        return sub as ActiveSubscription;
-      }
-      // Période terminée sans renouvellement : pas d'accès.
-      return null;
-    }
-    return sub as ActiveSubscription;
+
+    // Fallback: tenter une resynchronisation live Stripe quand la DB est en retard.
+    const synced = await syncStripeSubscriptionForUser(userId);
+    if (synced) return synced;
+    return null;
   } catch (error) {
     console.error('Error loading active subscription:', error);
     return null;

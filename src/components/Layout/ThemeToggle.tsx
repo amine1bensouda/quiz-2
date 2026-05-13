@@ -65,9 +65,9 @@ export default function ThemeToggle({ className = '' }: ThemeToggleProps) {
     <button
       type="button"
       onClick={toggleTheme}
-      aria-label={isDark ? 'Activer le mode clair' : 'Activer le mode sombre'}
-      title={isDark ? 'Mode clair' : 'Mode sombre'}
-      className={`inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 p-2.5 text-[rgba(238,234,244,0.85)] hover:bg-white/10 transition-colors ${className}`.trim()}
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      title={isDark ? 'Light mode' : 'Dark mode'}
+      className={`inline-flex items-center justify-center rounded-full border border-slate-300/90 bg-slate-100 p-2.5 text-slate-700 transition-colors hover:bg-slate-200 dark:border-white/10 dark:bg-white/5 dark:text-[rgba(238,234,244,0.85)] dark:hover:bg-white/10 ${className}`.trim()}
     >
       <span className="text-sm" aria-hidden="true">
         {isDark ? '☀️' : '🌙'}

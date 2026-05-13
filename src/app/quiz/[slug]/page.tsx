@@ -143,7 +143,7 @@ export default async function QuizPage({ params }: PageProps) {
       <QuizSchema quiz={quiz} />
       <BreadcrumbSchema items={breadcrumbItems} />
 
-      <div className="bg-gradient-to-b from-white via-gray-50 to-white">
+      <div className="bg-gradient-to-b from-slate-50 via-indigo-50/40 to-violet-50/50 dark:from-[#080810] dark:via-[#0c0c18] dark:to-[#12122a] transition-colors">
         <div className="container mx-auto px-4 py-8 md:py-12">
           {/* Quiz hero */}
           <div className="mb-12">
@@ -168,16 +168,16 @@ export default async function QuizPage({ params }: PageProps) {
 
             {!quiz.featured_media_url && (
               <div className="mb-8">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-[#f5f2ff] mb-4 font-['Instrument_Serif',serif]">
                   {title}
                 </h1>
               </div>
             )}
 
-            <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-200">
+            <div className="rounded-2xl border border-slate-200/80 bg-white/95 p-6 shadow-lg shadow-slate-900/5 backdrop-blur-sm md:p-8 dark:border-white/10 dark:bg-[#111121]/90 dark:shadow-black/40">
               {description && (
                 <div 
-                  className="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed prose prose-lg max-w-none"
+                  className="text-lg md:text-xl text-slate-700 dark:text-[#d4d0dc] mb-8 leading-relaxed prose prose-lg max-w-none dark:prose-invert"
                   dangerouslySetInnerHTML={{ __html: description }}
                 />
               )}
@@ -186,57 +186,57 @@ export default async function QuizPage({ params }: PageProps) {
               {metadataCount > 0 && (
               <div className={`grid ${gridColsClass} gap-4`}>
                 {duration && duration > 0 && (
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                    <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/90 p-4 dark:border-white/10 dark:bg-[#16162a]/80">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-slate-900 dark:bg-indigo-600">
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 font-medium">Duration</div>
-                      <div className="text-sm font-bold text-gray-900">{formatDuration(duration)}</div>
+                      <div className="text-xs font-medium text-slate-500 dark:text-[#9d98ab]">Duration</div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-[#eeeaf4]">{formatDuration(duration)}</div>
                     </div>
                   </div>
                 )}
 
                 {questionCount > 0 && (
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                    <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/90 p-4 dark:border-white/10 dark:bg-[#16162a]/80">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-slate-900 dark:bg-indigo-600">
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 font-medium">Questions</div>
-                      <div className="text-sm font-bold text-gray-900">{questionCount}</div>
+                      <div className="text-xs font-medium text-slate-500 dark:text-[#9d98ab]">Questions</div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-[#eeeaf4]">{questionCount}</div>
                     </div>
                   </div>
                 )}
 
                 {showDifficulty && (
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                    <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/90 p-4 dark:border-white/10 dark:bg-[#16162a]/80">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-slate-900 dark:bg-indigo-600">
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 font-medium">Level</div>
-                      <div className="text-sm font-bold text-gray-900">{difficultyToEnglish(difficulty)}</div>
+                      <div className="text-xs font-medium text-slate-500 dark:text-[#9d98ab]">Level</div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-[#eeeaf4]">{difficultyToEnglish(difficulty)}</div>
                     </div>
                   </div>
                 )}
 
                 {quiz.acf?.categorie && (
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                    <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/90 p-4 dark:border-white/10 dark:bg-[#16162a]/80">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-slate-900 dark:bg-indigo-600">
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                       </svg>
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 font-medium">Category</div>
-                      <div className="text-sm font-bold text-gray-900">{categoryToEnglish(quiz.acf.categorie)}</div>
+                      <div className="text-xs font-medium text-slate-500 dark:text-[#9d98ab]">Category</div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-[#eeeaf4]">{categoryToEnglish(quiz.acf.categorie)}</div>
                     </div>
                   </div>
                 )}

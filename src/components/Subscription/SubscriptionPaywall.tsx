@@ -56,7 +56,6 @@ export default function SubscriptionPaywall({
       `popup=yes,width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes`
     );
 
-    // Si le navigateur bloque la popup, fallback vers redirection classique.
     if (!popup) {
       window.location.href = url;
       return;
@@ -139,11 +138,16 @@ export default function SubscriptionPaywall({
   return (
     <section className="max-w-5xl mx-auto my-12 px-4">
       <header className="text-center mb-10">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">{title}</h1>
-        <p className="text-lg text-gray-600">{subtitle}</p>
-        <p className="text-sm text-gray-500 mt-3">
+        <p className="mb-3 inline-flex rounded-full border border-[#f5c14a]/35 bg-[#f5c14a]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-amber-800 dark:border-[#f5c14a]/40 dark:bg-[#f5c14a]/10 dark:text-[#f5c14a]">
+          Crack The Curve
+        </p>
+        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3 dark:text-[#f5f2ff] font-['Instrument_Serif',serif]">
+          {title}
+        </h1>
+        <p className="text-lg text-slate-600 dark:text-[#d4d0dc]">{subtitle}</p>
+        <p className="text-sm text-slate-500 mt-3 dark:text-[#9d98ab]">
           48h free trial — first charge on{' '}
-          <strong className="text-gray-800">
+          <strong className="text-slate-800 dark:text-[#f5c14a]">
             {firstChargeDate.toLocaleDateString('en-US', {
               day: 'numeric',
               month: 'long',
@@ -165,27 +169,27 @@ export default function SubscriptionPaywall({
               onClick={() => setSelectedPlan(key)}
               className={`text-left rounded-2xl border-2 p-6 transition shadow-sm hover:shadow-md ${
                 isSelected
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 bg-white hover:border-gray-300'
+                  ? 'border-indigo-500 bg-indigo-50/95 shadow-md shadow-indigo-900/10 dark:border-[#f5c14a]/50 dark:bg-[#16162a]/95 dark:shadow-[0_8px_32px_rgba(245,193,74,0.12)]'
+                  : 'border-slate-200 bg-white hover:border-slate-300 dark:border-white/10 dark:bg-[#111121]/90 dark:hover:border-white/20'
               }`}
             >
               <div className="flex items-baseline justify-between mb-2">
-                <h2 className="text-xl font-semibold text-gray-900">{plan.label}</h2>
+                <h2 className="text-xl font-semibold text-slate-900 dark:text-[#f5f2ff]">{plan.label}</h2>
                 {isSelected && (
-                  <span className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-indigo-700 dark:text-[#f5c14a]">
                     Selected
                   </span>
                 )}
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-3">
+              <div className="text-3xl font-bold text-slate-900 mb-3 dark:text-[#eeeaf4]">
                 ${(plan.priceCents / 100).toFixed(0)}
-                <span className="text-base font-medium text-gray-500">/month</span>
+                <span className="text-base font-medium text-slate-500 dark:text-[#9d98ab]">/month</span>
               </div>
-              <p className="text-sm text-gray-600 mb-4">{plan.description}</p>
-              <ul className="space-y-2 text-sm text-gray-700">
+              <p className="text-sm text-slate-600 mb-4 dark:text-[#c8c3d2]">{plan.description}</p>
+              <ul className="space-y-2 text-sm text-slate-700 dark:text-[#d4d0dc]">
                 {plan.highlights.map((h) => (
                   <li key={h} className="flex items-start gap-2">
-                    <span className="text-green-600 font-semibold">✓</span>
+                    <span className="text-emerald-600 font-semibold dark:text-emerald-400">✓</span>
                     <span>{h}</span>
                   </li>
                 ))}
@@ -196,21 +200,21 @@ export default function SubscriptionPaywall({
       </div>
 
       {PLANS[selectedPlan].requiresCourseId && (
-        <div className="mb-8 bg-white rounded-xl border border-gray-200 p-5">
+        <div className="mb-8 rounded-xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-[#111121]/90">
           <label
             htmlFor="course-select"
-            className="block text-sm font-semibold text-gray-700 mb-2"
+            className="block text-sm font-semibold text-slate-700 mb-2 dark:text-[#d4d0dc]"
           >
             Which course do you want to unlock?
           </label>
           {courses.length === 0 ? (
-            <p className="text-sm text-gray-500">No published courses yet.</p>
+            <p className="text-sm text-slate-500 dark:text-[#9d98ab]">No published courses yet.</p>
           ) : (
             <select
               id="course-select"
               value={selectedCourseId}
               onChange={(e) => setSelectedCourseId(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-white/15 dark:bg-[#0c0c18] dark:text-[#eeeaf4]"
             >
               {courses.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -223,24 +227,24 @@ export default function SubscriptionPaywall({
       )}
 
       {error && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/35 dark:bg-red-950/40 dark:text-red-200">
           {error}
         </div>
       )}
 
       {!isAuthenticated ? (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 mb-6 text-sm text-amber-800">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 mb-6 text-sm text-amber-900 dark:border-amber-500/35 dark:bg-amber-950/35 dark:text-amber-100">
           You need to be signed in to start the trial.{' '}
           <Link
             href={`/login${returnUrl ? `?redirect=${encodeURIComponent(returnUrl)}` : ''}`}
-            className="font-semibold underline"
+            className="font-semibold underline text-amber-950 dark:text-[#f5c14a]"
           >
             Sign in
           </Link>{' '}
           or{' '}
           <Link
             href={`/register${returnUrl ? `?redirect=${encodeURIComponent(returnUrl)}` : ''}`}
-            className="font-semibold underline"
+            className="font-semibold underline text-amber-950 dark:text-[#f5c14a]"
           >
             create an account
           </Link>
@@ -253,7 +257,7 @@ export default function SubscriptionPaywall({
           type="button"
           disabled={loadingProvider !== null}
           onClick={() => startCheckout('stripe')}
-          className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-white font-semibold shadow-sm hover:bg-blue-700 disabled:opacity-60"
+          className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-6 py-3 text-white font-semibold shadow-sm hover:bg-indigo-700 disabled:opacity-60 dark:shadow-[0_4px_20px_rgba(79,70,229,0.35)]"
         >
           {loadingProvider === 'stripe'
             ? 'Opening Stripe popup…'
@@ -263,7 +267,7 @@ export default function SubscriptionPaywall({
           type="button"
           disabled={loadingProvider !== null}
           onClick={() => startCheckout('paypal')}
-          className="inline-flex items-center justify-center rounded-xl bg-yellow-400 px-6 py-3 text-gray-900 font-semibold shadow-sm hover:bg-yellow-300 disabled:opacity-60"
+          className="inline-flex items-center justify-center rounded-xl bg-[#f5c14a] px-6 py-3 text-[#0c0a00] font-semibold shadow-sm hover:bg-[#f9d06a] disabled:opacity-60"
         >
           {loadingProvider === 'paypal'
             ? 'Opening PayPal popup…'
@@ -271,7 +275,7 @@ export default function SubscriptionPaywall({
         </button>
       </div>
 
-      <p className="mt-8 text-center text-xs text-gray-500">
+      <p className="mt-8 text-center text-xs text-slate-500 dark:text-[#9d98ab]">
         Cancel anytime from your dashboard. No commitment after the trial period.
       </p>
     </section>

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getStripe } from '@/lib/stripe';
 import { prisma } from '@/lib/db';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
-import { getPlan, TRIAL_SECONDS, type PlanId } from '@/lib/plans';
+import { getPlan, TRIAL_HOURS, type PlanId } from '@/lib/plans';
 import { getUserActiveSubscription } from '@/lib/subscription-access';
 import { addResponseObservability } from '@/lib/traffic-guard';
 
@@ -126,14 +126,15 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_SITE_URL ||
       'http://localhost:3000';
 
-    const trialEndTs = Math.floor(Date.now() / 1000) + TRIAL_SECONDS;
+    const trialPeriodDays = Math.max(1, Math.ceil(TRIAL_HOURS / 24));
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
+      locale: 'en',
       customer_email: user.email,
       line_items: [{ price: plan.stripePriceId, quantity: 1 }],
       subscription_data: {
-        trial_end: trialEndTs,
+        trial_period_days: trialPeriodDays,
         metadata: {
           subscriptionId: subscription.id,
           userId: user.id,

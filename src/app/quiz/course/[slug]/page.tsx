@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const canonical = `/quiz/course/${encodeURIComponent(course.slug)}`;
 
   return {
-    title: isDraft ? `[Brouillon] ${title}` : title,
+    title: isDraft ? `[Draft] ${title}` : title,
     description,
     ...(isDraft ? { robots: { index: false, follow: false } } : {}),
     alternates: { canonical },
@@ -129,10 +129,10 @@ export default async function CoursePage({ params }: PageProps) {
       <AnimatedShapes variant="hero" count={6} intensity="medium" />
       <BackgroundPattern variant="luxury" opacity={0.08} />
       <Navigation />
-      <div className="flex gap-4 lg:gap-6 xl:gap-8 container mx-auto px-4 sm:px-5 md:px-6 py-6 sm:py-8 md:py-10 lg:py-12 relative z-10 max-w-[100vw] overflow-x-hidden">
-        <main className="flex-1 min-w-0 max-w-4xl mx-auto">
+      <div className="relative z-10 mx-auto w-full max-w-4xl px-4 sm:px-5 md:px-6 py-6 sm:py-8 md:py-10 lg:py-12 overflow-x-hidden">
+        <main className="w-full min-w-0">
           {/* Breadcrumb */}
-          <nav className="mb-4 sm:mb-6 text-xs sm:text-sm text-gray-500 overflow-x-auto whitespace-nowrap scrollbar-hide">
+          <nav className="mb-4 sm:mb-6 pt-0.5 text-xs sm:text-sm text-gray-500 overflow-x-auto whitespace-nowrap scrollbar-hide">
             <Link href="/" className="hover:text-indigo-600 transition-colors">Home</Link>
             <span className="mx-1.5">/</span>
             <Link href="/quiz" className="hover:text-indigo-600 transition-colors">Courses</Link>
@@ -148,9 +148,9 @@ export default async function CoursePage({ params }: PageProps) {
                   className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
                   role="status"
                 >
-                  <strong className="font-semibold">Prévisualisation (brouillon)</strong>
+                  <strong className="font-semibold">Preview (draft)</strong>
                   {' — '}
-                  Ce cours n’est pas publié. Seuls les administrateurs voient cette page.
+                  This course is not published. Only administrators can view this page.
                 </div>
               )}
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4">
@@ -215,7 +215,7 @@ export default async function CoursePage({ params }: PageProps) {
 
           {/* Liste des modules */}
           {course.modules.length > 0 ? (
-            <section className="space-y-4 sm:space-y-5 animate-fade-in" aria-label="Modules du cours">
+            <section className="space-y-4 sm:space-y-5 animate-fade-in" aria-label="Course modules">
               {course.modules.map((module) => {
                 const hasQuizzes = (module._count.quizzes ?? 0) > 0;
                 const hasLessons = (module._count.lessons ?? 0) > 0;
@@ -242,7 +242,7 @@ export default async function CoursePage({ params }: PageProps) {
                             </svg>
                             Lessons
                           </h3>
-                          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          <ul className="grid gap-3 grid-cols-1 sm:[grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))]">
                             {module.lessons.map((lesson) => (
                               <li key={lesson.id}>
                                 <Link
@@ -271,7 +271,7 @@ export default async function CoursePage({ params }: PageProps) {
                               Quizzes
                             </h3>
                           )}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:[grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))]">
                             {module.quizzes.map((quiz, index) => (
                               <QuizCard key={quiz.prismaId ?? quiz.id} quiz={quiz} index={index} />
                             ))}
