@@ -48,13 +48,13 @@ export default function QuizSidebar({
 
   return (
     <aside className={`
-      hidden lg:block sticky top-0 self-start w-80 bg-white shadow-2xl z-40 overflow-y-auto border-r border-gray-200 h-[calc(100vh-16rem)]
+      hidden lg:block sticky top-0 self-start w-80 bg-white shadow-2xl z-40 overflow-y-auto border-r border-gray-200 h-[calc(100vh-16rem)] dark:bg-[#111121]/95 dark:border-white/10 dark:shadow-black/40
       transform transition-transform duration-300 ease-in-out
       ${isOpen ? 'translate-x-0' : '-translate-x-full'}
     `}>
-      <div className="px-6 pb-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+      <div className="px-6 pb-6 border-b border-gray-200 sticky top-0 bg-white z-10 dark:bg-[#111121]/95 dark:border-white/10">
         <div className="mb-4">
-          <h2 className="text-xl font-bold text-gray-900">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-[#f5f2ff]">
             Quiz Questions
           </h2>
         </div>
@@ -63,13 +63,13 @@ export default function QuizSidebar({
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              <span className="text-gray-600">
+              <span className="text-gray-600 dark:text-[#c8c3d2]">
                 {Object.keys(selectedAnswers).length} answered
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-gray-300"></div>
-              <span className="text-gray-600">
+              <div className="w-3 h-3 rounded-full bg-gray-300 dark:bg-white/25"></div>
+              <span className="text-gray-600 dark:text-[#c8c3d2]">
                 {questions.length - Object.keys(selectedAnswers).length} unanswered
               </span>
             </div>
@@ -101,12 +101,12 @@ export default function QuizSidebar({
                   w-full rounded-xl border-2 transition-all duration-200
                   ${
                     status === 'current'
-                      ? 'border-blue-500 bg-blue-50 shadow-md'
+                      ? 'border-blue-500 bg-blue-50 shadow-md dark:border-indigo-400 dark:bg-indigo-500/15'
                       : status === 'answered'
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 bg-white'
+                      ? 'border-green-500 bg-green-50 dark:border-emerald-400/70 dark:bg-emerald-500/15'
+                      : 'border-gray-200 bg-white dark:border-white/10 dark:bg-[#16162a]/80'
                   }
-                  ${isFlagged ? 'ring-2 ring-yellow-400 ring-offset-1' : ''}
+                  ${isFlagged ? 'ring-2 ring-yellow-400 ring-offset-1 dark:ring-yellow-400/80 dark:ring-offset-[#111121]' : ''}
                 `}
               >
                 <button
@@ -117,10 +117,10 @@ export default function QuizSidebar({
                     w-full text-left p-4 rounded-xl transition-all duration-200
                     ${
                       status === 'current'
-                        ? 'hover:bg-blue-100'
+                        ? 'hover:bg-blue-100 dark:hover:bg-indigo-500/20'
                         : status === 'answered'
-                        ? 'hover:bg-green-100'
-                        : 'hover:bg-gray-50'
+                        ? 'hover:bg-green-100 dark:hover:bg-emerald-500/20'
+                        : 'hover:bg-gray-50 dark:hover:bg-white/5'
                     }
                     transform hover:scale-[1.01] active:scale-[0.99]
                   `}
@@ -132,10 +132,10 @@ export default function QuizSidebar({
                         flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm
                         ${
                           status === 'current'
-                            ? 'bg-blue-600 text-white'
+                            ? 'bg-blue-600 text-white dark:bg-indigo-500'
                             : status === 'answered'
-                            ? 'bg-green-600 text-white'
-                            : 'bg-gray-200 text-gray-600'
+                            ? 'bg-green-600 text-white dark:bg-emerald-500'
+                            : 'bg-gray-200 text-gray-600 dark:bg-white/10 dark:text-[#c8c3d2]'
                         }
                       `}
                     >
@@ -149,10 +149,10 @@ export default function QuizSidebar({
                           text-sm font-medium leading-relaxed
                           ${
                             status === 'current'
-                              ? 'text-blue-900'
+                              ? 'text-blue-900 dark:text-indigo-200'
                               : status === 'answered'
-                              ? 'text-green-900'
-                              : 'text-gray-700'
+                              ? 'text-green-900 dark:text-emerald-200'
+                              : 'text-gray-700 dark:text-[#d4d0dc]'
                           }
                         `}
                         style={{
@@ -169,12 +169,12 @@ export default function QuizSidebar({
                     {/* Indicateur de statut */}
                     <div className="flex-shrink-0 flex items-center gap-2">
                       {status === 'answered' && (
-                        <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-5 h-5 text-green-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       )}
                       {status === 'current' && (
-                        <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></div>
+                        <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse dark:bg-indigo-400"></div>
                       )}
                     </div>
                   </div>
@@ -189,8 +189,8 @@ export default function QuizSidebar({
                   className={`
                     w-full px-4 pb-3 flex items-center justify-center transition-colors
                     ${isFlagged 
-                      ? 'text-yellow-700 hover:text-yellow-800' 
-                      : 'text-gray-500 hover:text-yellow-600'
+                      ? 'text-yellow-700 hover:text-yellow-800 dark:text-yellow-300 dark:hover:text-yellow-200' 
+                      : 'text-gray-500 hover:text-yellow-600 dark:text-[#9d98ab] dark:hover:text-yellow-300'
                     }
                   `}
                   title={isFlagged ? 'Remove flag' : 'Flag this question'}
@@ -210,8 +210,8 @@ export default function QuizSidebar({
         </div>
 
         {/* Note en bas */}
-        <div className="p-4 border-t border-gray-200 bg-gray-50">
-          <p className="text-xs text-gray-600 text-center">
+        <div className="p-4 border-t border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-[#0f0f1f]">
+          <p className="text-xs text-gray-600 text-center dark:text-[#9d98ab]">
             💡 Click on a question to access it directly
           </p>
         </div>

@@ -1,6 +1,8 @@
 // Site constants
 
 export const SITE_NAME = 'Crack The Curve';
+/** Marque affichée en majuscules (ex. Stripe Checkout, en-têtes). */
+export const SITE_BRAND_UPPER = 'CRACK THECURVE';
 export const SITE_DESCRIPTION = 'Test your knowledge with our interactive mathematics quizzes';
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://crackthecurve.com';
 

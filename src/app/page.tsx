@@ -5,6 +5,7 @@ import { getStats } from '@/lib/wordpress';
 import { getAllPublishedCourses } from '@/lib/course-service';
 import { getFeaturedQuiz } from '@/lib/quiz-service';
 import { formatNumber } from '@/lib/utils';
+import { getCurrentUserFromSession } from '@/lib/auth-server';
 
 export const metadata: Metadata = {
   title: 'Home',
@@ -38,11 +39,14 @@ export default async function HomePage() {
     ]);
   };
 
-  const [stats, publishedCourses, featuredQuiz] = await Promise.all([
+  const [stats, publishedCourses, featuredQuiz, currentUser] = await Promise.all([
     withTimeout(getStats(), defaultStats),
     withTimeout(getAllPublishedCourses(), []),
     withTimeout(getFeaturedQuiz(), []),
+    getCurrentUserFromSession(),
   ]);
+
+  const trialOrSignupHref = currentUser ? '/dashboard' : '/register';
 
   const questionsFromFeatured = featuredQuiz.reduce(
     (sum, quiz) => sum + (quiz.acf?.nombre_questions ?? 0),
@@ -70,7 +74,7 @@ export default async function HomePage() {
           <h1 className="hero-h1">Every student deserves to <em>crack</em> their exam.</h1>
           <p className="hero-sub">$7/month for this course alone, or <strong>$25/month</strong> for all courses. 48h free trial — no charge before billing.</p>
           <div className="actions">
-            <Link href="/register" className="btn-primary">Start free trial</Link>
+            <Link href={trialOrSignupHref} className="btn-primary">Start free trial</Link>
             <Link href="/quiz" className="btn-secondary">Browse QBanks</Link>
           </div>
 
@@ -148,7 +152,7 @@ export default async function HomePage() {
           <div>
             <p className="muted">$7/month for this course alone</p>
             <div className="price" style={{ color: 'var(--amber)', fontSize: '4rem' }}>${allAccessPrice}/mo</div>
-            <Link href="/register" className="btn-primary">Get All Access</Link>
+            <Link href={trialOrSignupHref} className="btn-primary">Get All Access</Link>
           </div>
         </section>
 

@@ -61,6 +61,7 @@ export default function DashboardPage() {
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
   const [managing, setManaging] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [stripePortalBanner, setStripePortalBanner] = useState(false);
 
   useEffect(() => {
     async function loadUserAndStats() {
@@ -88,6 +89,26 @@ export default function DashboardPage() {
     }
     loadUserAndStats();
   }, [router]);
+
+  /** After Stripe Billing Portal, user returns with ?from=stripe-portal — refresh subscription row + strip query (avoids blank / stale UI). */
+  useEffect(() => {
+    if (loading || typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('from') !== 'stripe-portal') return;
+
+    setStripePortalBanner(true);
+    fetch('/api/users/me/subscription', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { subscription?: SubscriptionInfo | null } | null) => {
+        if (data && 'subscription' in data) {
+          setSubscription(data.subscription ?? null);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        window.history.replaceState({}, '', window.location.pathname);
+      });
+  }, [loading]);
 
   const handleLogout = async () => {
     await logout();
@@ -180,6 +201,23 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 transition-colors dark:from-[#080810] dark:via-[#0c0c18] dark:to-[#12122a]">
       <div className="container mx-auto px-4 py-8">
+        {stripePortalBanner && (
+          <div
+            className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950 dark:border-emerald-500/35 dark:bg-emerald-950/35 dark:text-emerald-100"
+            role="status"
+          >
+            <span>
+              You returned from Stripe billing. Subscription details below were refreshed.
+            </span>
+            <button
+              type="button"
+              onClick={() => setStripePortalBanner(false)}
+              className="shrink-0 font-semibold underline underline-offset-2 hover:opacity-90"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
         {/* Header */}
         <div className="mb-8">
           <div className="mb-6 flex items-center justify-between">

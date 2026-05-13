@@ -127,25 +127,25 @@ export default function Question({
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-8 md:p-10 border border-gray-200 relative overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-xl p-8 md:p-10 border border-gray-200 relative overflow-hidden dark:bg-[#111121]/95 dark:border-white/10 dark:shadow-black/40">
       {/* Effet de fond décoratif */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-gray-100 rounded-full blur-3xl opacity-30 -z-0"></div>
+      <div className="absolute top-0 right-0 w-64 h-64 bg-gray-100 rounded-full blur-3xl opacity-30 -z-0 dark:bg-indigo-500/20"></div>
       
       <div className="relative z-10">
         {/* En-tête de la question */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl bg-gray-900 flex items-center justify-center shadow-lg">
+            <div className="w-14 h-14 rounded-xl bg-gray-900 flex items-center justify-center shadow-lg dark:bg-indigo-600">
               <span className="text-white font-bold text-lg">{questionNumber}</span>
             </div>
             <div>
-              <span className="text-base font-semibold text-gray-900 block">Question {questionNumber}</span>
-              <span className="text-sm text-gray-500">of {totalQuestions}</span>
+              <span className="text-base font-semibold text-gray-900 dark:text-[#f5f2ff] block">Question {questionNumber}</span>
+              <span className="text-sm text-gray-500 dark:text-[#9d98ab]">of {totalQuestions}</span>
             </div>
           </div>
           {points && (
-            <div className="px-4 py-2 rounded-xl bg-gray-100 border border-gray-300">
-              <span className="text-sm font-bold text-gray-900">
+            <div className="px-4 py-2 rounded-xl bg-gray-100 border border-gray-300 dark:bg-white/10 dark:border-white/15">
+              <span className="text-sm font-bold text-gray-900 dark:text-[#eeeaf4]">
                 {points} point{points !== 1 ? 's' : ''}
               </span>
             </div>
@@ -169,14 +169,14 @@ export default function Question({
         {/* Texte de la question */}
         <div className="mb-8">
           {hasImages ? (
-            <div className="text-2xl md:text-3xl font-bold text-gray-900 leading-relaxed">
+            <div className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-[#f5f2ff] leading-relaxed">
               <HtmlWithMathRenderer 
                 html={questionText || ''}
                 className="prose prose-lg max-w-none"
               />
             </div>
           ) : (
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-relaxed">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-[#f5f2ff] leading-relaxed">
               <MathRenderer text={cleanedQuestionText || ''} />
             </h2>
           )}
@@ -185,7 +185,7 @@ export default function Question({
         {/* Description si présente */}
         {questionContent && (
           <div
-            className="prose prose-sm max-w-none mb-8 text-gray-700 leading-relaxed"
+            className="prose prose-sm max-w-none mb-8 text-gray-700 dark:text-[#d4d0dc] dark:prose-invert leading-relaxed"
             dangerouslySetInnerHTML={{ __html: questionContent }}
           />
         )}
@@ -194,7 +194,7 @@ export default function Question({
         {isTextInput ? (
           <div className="space-y-4">
             <div>
-              <label htmlFor="text-answer" className="block text-sm font-medium text-gray-700 mb-3">
+              <label htmlFor="text-answer" className="block text-sm font-medium text-gray-700 dark:text-[#d4d0dc] mb-3">
                 Your Answer:
               </label>
               <textarea
@@ -206,10 +206,10 @@ export default function Question({
                 className={`
                   w-full px-4 py-3 border-2 rounded-xl transition-all duration-300
                   ${showResult 
-                    ? 'border-gray-300 bg-gray-50 cursor-not-allowed' 
-                    : 'border-gray-300 bg-white focus:border-gray-900 focus:ring-2 focus:ring-gray-900 focus:outline-none'
+                    ? 'border-gray-300 bg-gray-50 cursor-not-allowed dark:border-white/15 dark:bg-white/5' 
+                    : 'border-gray-300 bg-white focus:border-gray-900 focus:ring-2 focus:ring-gray-900 focus:outline-none dark:border-white/15 dark:bg-[#0f0f1f] dark:text-[#eeeaf4] dark:focus:border-indigo-400 dark:focus:ring-indigo-400'
                   }
-                  text-gray-900 placeholder-gray-400 resize-y
+                  text-gray-900 placeholder-gray-400 resize-y dark:placeholder-[#9d98ab]
                 `}
                 placeholder="Type your answer here..."
               />
@@ -219,19 +219,19 @@ export default function Question({
                     <div className={`p-4 rounded-xl border-l-4 ${
                       correctAnswer && selectedAnswer &&
                       selectedAnswer.replace('text:', '').toLowerCase().trim() === (answers[0].texte || '').replace(/<[^>]*>/g, '').toLowerCase().trim()
-                        ? 'bg-green-50 border-green-500'
-                        : 'bg-gray-50 border-gray-900'
+                        ? 'bg-green-50 border-green-500 dark:bg-emerald-500/10 dark:border-emerald-400'
+                        : 'bg-gray-50 border-gray-900 dark:bg-white/5 dark:border-white/20'
                     }`}>
-                      <p className="text-sm font-semibold text-gray-900 mb-2">Expected Answer:</p>
-                      <div className="text-sm text-gray-700">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-[#f5f2ff] mb-2">Expected Answer:</p>
+                      <div className="text-sm text-gray-700 dark:text-[#d4d0dc]">
                         <HtmlWithMathRenderer html={answers[0].texte} />
                       </div>
                     </div>
                   )}
                   {explication && (
-                    <div className="p-4 rounded-xl bg-gray-50 border-l-4 border-gray-900">
-                      <p className="text-sm font-semibold text-gray-900 mb-2">Explanation:</p>
-                      <p className="text-sm text-gray-700">
+                    <div className="p-4 rounded-xl bg-gray-50 border-l-4 border-gray-900 dark:bg-white/5 dark:border-indigo-400">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-[#f5f2ff] mb-2">Explanation:</p>
+                      <p className="text-sm text-gray-700 dark:text-[#d4d0dc]">
                         <MathRenderer text={explication} />
                       </p>
                     </div>
@@ -251,15 +251,15 @@ export default function Question({
 
   const getButtonStyles = () => {
     if (showCorrect) {
-      return 'border-green-500 bg-green-50 shadow-green-100';
+      return 'border-green-500 bg-green-50 shadow-green-100 dark:border-emerald-400 dark:bg-emerald-500/10';
     }
     if (showIncorrect) {
-      return 'border-red-500 bg-red-50 shadow-red-100';
+      return 'border-red-500 bg-red-50 shadow-red-100 dark:border-red-400 dark:bg-red-500/10';
     }
     if (isSelected && !showResult) {
-      return 'border-gray-900 bg-gray-50 shadow-gray-100';
+      return 'border-gray-900 bg-gray-50 shadow-gray-100 dark:border-indigo-400 dark:bg-indigo-500/10';
     }
-    return 'border-gray-200 bg-white hover:border-gray-400 hover:bg-gray-50';
+    return 'border-gray-200 bg-white hover:border-gray-400 hover:bg-gray-50 dark:border-white/10 dark:bg-[#16162a]/85 dark:hover:border-white/20 dark:hover:bg-[#1b1b31]';
   };
 
             return (
@@ -281,7 +281,7 @@ export default function Question({
                     ${showCorrect && 'bg-green-600 text-white shadow-lg'}
                     ${showIncorrect && 'bg-red-600 text-white shadow-lg'}
                     ${isSelected && !showResult && 'bg-gray-900 text-white shadow-lg'}
-                    ${!isSelected && !showResult && 'bg-gray-100 text-gray-600 border-2 border-gray-300'}
+                    ${!isSelected && !showResult && 'bg-gray-100 text-gray-600 border-2 border-gray-300 dark:bg-white/10 dark:text-[#d4d0dc] dark:border-white/20'}
                   `}>
                     {showResult && isCorrect && (
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -315,11 +315,11 @@ export default function Question({
                         />
                       </div>
                     )}
-                    <div className="font-semibold text-gray-900 text-lg leading-relaxed [&_.ql-editor]:p-0">
+                    <div className="font-semibold text-gray-900 dark:text-[#eeeaf4] text-lg leading-relaxed [&_.ql-editor]:p-0">
                       <HtmlWithMathRenderer html={answer.texte || ''} />
                     </div>
                     {showResult && answer.explication && (
-                      <div className="text-sm text-gray-600 mt-3 italic leading-relaxed bg-gray-50 p-3 rounded-lg">
+                      <div className="text-sm text-gray-600 dark:text-[#c8c3d2] mt-3 italic leading-relaxed bg-gray-50 dark:bg-white/5 p-3 rounded-lg">
                         💡 <HtmlWithMathRenderer html={answer.explication || ''} />
                       </div>
                     )}
@@ -342,12 +342,12 @@ export default function Question({
 
         {/* Explication générale si présente et résultat affiché */}
         {showResult && explication && (
-          <div className="mt-8 p-6 rounded-xl bg-gray-50 border-l-4 border-gray-900 shadow-md animate-fade-in">
-            <p className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+          <div className="mt-8 p-6 rounded-xl bg-gray-50 border-l-4 border-gray-900 dark:bg-white/5 dark:border-indigo-400 shadow-md animate-fade-in">
+            <p className="text-sm font-bold text-gray-900 dark:text-[#f5f2ff] mb-3 flex items-center gap-2">
               <span className="text-lg">💡</span>
               Detailed Explanation:
             </p>
-            <p className="text-sm text-gray-700 leading-relaxed">
+            <p className="text-sm text-gray-700 dark:text-[#d4d0dc] leading-relaxed">
               <MathRenderer text={explication || ''} />
             </p>
           </div>

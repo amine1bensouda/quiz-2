@@ -5,6 +5,7 @@ import { getCurrentUserFromSession } from '@/lib/auth-server';
 import { getPlan, TRIAL_HOURS, type PlanId } from '@/lib/plans';
 import { getUserActiveSubscription } from '@/lib/subscription-access';
 import { addResponseObservability } from '@/lib/traffic-guard';
+import { SITE_BRAND_UPPER } from '@/lib/constants';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -131,6 +132,9 @@ export async function POST(request: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       locale: 'en',
+      branding_settings: {
+        display_name: SITE_BRAND_UPPER,
+      },
       customer_email: user.email,
       line_items: [{ price: plan.stripePriceId, quantity: 1 }],
       subscription_data: {

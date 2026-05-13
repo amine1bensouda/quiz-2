@@ -496,7 +496,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
   if (!currentQuestion) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600">Loading quiz...</p>
+        <p className="text-gray-600 dark:text-[#9d98ab]">Loading quiz...</p>
       </div>
     );
   }
@@ -517,7 +517,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
       {!sidebarOpen && (
         <button
           onClick={() => setSidebarOpen(true)}
-          className="hidden lg:flex absolute top-0 left-4 z-50 p-3 rounded-xl shadow-lg transition-all duration-300 bg-white text-gray-900 border-2 border-gray-300 hover:border-gray-900 hover:shadow-xl transform hover:scale-110 active:scale-95"
+          className="hidden lg:flex absolute top-0 left-4 z-50 p-3 rounded-xl shadow-lg transition-all duration-300 bg-white text-gray-900 border-2 border-gray-300 hover:border-gray-900 hover:shadow-xl transform hover:scale-110 active:scale-95 dark:bg-[#111121] dark:text-[#eeeaf4] dark:border-white/15 dark:hover:border-[#f5c14a]/50"
           aria-label="Show sidebar"
           title="Show question list"
         >
@@ -547,16 +547,16 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
       <div className="flex-1 max-w-4xl mx-auto px-4 transition-all duration-300">
       {/* Alerte si le temps est presque écoulé */}
       {quizTimeRemaining !== null && quizTimeRemaining <= 60 && quizTimeRemaining > 0 && !quizCompleted && (
-        <div className="mb-6 bg-red-50 border-2 border-red-500 rounded-xl p-4 animate-pulse">
+        <div className="mb-6 bg-red-50 border-2 border-red-500 rounded-xl p-4 animate-pulse dark:bg-red-950/35 dark:border-red-400">
           <div className="flex items-center gap-3">
             <svg className="w-6 h-6 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <div className="flex-1">
-              <p className="font-bold text-red-900">
+              <p className="font-bold text-red-900 dark:text-red-100">
                 ⚠️ Warning! Less than one minute remaining!
               </p>
-              <p className="text-sm text-red-700 mt-1">
+              <p className="text-sm text-red-700 dark:text-red-200 mt-1">
                 The quiz will close automatically when time runs out.
               </p>
             </div>
@@ -565,17 +565,17 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
       )}
       
       {/* Barre de progression moderne */}
-      <div className="mb-8 bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+      <div className="mb-8 bg-white rounded-2xl shadow-lg p-6 border border-gray-200 dark:bg-[#111121]/95 dark:border-white/10 dark:shadow-black/40">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gray-900 flex items-center justify-center text-white font-bold shadow-lg">
+            <div className="w-12 h-12 rounded-xl bg-gray-900 flex items-center justify-center text-white font-bold shadow-lg dark:bg-indigo-600">
               {currentQuestionIndex + 1}
             </div>
             <div>
-              <span className="text-base font-semibold text-gray-900 block">
+              <span className="text-base font-semibold text-gray-900 dark:text-[#f5f2ff] block">
                 Question {currentQuestionIndex + 1} of {totalQuestions}
               </span>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-500 dark:text-[#9d98ab]">
                 {totalQuestions - (currentQuestionIndex + 1)} remaining
               </span>
             </div>
@@ -588,7 +588,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
                   ? 'border-red-500 bg-red-50 text-red-700 animate-pulse shadow-lg' 
                   : quizTimeRemaining <= 180
                   ? 'border-orange-500 bg-orange-50 text-orange-700 shadow-md'
-                  : 'border-blue-500 bg-blue-50 text-blue-700'
+                  : 'border-blue-500 bg-blue-50 text-blue-700 dark:border-indigo-400 dark:bg-indigo-500/15 dark:text-indigo-200'
               }`}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -600,7 +600,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
               </div>
             ) : (
               // Indicateur pour quiz sans limite de temps
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-300 bg-gray-50 text-gray-600 font-semibold">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-300 bg-gray-50 text-gray-600 font-semibold dark:border-white/15 dark:bg-white/5 dark:text-[#c8c3d2]">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -614,7 +614,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
                   ? 'border-red-500 bg-red-50 text-red-700 animate-pulse' 
                   : timeRemaining <= 30
                   ? 'border-orange-500 bg-orange-50 text-orange-700'
-                  : 'border-gray-900 bg-gray-50 text-gray-900'
+                  : 'border-gray-900 bg-gray-50 text-gray-900 dark:border-indigo-400 dark:bg-indigo-500/15 dark:text-indigo-200'
               }`}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -624,16 +624,16 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
               </div>
             )}
             <div className="text-right">
-              <span className="text-2xl font-bold text-gray-900 block">
+              <span className="text-2xl font-bold text-gray-900 dark:text-[#f5f2ff] block">
                 {Math.round(progressPercentage)}%
               </span>
-              <span className="text-xs text-gray-500">Progress</span>
+              <span className="text-xs text-gray-500 dark:text-[#9d98ab]">Progress</span>
             </div>
           </div>
         </div>
         
         {/* Barre de progression animée */}
-        <div className="relative w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="relative w-full h-2 bg-gray-200 rounded-full overflow-hidden dark:bg-white/10">
           <div
             className="progress-fill relative h-full rounded-full"
             style={{ width: `${progressPercentage}%` }}
@@ -644,7 +644,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
         </div>
         
         <div className="mt-4 text-center">
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-gray-600 dark:text-[#9d98ab]">
             {Object.keys(selectedAnswers).length} / {totalQuestions} answered
           </span>
         </div>
@@ -664,7 +664,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
       </div>
 
       {/* Boutons de navigation modernisés */}
-      <div className="flex justify-between items-center mt-8 gap-4 bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+      <div className="flex justify-between items-center mt-8 gap-4 bg-white rounded-2xl shadow-lg p-6 border border-gray-200 dark:bg-[#111121]/95 dark:border-white/10 dark:shadow-black/40">
         <button
           onClick={handlePrevious}
           disabled={currentQuestionIndex === 0}
@@ -672,8 +672,8 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
             flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200
             ${
               currentQuestionIndex === 0
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
-                : 'bg-white text-gray-900 border-2 border-gray-300 hover:border-gray-900 hover:bg-gray-50 transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg'
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50 dark:bg-white/5 dark:text-[#7e7890]'
+                : 'bg-white text-gray-900 border-2 border-gray-300 hover:border-gray-900 hover:bg-gray-50 transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg dark:bg-[#16162a] dark:text-[#eeeaf4] dark:border-white/15 dark:hover:border-[#f5c14a]/45 dark:hover:bg-[#1b1b31]'
             }
           `}
         >
@@ -689,8 +689,8 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
             flex items-center gap-2 px-8 py-4 rounded-xl font-bold transition-all duration-200 shadow-lg
             ${
               selectedAnswer
-                ? 'bg-gray-900 text-white hover:bg-black transform hover:scale-105 active:scale-95 hover:shadow-xl'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300 transform hover:scale-105 active:scale-95 border-2 border-gray-400'
+                ? 'bg-gray-900 text-white hover:bg-black transform hover:scale-105 active:scale-95 hover:shadow-xl dark:bg-[#f5c14a] dark:text-[#0c0a00] dark:hover:bg-[#f9d06a]'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300 transform hover:scale-105 active:scale-95 border-2 border-gray-400 dark:bg-white/10 dark:text-[#d4d0dc] dark:border-white/20 dark:hover:bg-white/15'
             }
           `}
         >

@@ -8,6 +8,30 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
+ * URL absolue où Stripe renvoie l'utilisateur après le portail (annulation, CB, etc.).
+ * Doit être en HTTPS en prod et correspondre à un domaine autorisé dans
+ * Stripe Dashboard → Paramètres → Portail client → Domaines / URLs autorisés.
+ */
+function getBillingPortalReturnUrl(): string {
+  const siteBase =
+    process.env.NEXT_PUBLIC_APP_URL?.trim()?.replace(/\/$/, '') ||
+    process.env.NEXT_PUBLIC_SITE_URL?.trim()?.replace(/\/$/, '') ||
+    'http://localhost:3000';
+
+  const explicit = process.env.STRIPE_BILLING_PORTAL_RETURN_URL?.trim();
+  if (explicit) {
+    if (explicit.startsWith('http://') || explicit.startsWith('https://')) {
+      return explicit;
+    }
+    const path = explicit.startsWith('/') ? explicit : `/${explicit}`;
+    return `${siteBase}${path}`;
+  }
+
+  const path = '/dashboard?from=stripe-portal';
+  return `${siteBase}${path}`;
+}
+
+/**
  * POST /api/subscriptions/stripe/portal
  *
  * Ouvre une session Stripe Customer Billing Portal pour gérer/annuler
@@ -42,16 +66,20 @@ export async function POST() {
       );
     }
 
-    const appUrl =
-      process.env.STRIPE_BILLING_PORTAL_RETURN_URL ||
-      process.env.NEXT_PUBLIC_APP_URL ||
-      process.env.NEXT_PUBLIC_SITE_URL ||
-      'http://localhost:3000/dashboard';
+    const returnUrl = getBillingPortalReturnUrl();
+    if (
+      process.env.NODE_ENV === 'production' &&
+      (returnUrl.includes('localhost') || returnUrl.includes('127.0.0.1'))
+    ) {
+      console.error(
+        '[Stripe portal] return_url points to localhost in production. Set NEXT_PUBLIC_APP_URL (or STRIPE_BILLING_PORTAL_RETURN_URL) to your public https URL and allow that domain in Stripe Customer portal settings.'
+      );
+    }
 
     const stripe = getStripe();
     const portal = await stripe.billingPortal.sessions.create({
       customer: sub.providerCustomerId,
-      return_url: appUrl,
+      return_url: returnUrl,
     });
 
     return addResponseObservability(
