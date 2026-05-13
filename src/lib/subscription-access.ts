@@ -64,7 +64,12 @@ function hasValidAccessWindow(
   return false;
 }
 
-async function syncStripeSubscriptionForUser(
+/**
+ * Met à jour la ligne d'abonnement Stripe la plus récente depuis l'API Stripe
+ * (statut, fin de période, cancel_at_period_end, etc.). Utile quand le webhook
+ * est en retard ou absent : le dashboard reflète l'annulation programmée.
+ */
+export async function syncStripeSubscriptionForUser(
   userId: string
 ): Promise<ActiveSubscription | null> {
   const latestStripeSub = await prisma.subscription.findFirst({

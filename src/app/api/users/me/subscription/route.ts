@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
 import { prisma } from '@/lib/db';
-import { getUserActiveSubscription } from '@/lib/subscription-access';
+import {
+  getUserActiveSubscription,
+  syncStripeSubscriptionForUser,
+} from '@/lib/subscription-access';
 import { addResponseObservability } from '@/lib/traffic-guard';
 
 export const runtime = 'nodejs';
@@ -26,6 +29,7 @@ export async function GET() {
       );
     }
 
+    await syncStripeSubscriptionForUser(user.id);
     const active = await getUserActiveSubscription(user.id);
     if (!active) {
       return addResponseObservability(

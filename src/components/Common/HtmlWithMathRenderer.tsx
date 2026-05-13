@@ -182,7 +182,10 @@ export default function HtmlWithMathRenderer({ html, className = '' }: HtmlWithM
   if (!html) return null;
 
   return (
-    <div ref={containerRef} className={`html-with-math-renderer ${className}`}>
+    <div
+      ref={containerRef}
+      className={`html-with-math-renderer quiz-rich-html ${className}`.trim()}
+    >
       {parts.map((part, index) => {
         if (part.type === 'math') {
           const formulaText = part.isBlock ? `$$${part.content}$$` : `$${part.content}$`;

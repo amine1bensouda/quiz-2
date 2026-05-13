@@ -296,7 +296,9 @@ export default function DashboardPage() {
               <h2 className="text-2xl font-bold text-slate-900 dark:text-[#f5f2ff]">My Subscription</h2>
               <p className="mt-1 text-sm text-slate-600 dark:text-[#9d98ab]">
                 {subscription
-                  ? 'Details of your active subscription.'
+                  ? subscription.cancelAtPeriodEnd
+                    ? 'Cancellation is scheduled. You keep full access until the date shown below.'
+                    : 'Details of your active subscription.'
                   : "You don't have a subscription yet."}
               </p>
             </div>

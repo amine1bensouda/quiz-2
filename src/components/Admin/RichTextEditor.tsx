@@ -124,6 +124,21 @@ export default function RichTextEditor({
           color: #9ca3af;
           font-style: normal;
         }
+        /* Quill + préflight Tailwind : forcer gras et souligné même combinés */
+        .rich-text-editor .ql-editor strong,
+        .rich-text-editor .ql-editor b {
+          font-weight: 700 !important;
+        }
+        .rich-text-editor .ql-editor u {
+          text-decoration: underline;
+        }
+        .rich-text-editor .ql-editor u strong,
+        .rich-text-editor .ql-editor strong u,
+        .rich-text-editor .ql-editor u b,
+        .rich-text-editor .ql-editor b u {
+          font-weight: 700 !important;
+          text-decoration: underline;
+        }
       `}</style>
       <ReactQuill
         theme="snow"

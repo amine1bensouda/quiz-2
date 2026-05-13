@@ -315,7 +315,7 @@ export default function Question({
                         />
                       </div>
                     )}
-                    <div className="font-semibold text-gray-900 dark:text-[#eeeaf4] text-lg leading-relaxed [&_.ql-editor]:p-0">
+                    <div className="text-gray-900 dark:text-[#eeeaf4] text-lg font-normal leading-relaxed [&_.ql-editor]:p-0">
                       <HtmlWithMathRenderer html={answer.texte || ''} />
                     </div>
                     {showResult && answer.explication && (

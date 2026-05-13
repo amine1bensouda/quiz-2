@@ -36,6 +36,8 @@ function getBillingPortalReturnUrl(): string {
  *
  * Ouvre une session Stripe Customer Billing Portal pour gérer/annuler
  * l'abonnement. Repose sur `providerCustomerId` stocké sur la Subscription.
+ * La session force `locale: 'en'` ; le nom affiché côté Stripe suit le profil
+ * marchand du compte (Dashboard) sauf si STRIPE_BILLING_PORTAL_CONFIGURATION_ID est défini.
  */
 export async function POST() {
   const startTime = Date.now();
@@ -77,9 +79,14 @@ export async function POST() {
     }
 
     const stripe = getStripe();
+    const configurationId = process.env.STRIPE_BILLING_PORTAL_CONFIGURATION_ID?.trim();
+
     const portal = await stripe.billingPortal.sessions.create({
       customer: sub.providerCustomerId,
       return_url: returnUrl,
+      /** Évite le portail en français selon le navigateur ; aligné avec Checkout `locale: 'en'`. */
+      locale: 'en',
+      ...(configurationId ? { configuration: configurationId } : {}),
     });
 
     return addResponseObservability(

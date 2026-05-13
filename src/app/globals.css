@@ -610,6 +610,22 @@ html.light .admin-app .admin-theme-toggle:hover {
   display: none;
 }
 
+/* HTML issu de Quill (questions / réponses quiz) : gras + souligné visibles ensemble */
+.quiz-rich-html strong,
+.quiz-rich-html b {
+  font-weight: 700;
+}
+.quiz-rich-html u {
+  text-decoration: underline;
+}
+.quiz-rich-html u strong,
+.quiz-rich-html strong u,
+.quiz-rich-html u b,
+.quiz-rich-html b u {
+  font-weight: 700;
+  text-decoration: underline;
+}
+
 /* Home page design: Crack the Curve */
 .ctc-home,
 .ctc-home * {
