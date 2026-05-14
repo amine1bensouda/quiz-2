@@ -229,9 +229,9 @@ export default function Question({
                   {explication && (
                     <div className="p-4 rounded-xl bg-gray-50 border-l-4 border-gray-900 dark:bg-white/5 dark:border-indigo-400">
                       <p className="text-sm font-semibold text-gray-900 dark:text-[#f5f2ff] mb-2">Explanation:</p>
-                      <p className="text-sm text-gray-700 dark:text-[#d4d0dc]">
-                        <MathRenderer text={explication} />
-                      </p>
+                      <div className="text-sm text-gray-700 dark:text-[#d4d0dc] prose prose-sm max-w-none dark:prose-invert leading-relaxed">
+                        <HtmlWithMathRenderer html={explication} />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -345,9 +345,9 @@ export default function Question({
               <span className="text-lg">💡</span>
               Detailed Explanation:
             </p>
-            <p className="text-sm text-gray-700 dark:text-[#d4d0dc] leading-relaxed">
-              <MathRenderer text={explication || ''} />
-            </p>
+            <div className="text-sm text-gray-700 dark:text-[#d4d0dc] prose prose-sm max-w-none dark:prose-invert leading-relaxed">
+              <HtmlWithMathRenderer html={explication || ''} />
+            </div>
           </div>
         )}
       </div>
