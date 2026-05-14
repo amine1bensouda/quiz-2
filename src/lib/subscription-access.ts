@@ -11,6 +11,11 @@ import { getStripe } from './stripe';
  *    autonomes (sans cours parent) ne sont PAS accessibles avec ce plan.
  *  - Les statuts actifs sont définis dans `isActiveStatus` (trialing, active,
  *    past_due). `canceled`/`expired`/`incomplete` bloquent l'accès.
+ *  - Essai (`trialing`) + annulation Stripe (`cancel_at_period_end`) : plus
+ *    d'accès payant tout de suite (le portail « annule » l'offre même si la date
+ *    d'essai Stripe est encore dans le futur).
+ *  - Abonnement payant (`active`) + annulation en fin de période : accès conservé
+ *    jusqu'à `current_period_end` (période déjà facturée).
  */
 
 export interface ActiveSubscription {
@@ -52,14 +57,21 @@ function normalizeStripeStatus(stripeStatus: string): string {
 function hasValidAccessWindow(
   status: string,
   trialEndsAt: Date | null,
-  currentPeriodEnd: Date | null
+  currentPeriodEnd: Date | null,
+  cancelAtPeriodEnd: boolean,
 ): boolean {
   const now = new Date();
   if (status === 'trialing') {
-    return !!trialEndsAt && trialEndsAt.getTime() > now.getTime();
+    if (!trialEndsAt || trialEndsAt.getTime() <= now.getTime()) return false;
+    // Annulation depuis le portail Stripe pendant l'essai : on coupe l'accès au
+    // catalogue tout de suite (sinon l'utilisateur garde l'accès jusqu'à trial_end).
+    if (cancelAtPeriodEnd) return false;
+    return true;
   }
   if (status === 'active' || status === 'past_due') {
-    return !!currentPeriodEnd && currentPeriodEnd.getTime() > now.getTime();
+    if (!currentPeriodEnd || currentPeriodEnd.getTime() <= now.getTime()) return false;
+    // Période déjà payée : accès jusqu'à currentPeriodEnd même si cancel_at_period_end.
+    return true;
   }
   return false;
 }
@@ -151,7 +163,15 @@ export async function syncStripeSubscriptionForUser(
       },
     });
 
-    if (isActiveStatus(updated.status) && hasValidAccessWindow(updated.status, updated.trialEndsAt, updated.currentPeriodEnd)) {
+    if (
+      isActiveStatus(updated.status) &&
+      hasValidAccessWindow(
+        updated.status,
+        updated.trialEndsAt,
+        updated.currentPeriodEnd,
+        updated.cancelAtPeriodEnd,
+      )
+    ) {
       return updated as ActiveSubscription;
     }
   } catch (error) {
@@ -166,6 +186,15 @@ export async function getUserActiveSubscription(
 ): Promise<ActiveSubscription | null> {
   if (!userId) return null;
   try {
+    // Rafraîchir Stripe avant de décider (portail client / webhooks en retard).
+    const hasStripeRow = await prisma.subscription.findFirst({
+      where: { userId, provider: 'stripe' },
+      select: { id: true },
+    });
+    if (hasStripeRow) {
+      await syncStripeSubscriptionForUser(userId);
+    }
+
     const sub = await prisma.subscription.findFirst({
       where: {
         userId,
@@ -186,19 +215,24 @@ export async function getUserActiveSubscription(
       },
     });
     if (!sub) {
-      const synced = await syncStripeSubscriptionForUser(userId);
-      return synced;
+      return null;
     }
     if (!isActiveStatus(sub.status)) {
       const synced = await syncStripeSubscriptionForUser(userId);
       return synced;
     }
 
-    if (hasValidAccessWindow(sub.status, sub.trialEndsAt, sub.currentPeriodEnd)) {
+    if (
+      hasValidAccessWindow(
+        sub.status,
+        sub.trialEndsAt,
+        sub.currentPeriodEnd,
+        sub.cancelAtPeriodEnd,
+      )
+    ) {
       return sub as ActiveSubscription;
     }
 
-    // Fallback: tenter une resynchronisation live Stripe quand la DB est en retard.
     const synced = await syncStripeSubscriptionForUser(userId);
     if (synced) return synced;
     return null;
