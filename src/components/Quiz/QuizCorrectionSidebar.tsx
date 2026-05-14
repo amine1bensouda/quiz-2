@@ -1,7 +1,9 @@
 'use client';
 
 import type { Question } from '@/lib/types';
+import { questionStemNeedsHtmlRenderer } from '@/lib/utils';
 import MathRenderer from './MathRenderer';
+import HtmlWithMathRenderer from '@/components/Common/HtmlWithMathRenderer';
 
 interface QuizCorrectionSidebarProps {
   questions: Question[];
@@ -114,7 +116,11 @@ export default function QuizCorrectionSidebar({
                         overflow: 'hidden',
                       }}
                     >
-                      <MathRenderer text={questionText} className="text-xs" />
+                      {questionStemNeedsHtmlRenderer(questionText) ? (
+                        <HtmlWithMathRenderer html={questionText} className="text-xs" />
+                      ) : (
+                        <MathRenderer text={questionText} className="text-xs" />
+                      )}
                     </div>
                     {!hasCorrectAnswer && (
                       <div className="text-xs text-yellow-600 mt-1">⚠️ No answer</div>

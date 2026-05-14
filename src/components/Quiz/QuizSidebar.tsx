@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import type { Question } from '@/lib/types';
+import { questionStemNeedsHtmlRenderer } from '@/lib/utils';
 import MathRenderer from './MathRenderer';
+import HtmlWithMathRenderer from '@/components/Common/HtmlWithMathRenderer';
 
 interface QuizSidebarProps {
   questions: Question[];
@@ -162,7 +164,11 @@ export default function QuizSidebar({
                           overflow: 'hidden',
                         }}
                       >
-                        <MathRenderer text={questionText} className="text-sm" />
+                        {questionStemNeedsHtmlRenderer(questionText) ? (
+                          <HtmlWithMathRenderer html={questionText} className="text-sm" />
+                        ) : (
+                          <MathRenderer text={questionText} className="text-sm" />
+                        )}
                       </div>
                     </div>
 

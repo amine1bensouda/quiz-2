@@ -116,6 +116,16 @@ export function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * True when question stem should use HtmlWithMathRenderer (preserve underline, bold, links, etc.)
+ * instead of MathRenderer, which strips all HTML tags.
+ */
+export function questionStemNeedsHtmlRenderer(html: string | undefined | null): boolean {
+  if (!html || typeof html !== 'string') return false;
+  if (html.includes('<img') || html.includes('data:image/')) return true;
+  return /<\/?[a-z][a-z0-9]*\b/i.test(html);
+}
+
 /** Plain text from HTML */
 export function stripHtml(html: string): string {
   if (!html || typeof html !== 'string') return '';

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Quiz } from '@/lib/types';
+import { questionStemNeedsHtmlRenderer } from '@/lib/utils';
 import MathRenderer from './MathRenderer';
 import HtmlWithMathRenderer from '@/components/Common/HtmlWithMathRenderer';
 import QuizCorrectionSidebar from './QuizCorrectionSidebar';
@@ -67,13 +68,10 @@ export default function QuizCorrection({ quiz }: QuizCorrectionProps) {
     questionText = `Question ${currentQuestionIndex + 1}`;
   }
 
-  const hasImages =
-    questionText &&
-    typeof questionText === 'string' &&
-    (questionText.includes('<img') || questionText.includes('data:image/'));
+  const needsHtmlStemRenderer = questionStemNeedsHtmlRenderer(questionText);
 
   let cleanedQuestionText = questionText;
-  if (questionText && typeof questionText === 'string' && !hasImages) {
+  if (questionText && typeof questionText === 'string' && !needsHtmlStemRenderer) {
     cleanedQuestionText = questionText
       .replace(/<p[^>]*>/gi, '')
       .replace(/<\/p>/gi, '\n\n')
@@ -145,7 +143,7 @@ export default function QuizCorrection({ quiz }: QuizCorrectionProps) {
 
           {/* Texte de la question (HTML / images / LaTeX) */}
           <div className="mb-8">
-            {hasImages ? (
+            {needsHtmlStemRenderer ? (
               <div className="text-2xl md:text-3xl font-bold text-gray-900 leading-relaxed">
                 <HtmlWithMathRenderer html={questionText || ''} className="prose prose-lg max-w-none" />
               </div>

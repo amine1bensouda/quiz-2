@@ -264,6 +264,10 @@ export default function QuestionEditor({ question, index, onUpdate, onDelete }: 
           <label className="block text-sm font-medium text-gray-700 mb-2">
             General Explanation (optional)
           </label>
+          <p className="text-xs text-gray-500 mb-2">
+            LaTeX: use <span className="font-mono">$...$</span> for inline math (same line as text). Use{' '}
+            <span className="font-mono">$$...$$</span> only for display math (starts a new line, centered).
+          </p>
           <RichTextEditor
             value={localQuestion.explanation}
             onChange={(value) => updateQuestion({ explanation: value })}
