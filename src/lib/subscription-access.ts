@@ -11,11 +11,9 @@ import { getStripe } from './stripe';
  *    autonomes (sans cours parent) ne sont PAS accessibles avec ce plan.
  *  - Les statuts actifs sont définis dans `isActiveStatus` (trialing, active,
  *    past_due). `canceled`/`expired`/`incomplete` bloquent l'accès.
- *  - Essai (`trialing`) + annulation Stripe (`cancel_at_period_end`) : plus
- *    d'accès payant tout de suite (le portail « annule » l'offre même si la date
- *    d'essai Stripe est encore dans le futur).
- *  - Abonnement payant (`active`) + annulation en fin de période : accès conservé
- *    jusqu'à `current_period_end` (période déjà facturée).
+ *  - Essai (`trialing`) ou période payante (`active` / `past_due`) + annulation
+ *    Stripe (`cancel_at_period_end`) : plus d'accès au catalogue (l'utilisateur a
+ *    demandé l'arrêt dans le portail ; on ne garde pas la période jusqu'à la fin).
  */
 
 export interface ActiveSubscription {
@@ -70,7 +68,7 @@ function hasValidAccessWindow(
   }
   if (status === 'active' || status === 'past_due') {
     if (!currentPeriodEnd || currentPeriodEnd.getTime() <= now.getTime()) return false;
-    // Période déjà payée : accès jusqu'à currentPeriodEnd même si cancel_at_period_end.
+    if (cancelAtPeriodEnd) return false;
     return true;
   }
   return false;
@@ -84,10 +82,22 @@ function hasValidAccessWindow(
 export async function syncStripeSubscriptionForUser(
   userId: string
 ): Promise<ActiveSubscription | null> {
-  const latestStripeSub = await prisma.subscription.findFirst({
-    where: { userId, provider: 'stripe' },
-    orderBy: { createdAt: 'desc' },
-  });
+  // D'abord l'abonnement Stripe « actif » côté statut — sinon on synchronise la
+  // dernière ligne `incomplete` et on ne met jamais à jour le `trialing` réel.
+  const latestStripeSub =
+    (await prisma.subscription.findFirst({
+      where: {
+        userId,
+        provider: 'stripe',
+        status: { in: ['trialing', 'active', 'past_due'] },
+      },
+      orderBy: { createdAt: 'desc' },
+    })) ??
+    (await prisma.subscription.findFirst({
+      where: { userId, provider: 'stripe' },
+      orderBy: { createdAt: 'desc' },
+    }));
+
   if (!latestStripeSub) return null;
 
   try {
@@ -195,7 +205,7 @@ export async function getUserActiveSubscription(
       await syncStripeSubscriptionForUser(userId);
     }
 
-    const sub = await prisma.subscription.findFirst({
+    const candidates = await prisma.subscription.findMany({
       where: {
         userId,
         status: { in: ['trialing', 'active', 'past_due'] },
@@ -214,27 +224,19 @@ export async function getUserActiveSubscription(
         cancelAtPeriodEnd: true,
       },
     });
-    if (!sub) {
-      return null;
-    }
-    if (!isActiveStatus(sub.status)) {
-      const synced = await syncStripeSubscriptionForUser(userId);
-      return synced;
-    }
 
-    if (
-      hasValidAccessWindow(
-        sub.status,
-        sub.trialEndsAt,
-        sub.currentPeriodEnd,
-        sub.cancelAtPeriodEnd,
-      )
-    ) {
-      return sub as ActiveSubscription;
+    for (const sub of candidates) {
+      if (
+        hasValidAccessWindow(
+          sub.status,
+          sub.trialEndsAt,
+          sub.currentPeriodEnd,
+          sub.cancelAtPeriodEnd,
+        )
+      ) {
+        return sub as ActiveSubscription;
+      }
     }
-
-    const synced = await syncStripeSubscriptionForUser(userId);
-    if (synced) return synced;
     return null;
   } catch (error) {
     console.error('Error loading active subscription:', error);
