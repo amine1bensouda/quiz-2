@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { InlineMath, BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
+import { latexInDoubleDollarsShouldUseBlockDisplay } from '@/lib/utils';
 
 interface MathRendererProps {
   text: string;
@@ -289,7 +290,7 @@ export default function MathRenderer({ text, className = '', useMathJax = false 
       start: match.index,
       end: match.index + match[0].length,
       formula: formula,
-      isBlock: true,
+      isBlock: latexInDoubleDollarsShouldUseBlockDisplay(formula),
     });
   }
 

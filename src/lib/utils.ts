@@ -126,6 +126,20 @@ export function questionStemNeedsHtmlRenderer(html: string | undefined | null): 
   return /<\/?[a-z][a-z0-9]*\b/i.test(html);
 }
 
+/**
+ * Les `$$...$$` déclenchent souvent un rendu « display » (nouvelle ligne). Les auteurs
+ * mettent pourtant `$$r_s$$` dans une phrase : on garde le bloc seulement pour les
+ * formules longues, multi-lignes, ou avec des environnements LaTeX.
+ */
+export function latexInDoubleDollarsShouldUseBlockDisplay(formula: string): boolean {
+  const f = formula.trim();
+  if (!f) return false;
+  if (/[\n\r]/.test(f)) return true;
+  if (/\\begin\s*\{|\\end\s*\{/i.test(f)) return true;
+  if (f.length > 160) return true;
+  return false;
+}
+
 /** Plain text from HTML */
 export function stripHtml(html: string): string {
   if (!html || typeof html !== 'string') return '';

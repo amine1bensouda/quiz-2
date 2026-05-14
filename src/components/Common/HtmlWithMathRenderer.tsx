@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import MathRenderer from '@/components/Quiz/MathRenderer';
+import { latexInDoubleDollarsShouldUseBlockDisplay } from '@/lib/utils';
 
 interface HtmlWithMathRendererProps {
   html: string;
@@ -107,11 +108,12 @@ export default function HtmlWithMathRenderer({ html, className = '' }: HtmlWithM
         }
       }
       
-      // Ajouter la formule
+      // Ajouter la formule ($$ courts → inline pour ne pas couper la phrase)
       newParts.push({
         type: 'math',
         content: mathMatch.formula,
-        isBlock: mathMatch.isBlock,
+        isBlock:
+          mathMatch.isBlock && latexInDoubleDollarsShouldUseBlockDisplay(mathMatch.formula),
       });
       
       processedIndex = mathMatch.end;
