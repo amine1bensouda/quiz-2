@@ -626,6 +626,17 @@ html.light .admin-app .admin-theme-toggle:hover {
   text-decoration: underline;
 }
 
+/* Secours si du <p> subsiste dans un fragment (voir HtmlWithMathRenderer) */
+.html-with-math-renderer p {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+.html-with-math-renderer p + p::before {
+  content: '\A';
+  white-space: pre;
+}
+
 /* Home page design: Crack the Curve */
 .ctc-home,
 .ctc-home * {

@@ -44,6 +44,14 @@ export default function HtmlWithMathRenderer({ html, className = '' }: HtmlWithM
     // Déséchapper les backslashes échappés
     remainingHtml = remainingHtml.replace(/\\\\/g, '\\');
 
+    // Quill met chaque paragraphe dans <p>. Le découpage LaTeX produit alors des
+    // morceaux qui se terminent par un <p> implicite/refermé par le navigateur →
+    // saut de ligne avant/après la formule alors que l'éditeur est une seule ligne.
+    remainingHtml = remainingHtml
+      .replace(/<\/p>\s*<p[^>]*>/gi, '<br class="quiz-para-gap" />')
+      .replace(/<p[^>]*>/gi, '')
+      .replace(/<\/p>/gi, '');
+
     // Trouver toutes les formules mathématiques
     // Les formules peuvent être dans du HTML, donc on doit les chercher dans le HTML brut
     // Pattern amélioré pour détecter les formules même dans du HTML
