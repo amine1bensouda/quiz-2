@@ -1,8 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { PLANS, type PlanId } from '@/lib/plans';
+import { useEffect, useState } from 'react';
+import {
+  PLANS,
+  PURCHASABLE_PLAN_IDS,
+  planHighlightsForTrial,
+  type PlanId,
+} from '@/lib/plans';
 
 interface CourseOption {
   id: string;
@@ -30,19 +35,37 @@ export default function SubscriptionPaywall({
   defaultCourseId = null,
   isAuthenticated,
   title = 'Unlock access to this content',
-  subtitle = 'Pick a plan — 48-hour free trial, you only get charged if you continue.',
+  subtitle = '$7/month per course — 48-hour free trial, you only get charged if you continue.',
   returnUrl,
 }: SubscriptionPaywallProps) {
-  const [selectedPlan, setSelectedPlan] = useState<PlanId>(
-    defaultCourseId ? 'SINGLE_COURSE' : 'ALL_ACCESS'
-  );
+  const [selectedPlan, setSelectedPlan] = useState<PlanId>('SINGLE_COURSE');
   const [selectedCourseId, setSelectedCourseId] = useState<string>(
     defaultCourseId ?? (courses[0]?.id ?? '')
   );
   const [loadingProvider, setLoadingProvider] = useState<'stripe' | 'paypal' | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [trialEligible, setTrialEligible] = useState(true);
+  const [trialChecked, setTrialChecked] = useState(false);
 
   const firstChargeDate = new Date(Date.now() + 48 * 3600 * 1000);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setTrialEligible(true);
+      setTrialChecked(true);
+      return;
+    }
+    fetch('/api/users/me/trial-eligibility', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : { eligible: false }))
+      .then((data: { eligible?: boolean }) => {
+        setTrialEligible(data.eligible !== false);
+        setTrialChecked(true);
+      })
+      .catch(() => {
+        setTrialEligible(false);
+        setTrialChecked(true);
+      });
+  }, [isAuthenticated]);
 
   function openPaymentPopup(url: string, provider: 'stripe' | 'paypal') {
     const popupWidth = 520;
@@ -144,22 +167,33 @@ export default function SubscriptionPaywall({
         <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3 dark:text-[#f5f2ff] font-['Instrument_Serif',serif]">
           {title}
         </h1>
-        <p className="text-lg text-slate-600 dark:text-[#d4d0dc]">{subtitle}</p>
-        <p className="text-sm text-slate-500 mt-3 dark:text-[#9d98ab]">
-          48h free trial — first charge on{' '}
-          <strong className="text-slate-800 dark:text-[#f5c14a]">
-            {firstChargeDate.toLocaleDateString('en-US', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric',
-            })}
-          </strong>{' '}
-          unless you cancel before.
+        <p className="text-lg text-slate-600 dark:text-[#d4d0dc]">
+          {trialChecked && !trialEligible
+            ? '$7/month per course — subscribe now, billed immediately.'
+            : subtitle}
         </p>
+        {trialChecked && trialEligible && (
+          <p className="text-sm text-slate-500 mt-3 dark:text-[#9d98ab]">
+            One-time 48h free trial per account — first charge on{' '}
+            <strong className="text-slate-800 dark:text-[#f5c14a]">
+              {firstChargeDate.toLocaleDateString('en-US', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </strong>{' '}
+            unless you cancel before.
+          </p>
+        )}
+        {trialChecked && !trialEligible && (
+          <p className="text-sm text-amber-700 mt-3 dark:text-amber-200/90">
+            You have already used your free trial on this account.
+          </p>
+        )}
       </header>
 
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
-        {(Object.keys(PLANS) as PlanId[]).map((key) => {
+      <div className="grid gap-6 mb-8 max-w-xl mx-auto">
+        {PURCHASABLE_PLAN_IDS.map((key) => {
           const plan = PLANS[key];
           const isSelected = selectedPlan === key;
           return (
@@ -187,7 +221,7 @@ export default function SubscriptionPaywall({
               </div>
               <p className="text-sm text-slate-600 mb-4 dark:text-[#c8c3d2]">{plan.description}</p>
               <ul className="space-y-2 text-sm text-slate-700 dark:text-[#d4d0dc]">
-                {plan.highlights.map((h) => (
+                {planHighlightsForTrial(plan, trialEligible).map((h) => (
                   <li key={h} className="flex items-start gap-2">
                     <span className="text-emerald-600 font-semibold dark:text-emerald-400">✓</span>
                     <span>{h}</span>
@@ -261,7 +295,9 @@ export default function SubscriptionPaywall({
         >
           {loadingProvider === 'stripe'
             ? 'Opening Stripe popup…'
-            : 'Start 48h trial (card)'}
+            : trialEligible
+              ? 'Start 48h trial (card)'
+              : 'Subscribe with card'}
         </button>
         <button
           type="button"
@@ -271,7 +307,9 @@ export default function SubscriptionPaywall({
         >
           {loadingProvider === 'paypal'
             ? 'Opening PayPal popup…'
-            : 'Start 48h trial with PayPal'}
+            : trialEligible
+              ? 'Start 48h trial with PayPal'
+              : 'Subscribe with PayPal'}
         </button>
       </div>
 

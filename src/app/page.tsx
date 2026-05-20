@@ -5,8 +5,6 @@ import { getStats } from '@/lib/wordpress';
 import { getAllPublishedCourses } from '@/lib/course-service';
 import { getFeaturedQuiz } from '@/lib/quiz-service';
 import { formatNumber } from '@/lib/utils';
-import { getCurrentUserFromSession } from '@/lib/auth-server';
-
 export const metadata: Metadata = {
   title: 'Home',
   description: SITE_DESCRIPTION,
@@ -39,14 +37,11 @@ export default async function HomePage() {
     ]);
   };
 
-  const [stats, publishedCourses, featuredQuiz, currentUser] = await Promise.all([
+  const [stats, publishedCourses, featuredQuiz] = await Promise.all([
     withTimeout(getStats(), defaultStats),
     withTimeout(getAllPublishedCourses(), []),
     withTimeout(getFeaturedQuiz(), []),
-    getCurrentUserFromSession(),
   ]);
-
-  const trialOrSignupHref = currentUser ? '/dashboard' : '/register';
 
   const questionsFromFeatured = featuredQuiz.reduce(
     (sum, quiz) => sum + (quiz.acf?.nombre_questions ?? 0),
@@ -55,7 +50,6 @@ export default async function HomePage() {
   const totalQuestions = stats.total_questions > 0 ? stats.total_questions : questionsFromFeatured;
   const examBanks = publishedCourses.length;
   const monthlyPrice = 7;
-  const allAccessPrice = 25;
 
   const marqueeItems = [
     ...publishedCourses.map((course) => `${course.title} QBank`),
@@ -72,10 +66,12 @@ export default async function HomePage() {
           <div className="orb orb-teal" />
           <div className="hero-badge">48-hour free trial · No credit card required</div>
           <h1 className="hero-h1">Every student deserves to <em>crack</em> their exam.</h1>
-          <p className="hero-sub">$7/month for this course alone, or <strong>$25/month</strong> for all courses. 48h free trial — no charge before billing.</p>
+          <p className="hero-sub"><strong>$7/month</strong> per exam bank. 48h free trial — no charge before billing.</p>
           <div className="actions">
-            <Link href={trialOrSignupHref} className="btn-primary">Start free trial</Link>
-            <Link href="/quiz" className="btn-secondary">Browse QBanks</Link>
+            <Link href="/quiz" className="btn-hero">
+              Browse QBanks
+              <span className="btn-hero-arrow" aria-hidden="true">→</span>
+            </Link>
           </div>
 
           <div className="hero-stats">
@@ -101,7 +97,7 @@ export default async function HomePage() {
             <div>
               <p className="section-desc">Test prep has always been pay-to-win. We built Crack the Curve to make serious exam prep affordable for every student.</p>
               <div className="mission-pillars">
-                <div className="pillar">Fair pricing<br /><span className="muted">$7/month — not $70.</span></div>
+                <div className="pillar">Fair pricing<br /><span className="muted">$7/month</span></div>
                 <div className="pillar">Real analytics<br /><span className="muted">Track every weak spot.</span></div>
                 <div className="pillar">Targeted drills<br /><span className="muted">Focus on what matters.</span></div>
                 <div className="pillar">Instant access<br /><span className="muted">Start in 60 seconds.</span></div>
@@ -112,7 +108,7 @@ export default async function HomePage() {
 
         <section className="section" id="qbanks">
           <h2 className="section-title">Pick your exam. Start <em>today.</em></h2>
-          <p className="section-desc">Each QBank includes full-length timed tests, topic drills, detailed answer explanations, and a personal performance dashboard. $7/month for one course, or $25/month for all courses with a 48h free trial.</p>
+          <p className="section-desc">Each QBank includes full-length timed tests, topic drills, detailed answer explanations, and a personal performance dashboard. $7/month per course with a 48h free trial.</p>
           <div className="qbank-grid">
             {publishedCourses.length > 0 ? (
               publishedCourses.map((course, index) => {
@@ -140,19 +136,6 @@ export default async function HomePage() {
                 <Link className="card-btn" href="/quiz">Browse quizzes</Link>
               </article>
             )}
-          </div>
-        </section>
-
-        <section className="bundle">
-          <div>
-            <p className="muted">All Access · Best Value</p>
-            <h2 className="section-title">Every QBank. One <em>flat price.</em></h2>
-            <p className="section-desc">Unlock all {formatNumber(examBanks)} exam banks for one monthly plan.</p>
-          </div>
-          <div>
-            <p className="muted">$7/month for this course alone</p>
-            <div className="price" style={{ color: 'var(--amber)', fontSize: '4rem' }}>${allAccessPrice}/mo</div>
-            <Link href={trialOrSignupHref} className="btn-primary">Get All Access</Link>
           </div>
         </section>
 

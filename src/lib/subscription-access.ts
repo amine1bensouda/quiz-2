@@ -52,6 +52,23 @@ function normalizeStripeStatus(stripeStatus: string): string {
   }
 }
 
+/**
+ * Déduit si l'utilisateur a demandé l'arrêt du renouvellement côté Stripe.
+ * On combine `cancel_at_period_end` et, en secours, `cancel_at` dans le futur
+ * (certains retours portail / versions d'API ne se comportent pas pareil).
+ */
+export function stripeSubscriptionHasScheduledCancellation(stripeSub: {
+  cancel_at_period_end?: boolean | null;
+  cancel_at?: number | null;
+}): boolean {
+  if (stripeSub.cancel_at_period_end === true) return true;
+  const cat = stripeSub.cancel_at;
+  if (typeof cat === 'number' && cat > 0 && cat > Math.floor(Date.now() / 1000)) {
+    return true;
+  }
+  return false;
+}
+
 function hasValidAccessWindow(
   status: string,
   trialEndsAt: Date | null,
@@ -156,7 +173,7 @@ export async function syncStripeSubscriptionForUser(
         trialEndsAt: toDate((stripeSub as any).trial_end ?? null),
         currentPeriodStart: toDate((stripeSub as any).current_period_start ?? null),
         currentPeriodEnd: toDate((stripeSub as any).current_period_end ?? null),
-        cancelAtPeriodEnd: !!(stripeSub as any).cancel_at_period_end,
+        cancelAtPeriodEnd: stripeSubscriptionHasScheduledCancellation(stripeSub as any),
         canceledAt: toDate((stripeSub as any).canceled_at ?? null),
       },
       select: {

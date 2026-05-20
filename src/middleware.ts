@@ -109,6 +109,31 @@ function shouldBlockIndexing(pathname: string): boolean {
   return NO_INDEX_PATH_PATTERNS.some((pattern) => pattern.test(pathname));
 }
 
+const USER_SESSION_COOKIE = 'session_token';
+
+/** Routes accessibles quand l'utilisateur a une session (hors panneau admin). */
+const LOGGED_IN_ALLOWED_PATTERNS = [
+  /^\/dashboard(\/|$)/,
+  /^\/quiz(\/|$)/,
+  /^\/subscribe(\/|$)/,
+  /^\/api(\/|$)/,
+];
+
+function isStaticOrNextAsset(pathname: string): boolean {
+  return (
+    pathname.startsWith('/_next') ||
+    pathname === '/favicon.ico' ||
+    /\.(?:ico|png|jpe?g|gif|webp|svg|woff2?|ttf|eot|txt|xml|json|webmanifest)$/i.test(
+      pathname
+    )
+  );
+}
+
+function canLoggedInUserAccess(pathname: string): boolean {
+  if (isStaticOrNextAsset(pathname)) return true;
+  return LOGGED_IN_ALLOWED_PATTERNS.some((pattern) => pattern.test(pathname));
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -157,6 +182,16 @@ export async function middleware(request: NextRequest) {
     }
     return response;
   };
+
+  // Utilisateur connecté : accès limité au dashboard (+ quiz / abonnement).
+  const userSession = request.cookies.get(USER_SESSION_COOKIE)?.value;
+  const isAdminPath = pathname.startsWith('/admin');
+  if (userSession && !isAdminPath && !canLoggedInUserAccess(pathname)) {
+    const dashboardUrl = request.nextUrl.clone();
+    dashboardUrl.pathname = '/dashboard';
+    dashboardUrl.search = '';
+    return attachNoIndexHeaders(NextResponse.redirect(dashboardUrl));
+  }
 
   if (process.env.SITE_UNDER_CONSTRUCTION !== '1') {
     return attachNoIndexHeaders(NextResponse.next());

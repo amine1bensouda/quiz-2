@@ -122,14 +122,16 @@ async function handleSubscriptionEvent(eventType: string, resource: Record<strin
     finalStatus = 'past_due';
   }
 
+  const trialEndsAt =
+    finalStatus === 'trialing' && nextBillingTs
+      ? new Date(nextBillingTs)
+      : record.trialEndsAt;
+
   await prisma.subscription.update({
     where: { id: record.id },
     data: {
       status: finalStatus,
-      trialEndsAt:
-        finalStatus === 'trialing' && nextBillingTs
-          ? new Date(nextBillingTs)
-          : record.trialEndsAt,
+      trialEndsAt,
       currentPeriodEnd: nextBillingTs ? new Date(nextBillingTs) : record.currentPeriodEnd,
       canceledAt:
         finalStatus === 'canceled' || finalStatus === 'expired' ? new Date() : record.canceledAt,

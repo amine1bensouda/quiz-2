@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
 import { createPaypalSubscription } from '@/lib/paypal';
-import { getPlan, type PlanId } from '@/lib/plans';
+import { getPaypalPlanId, getPurchasablePlan, type PlanId } from '@/lib/plans';
 import { getUserActiveSubscription } from '@/lib/subscription-access';
+import { canUserStartFreeTrial } from '@/lib/trial-eligibility';
 import { addResponseObservability } from '@/lib/traffic-guard';
 
 export const runtime = 'nodejs';
@@ -14,7 +15,7 @@ export const dynamic = 'force-dynamic';
  *
  * Crée une souscription PayPal (plan pré-configuré avec trial de 2 jours)
  * et renvoie l'URL d'approbation à ouvrir dans un onglet PayPal.
- * Body : { plan: 'SINGLE_COURSE' | 'ALL_ACCESS', courseId?: string }
+ * Body : { plan: 'SINGLE_COURSE', courseId: string }
  */
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -33,11 +34,11 @@ export async function POST(request: NextRequest) {
       courseId?: string;
     } | null;
 
-    const plan = getPlan((body?.plan as PlanId | undefined) ?? null);
+    const plan = getPurchasablePlan((body?.plan as PlanId | undefined) ?? null);
     if (!plan) {
       return addResponseObservability(
         NextResponse.json(
-          { error: 'Invalid plan. Use SINGLE_COURSE or ALL_ACCESS.' },
+          { error: 'Invalid plan. Use SINGLE_COURSE.' },
           { status: 400 }
         ),
         startTime,
@@ -45,11 +46,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!plan.paypalPlanId) {
+    const withTrial = await canUserStartFreeTrial(user.id);
+    const paypalPlanId = getPaypalPlanId(plan, withTrial);
+    if (!paypalPlanId) {
       return addResponseObservability(
         NextResponse.json(
           {
-            error: `PayPal plan not configured for ${plan.id}. Set PAYPAL_PLAN_${plan.id}_ID.`,
+            error: withTrial
+              ? `PayPal plan not configured for ${plan.id}. Set PAYPAL_PLAN_${plan.id}_ID.`
+              : `PayPal no-trial plan not configured. Set PAYPAL_PLAN_${plan.id}_NO_TRIAL_ID.`,
           },
           { status: 500 }
         ),
@@ -119,7 +124,7 @@ export async function POST(request: NextRequest) {
       'http://localhost:3000';
 
     const { subscription: paypalSub, approveUrl } = await createPaypalSubscription({
-      planId: plan.paypalPlanId,
+      planId: paypalPlanId,
       customId: subscription.id,
       subscriberEmail: user.email,
       subscriberName: { givenName: user.name, surname: '' },

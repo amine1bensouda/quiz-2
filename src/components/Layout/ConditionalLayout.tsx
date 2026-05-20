@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { getCurrentUser } from '@/lib/auth-client';
 import Header from './Header';
 import Footer from './Footer';
 
@@ -10,12 +12,28 @@ export default function ConditionalLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const isAdminArea = pathname?.startsWith('/admin') ?? false;
+  const isDashboardArea = pathname?.startsWith('/dashboard') ?? false;
   const isEnConstruction = pathname === '/en-construction';
   const isMaintenance = pathname === '/maintenance';
 
-  // Pas de Header/Footer : tout le panneau admin (évite double barre avec le site public)
-  if (isAdminArea || isEnConstruction || isMaintenance) {
+  useEffect(() => {
+    let cancelled = false;
+    getCurrentUser()
+      .then((user) => {
+        if (!cancelled) setIsLoggedIn(!!user);
+      })
+      .catch(() => {
+        if (!cancelled) setIsLoggedIn(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
+
+  // Pas de Header/Footer : admin, dashboard, ou utilisateur connecté
+  if (isAdminArea || isDashboardArea || isEnConstruction || isMaintenance || isLoggedIn) {
     return <>{children}</>;
   }
 

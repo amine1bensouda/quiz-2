@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import Script from 'next/script';
 import { Suspense } from 'react';
 import { Analytics } from '@vercel/analytics/react';
@@ -12,7 +12,12 @@ import CookieBanner from '@/components/Layout/CookieBanner';
 import SiteSchema from '@/components/SEO/SiteSchema';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from '@/lib/constants';
 
-const inter = Inter({ subsets: ['latin'] });
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-paragraph',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -74,7 +79,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
       </head>
-      <body className={inter.className}>
+      <body className={`${plusJakarta.variable} ${plusJakarta.className} antialiased`}>
         <Script id="ctc-theme-init" strategy="beforeInteractive">
           {`(function(){try{var k='ctc-theme',d=document.documentElement,t=localStorage.getItem(k);d.classList.remove('light','dark');if(t==='light'||t==='dark'){d.classList.add(t);}else{d.classList.add('dark');}}catch(e){try{document.documentElement.classList.add('dark');}catch(_){}}})();`}
         </Script>

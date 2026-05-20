@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { unstable_noStore as noStore } from 'next/cache';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import Navigation from '@/components/Layout/Navigation';
@@ -66,6 +67,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function CoursePage({ params }: PageProps) {
+  noStore();
   const { slug } = await Promise.resolve(params);
   let course = null;
   let hasDatabaseError = false;
@@ -199,8 +201,7 @@ export default async function CoursePage({ params }: PageProps) {
                     Unlock this course
                   </h2>
                   <p className="text-sm sm:text-base text-gray-700">
-                    $7/month for this course alone, or $25/month for all
-                    courses. 48h free trial — no charge before.
+                    $7/month for this course. 48h free trial — no charge before.
                   </p>
                 </div>
                 <Link

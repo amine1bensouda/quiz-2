@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export const metadata = {
   title: 'Choose your subscription',
   description:
-    'Subscribe to Quiz Platform: $7/month for a single course, or $25/month for all courses. 48h free trial.',
+    'Subscribe to Quiz Platform: $7/month per course. 48h free trial.',
 };
 
 interface SubscribePageProps {

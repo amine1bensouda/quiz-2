@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getStripe } from '@/lib/stripe';
 import { prisma } from '@/lib/db';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
-import { getPlan, TRIAL_HOURS, type PlanId } from '@/lib/plans';
+import { getPurchasablePlan, TRIAL_HOURS, type PlanId } from '@/lib/plans';
 import { getUserActiveSubscription } from '@/lib/subscription-access';
+import { canUserStartFreeTrial } from '@/lib/trial-eligibility';
 import { addResponseObservability } from '@/lib/traffic-guard';
 import { SITE_BRAND_UPPER } from '@/lib/constants';
 
@@ -14,13 +15,12 @@ export const dynamic = 'force-dynamic';
  * POST /api/subscriptions/stripe/checkout
  *
  * Crée une session Stripe Checkout en mode subscription avec un trial de 48h.
- * Body : { plan: 'SINGLE_COURSE' | 'ALL_ACCESS', courseId?: string }
+ * Body : { plan: 'SINGLE_COURSE', courseId: string }
  *
  * Règles :
  *  - user doit être loggé
  *  - pas d'abo actif déjà en cours
- *  - courseId obligatoire (et cours publié) pour SINGLE_COURSE
- *  - pas de courseId pour ALL_ACCESS (on ignore si fourni)
+ *  - courseId obligatoire (et cours publié)
  */
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -40,11 +40,11 @@ export async function POST(request: NextRequest) {
     } | null;
 
     const planId = body?.plan as PlanId | undefined;
-    const plan = getPlan(planId ?? null);
+    const plan = getPurchasablePlan(planId ?? null);
     if (!plan) {
       return addResponseObservability(
         NextResponse.json(
-          { error: 'Invalid plan. Use SINGLE_COURSE or ALL_ACCESS.' },
+          { error: 'Invalid plan. Use SINGLE_COURSE.' },
           { status: 400 }
         ),
         startTime,
@@ -127,7 +127,24 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_SITE_URL ||
       'http://localhost:3000';
 
+    const withTrial = await canUserStartFreeTrial(user.id);
     const trialPeriodDays = Math.max(1, Math.ceil(TRIAL_HOURS / 24));
+
+    const subscriptionData: {
+      metadata: Record<string, string>;
+      trial_period_days?: number;
+    } = {
+      metadata: {
+        subscriptionId: subscription.id,
+        userId: user.id,
+        plan: plan.id,
+        courseId: courseId ?? '',
+        withTrial: withTrial ? '1' : '0',
+      },
+    };
+    if (withTrial) {
+      subscriptionData.trial_period_days = trialPeriodDays;
+    }
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -137,15 +154,7 @@ export async function POST(request: NextRequest) {
       },
       customer_email: user.email,
       line_items: [{ price: plan.stripePriceId, quantity: 1 }],
-      subscription_data: {
-        trial_period_days: trialPeriodDays,
-        metadata: {
-          subscriptionId: subscription.id,
-          userId: user.id,
-          plan: plan.id,
-          courseId: courseId ?? '',
-        },
-      },
+      subscription_data: subscriptionData,
       metadata: {
         subscriptionId: subscription.id,
         userId: user.id,

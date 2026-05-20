@@ -1,9 +1,10 @@
 /**
  * Central subscription plan configuration.
  *
- * Fixed prices:
+ * Fixed price:
  *  - SINGLE_COURSE: $7/month — access to one course of your choice.
- *  - ALL_ACCESS: $25/month — full catalog (and standalone quizzes).
+ *
+ * `ALL_ACCESS` is kept for legacy subscriptions already in the database.
  *
  * Trial: 48 hours free; payment method collected up front.
  * First charge at `now + TRIAL_HOURS`.
@@ -16,6 +17,9 @@ export const BILLING_INTERVAL = 'month' as const;
 
 export type PlanId = 'SINGLE_COURSE' | 'ALL_ACCESS';
 
+/** Plans available for new sign-ups (checkout / paywall). */
+export const PURCHASABLE_PLAN_IDS: PlanId[] = ['SINGLE_COURSE'];
+
 export interface PlanDefinition {
   id: PlanId;
   label: string;
@@ -23,6 +27,8 @@ export interface PlanDefinition {
   requiresCourseId: boolean;
   stripePriceId: string | undefined;
   paypalPlanId: string | undefined;
+  /** PayPal plan without trial cycle (for returning subscribers). */
+  paypalPlanIdNoTrial: string | undefined;
   description: string;
   highlights: string[];
 }
@@ -35,6 +41,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     requiresCourseId: true,
     stripePriceId: process.env.STRIPE_PRICE_SINGLE_COURSE_ID,
     paypalPlanId: process.env.PAYPAL_PLAN_SINGLE_COURSE_ID,
+    paypalPlanIdNoTrial: process.env.PAYPAL_PLAN_SINGLE_COURSE_NO_TRIAL_ID,
     description: 'Full access to a single course of your choice.',
     highlights: [
       'One course of your choice',
@@ -50,6 +57,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     requiresCourseId: false,
     stripePriceId: process.env.STRIPE_PRICE_ALL_ACCESS_ID,
     paypalPlanId: process.env.PAYPAL_PLAN_ALL_ACCESS_ID,
+    paypalPlanIdNoTrial: process.env.PAYPAL_PLAN_ALL_ACCESS_NO_TRIAL_ID,
     description: 'Unlimited access to the whole catalog.',
     highlights: [
       'All current and upcoming courses',
@@ -65,6 +73,31 @@ export function getPlan(plan: string | null | undefined): PlanDefinition | null 
     return PLANS[plan];
   }
   return null;
+}
+
+export function isPurchasablePlan(plan: string | null | undefined): plan is PlanId {
+  return !!plan && (PURCHASABLE_PLAN_IDS as readonly string[]).includes(plan);
+}
+
+export function getPurchasablePlan(plan: string | null | undefined): PlanDefinition | null {
+  if (!isPurchasablePlan(plan)) return null;
+  return PLANS[plan];
+}
+
+/** PayPal billing plan id — with or without the built-in trial cycle. */
+export function getPaypalPlanId(plan: PlanDefinition, withTrial: boolean): string | undefined {
+  if (withTrial) return plan.paypalPlanId;
+  return plan.paypalPlanIdNoTrial ?? plan.paypalPlanId;
+}
+
+export function planHighlightsForTrial(
+  plan: PlanDefinition,
+  withTrial: boolean
+): string[] {
+  if (withTrial) return plan.highlights;
+  return plan.highlights.map((h) =>
+    h === '48h free trial' ? 'Billed immediately' : h
+  );
 }
 
 export function formatPlanPrice(plan: PlanDefinition): string {

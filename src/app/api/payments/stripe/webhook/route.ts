@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type Stripe from 'stripe';
 import { getStripe, getStripeWebhookSecret } from '@/lib/stripe';
 import { prisma } from '@/lib/db';
+import { stripeSubscriptionHasScheduledCancellation } from '@/lib/subscription-access';
 
 export const runtime = 'nodejs';
 // Webhook Stripe : pas de cache, pas de pré-render.
@@ -135,16 +136,18 @@ async function handleCheckoutSessionCompleted(
   }
 
   const stripeSub = await stripe.subscriptions.retrieve(stripeSubId);
+  const trialEndsAt = toDate((stripeSub as any).trial_end ?? null);
+  const status = normalizeStatus(stripeSub.status);
   await prisma.subscription.update({
     where: { id: record.id },
     data: {
       providerSubscriptionId: stripeSub.id,
       providerCustomerId: customerId,
-      status: normalizeStatus(stripeSub.status),
-      trialEndsAt: toDate((stripeSub as any).trial_end ?? null),
+      status,
+      trialEndsAt,
       currentPeriodStart: toDate((stripeSub as any).current_period_start ?? null),
       currentPeriodEnd: toDate((stripeSub as any).current_period_end ?? null),
-      cancelAtPeriodEnd: !!(stripeSub as any).cancel_at_period_end,
+      cancelAtPeriodEnd: stripeSubscriptionHasScheduledCancellation(stripeSub as any),
     },
   });
 }
@@ -159,6 +162,8 @@ async function handleSubscriptionUpdated(stripeSub: Stripe.Subscription) {
     );
     return;
   }
+  const trialEndsAt = toDate((stripeSub as any).trial_end ?? null);
+  const status = normalizeStatus(stripeSub.status);
   await prisma.subscription.update({
     where: { id: record.id },
     data: {
@@ -167,11 +172,11 @@ async function handleSubscriptionUpdated(stripeSub: Stripe.Subscription) {
         typeof stripeSub.customer === 'string'
           ? stripeSub.customer
           : stripeSub.customer?.id ?? null,
-      status: normalizeStatus(stripeSub.status),
-      trialEndsAt: toDate((stripeSub as any).trial_end ?? null),
+      status,
+      trialEndsAt,
       currentPeriodStart: toDate((stripeSub as any).current_period_start ?? null),
       currentPeriodEnd: toDate((stripeSub as any).current_period_end ?? null),
-      cancelAtPeriodEnd: !!(stripeSub as any).cancel_at_period_end,
+      cancelAtPeriodEnd: stripeSubscriptionHasScheduledCancellation(stripeSub as any),
       canceledAt: toDate((stripeSub as any).canceled_at ?? null),
     },
   });
@@ -212,7 +217,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice, stripe: Stripe) {
       trialEndsAt: toDate((stripeSub as any).trial_end ?? null),
       currentPeriodStart: toDate((stripeSub as any).current_period_start ?? null),
       currentPeriodEnd: toDate((stripeSub as any).current_period_end ?? null),
-      cancelAtPeriodEnd: !!(stripeSub as any).cancel_at_period_end,
+      cancelAtPeriodEnd: stripeSubscriptionHasScheduledCancellation(stripeSub as any),
     },
   });
 }

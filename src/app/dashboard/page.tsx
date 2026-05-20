@@ -1,11 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getCurrentUser, getQuizStats, logout, type QuizAttempt, type User } from '@/lib/auth-client';
-import { formatDuration } from '@/lib/utils';
+import { getCurrentUser, getQuizStats, logout, type User } from '@/lib/auth-client';
+import { excerptFromHtml } from '@/lib/utils';
 import LoadingSpinner from '@/components/Layout/LoadingSpinner';
+import ThemeToggle from '@/components/Layout/ThemeToggle';
+
+interface Course {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  moduleCount: number;
+  totalQuizzes: number;
+}
 
 interface SubscriptionInfo {
   id: string;
@@ -19,49 +29,107 @@ interface SubscriptionInfo {
   course: { id: string; title: string; slug: string } | null;
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const palette: Record<string, string> = {
-    trialing:
-      'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/50 dark:text-blue-200 dark:border-blue-500/40',
-    active:
-      'bg-green-100 text-green-800 border-green-200 dark:bg-green-950/45 dark:text-green-200 dark:border-green-500/35',
-    past_due:
-      'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-500/35',
-    incomplete:
-      'bg-gray-100 text-gray-700 border-gray-200 dark:bg-[#1a1a2e] dark:text-[#d4d0dc] dark:border-white/15',
-    canceled:
-      'bg-red-100 text-red-700 border-red-200 dark:bg-red-950/45 dark:text-red-200 dark:border-red-500/35',
-    expired:
-      'bg-red-100 text-red-700 border-red-200 dark:bg-red-950/45 dark:text-red-200 dark:border-red-500/35',
-  };
-  const label: Record<string, string> = {
-    trialing: 'Trial active',
-    active: 'Active',
-    past_due: 'Past due',
-    incomplete: 'Incomplete',
-    canceled: 'Canceled',
-    expired: 'Expired',
-  };
-  const cls =
-    palette[status] ||
-    'bg-gray-100 text-gray-700 border-gray-200 dark:bg-[#1a1a2e] dark:text-[#d4d0dc] dark:border-white/15';
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-sm font-semibold border ${cls}`}
-    >
-      {label[status] || status}
-    </span>
-  );
+const ACTIVE_STATUSES = new Set(['trialing', 'active', 'past_due']);
+
+type NavKey =
+  | 'dashboard'
+  | 'exams'
+  | 'practice'
+  | 'review'
+  | 'analytics'
+  | 'notifications'
+  | 'upgrade'
+  | 'profile'
+  | 'resources';
+
+interface NavItem {
+  key: NavKey;
+  label: string;
+  href: string;
+  icon: ReactNode;
 }
+
+const ICON: Record<NavKey, ReactNode> = {
+  dashboard: (
+    <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="3" y="3" width="7" height="9" rx="1.5" />
+      <rect x="14" y="3" width="7" height="5" rx="1.5" />
+      <rect x="14" y="12" width="7" height="9" rx="1.5" />
+      <rect x="3" y="16" width="7" height="5" rx="1.5" />
+    </svg>
+  ),
+  exams: (
+    <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+      <rect x="9" y="3" width="6" height="4" rx="1" />
+      <path d="M9 12h6M9 16h4" />
+    </svg>
+  ),
+  practice: (
+    <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+    </svg>
+  ),
+  review: (
+    <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+    </svg>
+  ),
+  analytics: (
+    <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M3 3v18h18" />
+      <path d="M7 14l4-4 4 4 5-7" />
+    </svg>
+  ),
+  notifications: (
+    <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+    </svg>
+  ),
+  upgrade: (
+    <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M12 2L4 8v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V8l-8-6z" />
+      <path d="M9 12l2 2 4-4" />
+    </svg>
+  ),
+  profile: (
+    <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4 4-7 8-7s8 3 8 7" />
+    </svg>
+  ),
+  resources: (
+    <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M2 6.5A2.5 2.5 0 0 1 4.5 4H10v16H4.5A2.5 2.5 0 0 1 2 17.5v-11z" />
+      <path d="M22 6.5A2.5 2.5 0 0 0 19.5 4H14v16h5.5a2.5 2.5 0 0 0 2.5-2.5v-11z" />
+    </svg>
+  ),
+};
+
+const NAV_ITEMS: NavItem[] = [
+  { key: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: ICON.dashboard },
+  { key: 'exams', label: 'Exams', href: '/dashboard#exams', icon: ICON.exams },
+  { key: 'practice', label: 'Practice', href: '/quiz', icon: ICON.practice },
+  { key: 'review', label: 'Review', href: '/dashboard#history', icon: ICON.review },
+  { key: 'analytics', label: 'Analytics', href: '/dashboard#analytics', icon: ICON.analytics },
+  { key: 'notifications', label: 'Notifications', href: '/dashboard#notifications', icon: ICON.notifications },
+  { key: 'upgrade', label: 'Upgrade', href: '/subscribe', icon: ICON.upgrade },
+  { key: 'profile', label: 'Profile', href: '/dashboard#profile', icon: ICON.profile },
+  { key: 'resources', label: 'Resources', href: '/blogs', icon: ICON.resources },
+];
 
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [stats, setStats] = useState<any>(null);
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
-  const [managing, setManaging] = useState(false);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [coursesLoading, setCoursesLoading] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [stripePortalBanner, setStripePortalBanner] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     async function loadUserAndStats() {
@@ -85,30 +153,29 @@ export default function DashboardPage() {
         router.push('/login');
       } finally {
         setLoading(false);
+        setCoursesLoading(false);
       }
     }
     loadUserAndStats();
   }, [router]);
 
-  /** After Stripe Billing Portal, user returns with ?from=stripe-portal — refresh subscription row + strip query (avoids blank / stale UI). */
   useEffect(() => {
-    if (loading || typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('from') !== 'stripe-portal') return;
+    if (loading) return;
+    if (typeof window !== 'undefined' && window.location.hash === '#exams') {
+      document.getElementById('exams')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [loading, coursesLoading]);
 
-    setStripePortalBanner(true);
-    fetch('/api/users/me/subscription', { credentials: 'include' })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: { subscription?: SubscriptionInfo | null } | null) => {
-        if (data && 'subscription' in data) {
-          setSubscription(data.subscription ?? null);
-        }
-      })
-      .catch(() => {})
-      .finally(() => {
-        window.history.replaceState({}, '', window.location.pathname);
-      });
-  }, [loading]);
+  const examTotals = useMemo(() => {
+    const totalQuizzes = courses.reduce((sum, c) => sum + (c.totalQuizzes || 0), 0);
+    const totalModules = courses.reduce((sum, c) => sum + (c.moduleCount || 0), 0);
+    return { totalQuizzes, totalModules, examBanks: courses.length };
+  }, [courses]);
+
+  const isPremium = useMemo(
+    () => !!subscription && ACTIVE_STATUSES.has(subscription.status),
+    [subscription]
+  );
 
   const handleLogout = async () => {
     await logout();
@@ -116,389 +183,631 @@ export default function DashboardPage() {
     router.refresh();
   };
 
-  async function openStripePortal() {
-    setManaging(true);
-    try {
-      const res = await fetch('/api/subscriptions/stripe/portal', {
-        method: 'POST',
-        credentials: 'include',
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && data.url) {
-        window.location.href = data.url;
-        return;
-      }
-      alert(data.error || 'Unable to open billing portal');
-    } catch (err: any) {
-      alert(err?.message || 'Unable to open billing portal');
-    } finally {
-      setManaging(false);
-    }
-  }
-
-  async function cancelPaypal() {
-    if (!confirm('Confirm cancellation of your PayPal subscription?')) return;
-    setManaging(true);
-    try {
-      const res = await fetch('/api/subscriptions/paypal/cancel', {
-        method: 'POST',
-        credentials: 'include',
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        alert(
-          'Subscription canceled. You keep access until the end of the current period.'
-        );
-        window.location.reload();
-        return;
-      }
-      alert(data.error || 'Unable to cancel subscription');
-    } catch (err: any) {
-      alert(err?.message || 'Unable to cancel subscription');
-    } finally {
-      setManaging(false);
-    }
-  }
-
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-50 via-white to-slate-100 transition-colors dark:from-[#080810] dark:via-[#0c0c18] dark:to-[#12122a]">
-        <div className="flex flex-col items-center gap-6 rounded-3xl border border-white/60 bg-white/90 p-10 shadow-xl shadow-gray-200/80 backdrop-blur-md dark:border-white/10 dark:bg-[#111121]/95 dark:shadow-black/40 sm:p-14">
+      <div className="dash-app flex min-h-screen items-center justify-center">
+        <div className="dash-stat-card flex flex-col items-center gap-6 rounded-3xl border p-10 sm:p-14">
           <LoadingSpinner size="lg" />
           <div className="mt-2 w-full space-y-3">
-            <div className="mx-auto h-4 w-48 animate-pulse rounded-full bg-gray-200 dark:bg-white/10" />
-            <div className="mx-auto h-3 w-36 animate-pulse rounded-full bg-gray-100 dark:bg-white/5" />
+            <div className="mx-auto h-4 w-48 animate-pulse rounded-full bg-white/10" />
+            <div className="mx-auto h-3 w-36 animate-pulse rounded-full bg-white/5" />
           </div>
         </div>
       </div>
     );
   }
 
-  if (!user || !stats) {
-    return null;
-  }
+  if (!user || !stats) return null;
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const getScoreColor = (percentage: number) => {
-    if (percentage >= 90)
-      return 'text-green-600 bg-green-50 border-green-200 dark:text-green-300 dark:bg-green-950/40 dark:border-green-500/35';
-    if (percentage >= 70)
-      return 'text-blue-600 bg-blue-50 border-blue-200 dark:text-blue-300 dark:bg-blue-950/40 dark:border-blue-500/35';
-    if (percentage >= 50)
-      return 'text-yellow-700 bg-yellow-50 border-yellow-200 dark:text-yellow-200 dark:bg-yellow-950/35 dark:border-yellow-500/35';
-    return 'text-red-600 bg-red-50 border-red-200 dark:text-red-300 dark:bg-red-950/40 dark:border-red-500/35';
-  };
+  const firstName = user.name?.split(' ')[0] ?? 'there';
+  const totalAttempts: number = stats.totalAttempts ?? 0;
+  const averageScore: number = stats.averageScore ?? 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 transition-colors dark:from-[#080810] dark:via-[#0c0c18] dark:to-[#12122a]">
-      <div className="container mx-auto px-4 py-8">
-        {stripePortalBanner && (
-          <div
-            className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950 dark:border-emerald-500/35 dark:bg-emerald-950/35 dark:text-emerald-100"
-            role="status"
+    <div className="dash-app flex min-h-screen">
+      <Sidebar
+        collapsed={collapsed}
+        onToggle={() => setCollapsed((v) => !v)}
+        onLogout={handleLogout}
+        activeKey="dashboard"
+      />
+
+      <main
+        className="flex-1 px-4 py-6 transition-[margin] duration-200 md:px-8 md:py-7"
+        style={{ marginLeft: collapsed ? '72px' : '240px' }}
+      >
+        <WelcomeHero
+          name={firstName}
+          isPremium={isPremium}
+          startHref="/dashboard#exams"
+          upgradeHref="/subscribe"
+        />
+
+        <section className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="SUPERSCORE" value="--" accent="#f5c14a">
+            <Sparkline color="#f5c14a" />
+          </StatCard>
+          <StatCard label="BEST SCORE" value="--" accent="#60c8ff">
+            <div className="dash-muted flex items-center gap-3 text-[11px]">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#60c8ff]" /> R&amp;W
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#ff5f7e]" /> Math
+              </span>
+            </div>
+          </StatCard>
+          <StatCard label="TESTS TAKEN" value={String(totalAttempts)} accent="#2be4c8">
+            <ProgressDots filled={Math.min(totalAttempts, 6)} total={6} />
+          </StatCard>
+          <StatCard
+            label="AVG SCORE"
+            value={averageScore > 0 ? `${averageScore}%` : '--'}
+            accent="#b388ff"
           >
-            <span>
-              You returned from Stripe billing. Subscription details below were refreshed.
-            </span>
-            <button
-              type="button"
-              onClick={() => setStripePortalBanner(false)}
-              className="shrink-0 font-semibold underline underline-offset-2 hover:opacity-90"
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
-        {/* Header */}
-        <div className="mb-8">
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h1 className="mb-2 text-4xl font-bold text-slate-900 dark:text-[#f5f2ff] md:text-5xl">
-                Dashboard
-              </h1>
-              <p className="text-slate-600 dark:text-[#d4d0dc]">Welcome back, {user.name}!</p>
+            <div className="dash-progress-track h-1 w-full rounded-full">
+              <div
+                className="h-full rounded-full bg-[#b388ff]/70"
+                style={{ width: `${Math.min(averageScore, 100)}%` }}
+              />
             </div>
-            <button
-              onClick={handleLogout}
-              className="rounded-xl bg-slate-100 px-6 py-3 font-semibold text-slate-700 transition-all duration-200 hover:bg-slate-200 dark:bg-white/10 dark:text-[#eeeaf4] dark:hover:bg-white/15"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
+          </StatCard>
+        </section>
 
-        {/* Statistics Cards */}
-        <div className="mb-12 grid grid-cols-1 gap-6 md:grid-cols-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg transition-colors dark:border-white/10 dark:bg-[#111121]/90 dark:shadow-black/30">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900 dark:bg-indigo-600">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </div>
-            </div>
-            <div className="mb-1 text-3xl font-bold text-slate-900 dark:text-[#eeeaf4]">{stats.totalAttempts}</div>
-            <div className="text-sm text-slate-600 dark:text-[#9d98ab]">Total Attempts</div>
-          </div>
+        <ExamsSection
+          courses={courses}
+          loading={coursesLoading}
+          totalQuizzes={examTotals.totalQuizzes}
+          totalModules={examTotals.totalModules}
+          examBanks={examTotals.examBanks}
+        />
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg transition-colors dark:border-white/10 dark:bg-[#111121]/90 dark:shadow-black/30">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900 dark:bg-indigo-600">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-            <div className="mb-1 text-3xl font-bold text-slate-900 dark:text-[#eeeaf4]">{stats.averageScore}%</div>
-            <div className="text-sm text-slate-600 dark:text-[#9d98ab]">Average Score</div>
-          </div>
+        <section className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <ActionCard
+            accent="#2be4c8"
+            tag="BOOST YOUR SCORE"
+            title="Practice Tests"
+            description={
+              <>
+                Take <strong className="dash-strong font-semibold">full-length simulated exams</strong>{' '}
+                under timed conditions to see where you stand.
+              </>
+            }
+            cta="Start Now"
+            href="/quiz"
+            icon={
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-5 h-5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <path d="M14 2v6h6M8 13h8M8 17h6" />
+              </svg>
+            }
+          />
+          <ActionCard
+            accent="#60c8ff"
+            tag="PREMIUM ONLY"
+            title="Practice by Topic"
+            description={
+              <>
+                Master concepts <strong className="dash-strong font-semibold">3x faster</strong> by
+                targeting your specific weaknesses.
+              </>
+            }
+            cta="Target Weakness"
+            href={isPremium ? '/quiz' : '/subscribe'}
+            locked={!isPremium}
+            icon={
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-5 h-5">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+              </svg>
+            }
+          />
+          <ActionCard
+            accent="#f5c14a"
+            tag="FIX MISTAKES"
+            title="Review Work"
+            description={
+              <>
+                Don&apos;t lose points twice. Reviewing mistakes is the{' '}
+                <strong className="dash-strong font-semibold">#1 way</strong> to improve.
+              </>
+            }
+            cta="Learn"
+            href="/dashboard#history"
+            icon={
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-5 h-5">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+              </svg>
+            }
+          />
+          <ActionCard
+            accent="#b388ff"
+            tag="AI INSIGHTS"
+            title="Analytics"
+            description={
+              <>
+                Identify your{' '}
+                <strong className="dash-strong font-semibold">hidden blind spots</strong> and see
+                exactly where to focus next.
+              </>
+            }
+            cta="View Data"
+            href="/dashboard#analytics"
+            icon={
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-5 h-5">
+                <rect x="3" y="12" width="4" height="8" rx="1" />
+                <rect x="10" y="7" width="4" height="13" rx="1" />
+                <rect x="17" y="3" width="4" height="17" rx="1" />
+              </svg>
+            }
+          />
+        </section>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg transition-colors dark:border-white/10 dark:bg-[#111121]/90 dark:shadow-black/30">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900 dark:bg-indigo-600">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-            </div>
-            <div className="mb-1 text-3xl font-bold text-slate-900 dark:text-[#eeeaf4]">{stats.passedQuizzes}</div>
-            <div className="text-sm text-slate-600 dark:text-[#9d98ab]">Passed Quizzes</div>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg transition-colors dark:border-white/10 dark:bg-[#111121]/90 dark:shadow-black/30">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900 dark:bg-indigo-600">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-            <div className="mb-1 text-3xl font-bold text-slate-900 dark:text-[#eeeaf4]">
-              {formatDuration(Math.floor(stats.totalTimeSpent / 60))}
-            </div>
-            <div className="text-sm text-slate-600 dark:text-[#9d98ab]">Time Spent</div>
-          </div>
-        </div>
-
-        {/* Subscription status */}
-        <div className="mb-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg transition-colors dark:border-white/10 dark:bg-[#111121]/90 dark:shadow-black/30">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 p-6 dark:border-white/10">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-[#f5f2ff]">My Subscription</h2>
-              <p className="mt-1 text-sm text-slate-600 dark:text-[#9d98ab]">
-                {subscription
-                  ? subscription.cancelAtPeriodEnd
-                    ? 'Cancellation is scheduled. You keep full access until the date shown below.'
-                    : 'Details of your active subscription.'
-                  : "You don't have a subscription yet."}
-              </p>
-            </div>
-            {!subscription && (
-              <Link
-                href="/subscribe"
-                className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 dark:shadow-[0_4px_20px_rgba(79,70,229,0.35)]"
-              >
-                Start 48h free trial
-              </Link>
-            )}
-          </div>
-
-          {subscription ? (
-            <div className="grid gap-6 p-6 md:grid-cols-2">
-              <div>
-                <div className="text-xs uppercase tracking-wide text-slate-500 dark:text-[#9d98ab]">Plan</div>
-                <div className="text-lg font-semibold text-slate-900 dark:text-[#eeeaf4]">
-                  {subscription.plan === 'ALL_ACCESS'
-                    ? 'All Access — $25/month'
-                    : subscription.plan === 'SINGLE_COURSE'
-                    ? 'Single Course — $7/month'
-                    : subscription.plan}
-                </div>
-                {subscription.course && (
-                  <div className="mt-1 text-sm text-slate-600 dark:text-[#d4d0dc]">
-                    Course:{' '}
-                    <Link
-                      href={`/quiz/course/${subscription.course.slug}`}
-                      className="text-indigo-600 hover:underline dark:text-indigo-400 dark:hover:text-indigo-300"
-                    >
-                      {subscription.course.title}
-                    </Link>
-                  </div>
-                )}
-              </div>
-              <div>
-                <div className="text-xs uppercase tracking-wide text-slate-500 dark:text-[#9d98ab]">Status</div>
-                <div className="text-lg font-semibold">
-                  <StatusBadge status={subscription.status} />
-                </div>
-                <div className="mt-1 text-xs text-slate-500 dark:text-[#9d98ab]">
-                  via <span className="capitalize">{subscription.provider}</span>
-                  {subscription.cancelAtPeriodEnd ? ' • cancellation scheduled' : ''}
-                </div>
-              </div>
-              {subscription.trialEndsAt && subscription.status === 'trialing' && (
-                <div>
-                  <div className="text-xs uppercase tracking-wide text-slate-500 dark:text-[#9d98ab]">
-                    Trial ends
-                  </div>
-                  <div className="text-lg font-semibold text-slate-900 dark:text-[#eeeaf4]">
-                    {formatDate(subscription.trialEndsAt)}
-                  </div>
-                </div>
-              )}
-              {subscription.currentPeriodEnd && (
-                <div>
-                  <div className="text-xs uppercase tracking-wide text-slate-500 dark:text-[#9d98ab]">
-                    {subscription.cancelAtPeriodEnd
-                      ? 'Access until'
-                      : 'Next billing date'}
-                  </div>
-                  <div className="text-lg font-semibold text-slate-900 dark:text-[#eeeaf4]">
-                    {formatDate(subscription.currentPeriodEnd)}
-                  </div>
-                </div>
-              )}
-              <div className="flex flex-wrap gap-3 border-t border-slate-100 pt-2 dark:border-white/10 md:col-span-2">
-                {subscription.provider === 'stripe' && (
-                  <button
-                    type="button"
-                    onClick={openStripePortal}
-                    disabled={managing}
-                    className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-slate-800 disabled:opacity-60 dark:bg-[#f5c14a] dark:text-[#0c0a00] dark:hover:bg-[#f9d06a]"
-                  >
-                    {managing ? 'Opening…' : 'Manage / Cancel (Stripe)'}
-                  </button>
-                )}
-                {subscription.provider === 'paypal' && subscription.status !== 'canceled' && (
-                  <button
-                    type="button"
-                    onClick={cancelPaypal}
-                    disabled={managing}
-                    className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-all disabled:opacity-60"
-                  >
-                    {managing ? 'Canceling…' : 'Cancel PayPal subscription'}
-                  </button>
-                )}
-                <Link
-                  href="/subscribe"
-                  className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-800 transition-all hover:bg-slate-200 dark:bg-white/10 dark:text-[#eeeaf4] dark:hover:bg-white/15"
-                >
-                  Change plan
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <div className="p-8 text-center">
-              <p className="mb-4 text-slate-600 dark:text-[#d4d0dc]">
-                Unlock access to courses and quizzes with a monthly subscription.
-              </p>
-              <Link
-                href="/subscribe"
-                className="inline-block rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white hover:bg-indigo-700"
-              >
-                View plans
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {/* Quiz History */}
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg transition-colors dark:border-white/10 dark:bg-[#111121]/90 dark:shadow-black/30">
-          <div className="border-b border-slate-200 p-6 dark:border-white/10">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-[#f5f2ff]">Quiz History</h2>
-              <Link
-                href="/quiz"
-                className="flex items-center gap-2 font-semibold text-slate-900 hover:text-slate-700 dark:text-[#f5c14a] dark:hover:text-[#f9d06a]"
-              >
-                Take New Quiz
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </Link>
-            </div>
-          </div>
-
-          {stats.attempts.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="mb-4 text-6xl">📝</div>
-              <h3 className="mb-2 text-xl font-semibold text-slate-900 dark:text-[#f5f2ff]">No quiz attempts yet</h3>
-              <p className="mb-6 text-slate-600 dark:text-[#9d98ab]">Start taking quizzes to track your progress!</p>
-              <Link href="/quiz" className="btn-primary inline-flex items-center gap-2">
-                Browse Quizzes
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </Link>
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-200 dark:divide-white/10">
-              {stats.attempts
-                .sort((a: any, b: any) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
-                .map((attempt: any, index: number) => (
-                  <div key={index} className="p-6 transition-colors hover:bg-slate-50 dark:hover:bg-white/5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="mb-3 flex items-center gap-4">
-                          <Link
-                            href={`/quiz/${attempt.quizSlug}`}
-                            className="text-lg font-bold text-slate-900 transition-colors hover:text-indigo-600 dark:text-[#eeeaf4] dark:hover:text-[#f5c14a]"
-                          >
-                            {attempt.quizTitle}
-                          </Link>
-                          <span className={`px-3 py-1 rounded-lg text-sm font-semibold border ${getScoreColor(attempt.percentage)}`}>
-                            {attempt.percentage}%
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-6 text-sm text-slate-600 dark:text-[#9d98ab]">
-                          <span className="flex items-center gap-1.5">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            {attempt.correctAnswers} / {attempt.totalQuestions} correct
-                          </span>
-                          <span className="flex items-center gap-1.5">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            {formatDuration(Math.floor(attempt.timeSpent / 60))}
-                          </span>
-                          <span className="flex items-center gap-1.5">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            {formatDate(attempt.completedAt)}
-                          </span>
-                        </div>
-                      </div>
-                      <Link
-                        href={`/quiz/${attempt.quizSlug}`}
-                        className="ml-4 rounded-xl bg-slate-100 px-4 py-2 font-semibold text-slate-900 transition-all duration-200 hover:bg-slate-200 dark:bg-white/10 dark:text-[#eeeaf4] dark:hover:bg-white/15"
-                      >
-                        Retake
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          )}
-        </div>
-      </div>
+        <section className="flex flex-wrap gap-3">
+          <Link
+            href="/blogs"
+            className="dash-pill inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-colors"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4 h-4">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+            </svg>
+            Free Study Resources
+          </Link>
+          <Link
+            href="/dashboard#profile"
+            className="dash-pill inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-colors"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4 h-4">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21c0-4 4-7 8-7s8 3 8 7" />
+            </svg>
+            Profile
+          </Link>
+        </section>
+      </main>
     </div>
   );
 }
 
+function ExamsSection({
+  courses,
+  loading,
+  totalQuizzes,
+  totalModules,
+  examBanks,
+}: {
+  courses: Course[];
+  loading: boolean;
+  totalQuizzes: number;
+  totalModules: number;
+  examBanks: number;
+}) {
+  return (
+    <section id="exams" className="mb-8 scroll-mt-6">
+      <div className="mb-6 text-center">
+        <h2
+          className="dash-exams-title mb-4"
+          style={{
+            fontFamily: "'Instrument Serif', serif",
+            fontSize: 'clamp(1.75rem, 3vw, 2.5rem)',
+            lineHeight: 1.1,
+          }}
+        >
+          All Exams
+        </h2>
+        {!loading && (
+          <p className="dash-exams-note dash-muted mx-auto max-w-3xl rounded-2xl border px-5 py-4 text-base md:text-lg">
+            {totalQuizzes} exam{totalQuizzes !== 1 ? 's' : ''} available to test your knowledge and
+            improve your mathematics skills
+          </p>
+        )}
+      </div>
 
+      {!loading && examBanks > 0 && (
+        <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="dash-exam-stat rounded-xl border p-4 text-center">
+            <p className="text-2xl font-bold text-[#f5c14a]">{examBanks}</p>
+            <p className="dash-muted text-xs uppercase tracking-wider">Exam banks</p>
+          </div>
+          <div className="dash-exam-stat rounded-xl border p-4 text-center">
+            <p className="text-2xl font-bold text-[#b388ff]">{totalQuizzes}</p>
+            <p className="dash-muted text-xs uppercase tracking-wider">Total exams</p>
+          </div>
+          <div className="dash-exam-stat rounded-xl border p-4 text-center">
+            <p className="text-2xl font-bold text-[#2be4c8]">{totalModules}</p>
+            <p className="dash-muted text-xs uppercase tracking-wider">Modules</p>
+          </div>
+          <div className="dash-exam-stat rounded-xl border p-4 text-center">
+            <p className="text-2xl font-bold text-[#ff5f7e]">48h</p>
+            <p className="dash-muted text-xs uppercase tracking-wider">Free trial</p>
+          </div>
+        </div>
+      )}
 
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <LoadingSpinner size="lg" />
+        </div>
+      ) : courses.length > 0 ? (
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {courses.map((course) => (
+            <DashboardExamCard key={course.id} course={course} />
+          ))}
+        </div>
+      ) : (
+        <div className="dash-exam-stat rounded-2xl border px-6 py-12 text-center">
+          <p className="dash-muted">No exam banks published yet.</p>
+        </div>
+      )}
+    </section>
+  );
+}
 
+function DashboardExamCard({ course }: { course: Course }) {
+  return (
+    <Link
+      href={`/quiz/course/${course.slug}`}
+      className="dash-exam-card group block rounded-2xl border p-6 text-left transition-all duration-300 hover:-translate-y-1"
+    >
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <h3 className="dash-exam-card-title text-lg font-bold leading-snug">{course.title}</h3>
+        <svg
+          className="h-5 w-5 shrink-0 text-[#f5c14a] opacity-0 transition-opacity group-hover:opacity-100"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </div>
+      {course.description && (
+        <p className="dash-muted mb-5 line-clamp-3 text-sm leading-relaxed">
+          {excerptFromHtml(course.description, 220)}
+        </p>
+      )}
+      <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
+        <span className="dash-exam-badge inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5">
+          <svg className="h-4 w-4 text-[#b388ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+            />
+          </svg>
+          {course.moduleCount} module{course.moduleCount !== 1 ? 's' : ''}
+        </span>
+        <span className="dash-exam-badge inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5">
+          <svg className="h-4 w-4 text-[#2be4c8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            />
+          </svg>
+          {course.totalQuizzes} exam{course.totalQuizzes !== 1 ? 's' : ''}
+        </span>
+      </div>
+    </Link>
+  );
+}
 
+function Sidebar({
+  collapsed,
+  onToggle,
+  onLogout,
+  activeKey,
+}: {
+  collapsed: boolean;
+  onToggle: () => void;
+  onLogout: () => void;
+  activeKey: NavKey;
+}) {
+  return (
+    <aside
+      className="dash-sidebar fixed inset-y-0 left-0 z-40 flex flex-col gap-1.5 border-r p-4 transition-[width] duration-200"
+      style={{ width: collapsed ? '72px' : '240px' }}
+    >
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label="Toggle sidebar"
+          className="dash-sidebar-btn inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-[11px] font-semibold uppercase tracking-wider transition-colors"
+        >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          className="h-4 w-4 transition-transform"
+          style={{ transform: collapsed ? 'rotate(180deg)' : 'none' }}
+        >
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+        {!collapsed && <span>Collapse</span>}
+        </button>
+        <ThemeToggle className="shrink-0" />
+      </div>
 
+      <nav className="flex flex-1 flex-col gap-0.5">
+        {NAV_ITEMS.map((item) => {
+          const isActive = item.key === activeKey;
+          return (
+            <Link
+              key={item.key}
+              href={item.href}
+              title={collapsed ? item.label : undefined}
+              className={`dash-nav-link flex items-center gap-3 rounded-lg px-3 py-2.5 text-[0.92rem] font-medium transition-colors ${
+                isActive ? 'dash-nav-link-active' : ''
+              }`}
+            >
+              <span className="inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center">
+                {item.icon}
+              </span>
+              {!collapsed && <span className="truncate">{item.label}</span>}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <button
+        type="button"
+        onClick={onLogout}
+        title={collapsed ? 'Log Out' : undefined}
+        className="mt-2 inline-flex items-center gap-3 rounded-lg px-3 py-2.5 text-[0.92rem] font-medium text-[#ff6b7a] transition-colors hover:bg-[#ff6b7a]/10"
+      >
+        <span className="inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[18px] w-[18px]">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </span>
+        {!collapsed && <span>Log Out</span>}
+      </button>
+    </aside>
+  );
+}
+
+function WelcomeHero({
+  name,
+  isPremium,
+  startHref,
+  upgradeHref,
+}: {
+  name: string;
+  isPremium: boolean;
+  startHref: string;
+  upgradeHref: string;
+}) {
+  return (
+    <section className="dash-hero relative mb-5 flex items-center justify-between gap-6 overflow-hidden rounded-3xl border px-6 py-7 md:px-9 md:py-8">
+      <div className="relative z-10 max-w-[540px]">
+        <span
+          className={`mb-4 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold tracking-wider ${
+            isPremium ? 'dash-plan-badge-premium' : 'dash-plan-badge'
+          }`}
+        >
+          <span className="h-1.5 w-1.5 rounded-full bg-current" />
+          {isPremium ? 'Premium Plan' : 'Free Plan'}
+        </span>
+        <h1
+          className="dash-hero-title mb-2.5"
+          style={{
+            fontFamily: "'Instrument Serif', serif",
+            fontSize: 'clamp(2rem, 4vw, 2.75rem)',
+            lineHeight: 1.05,
+            letterSpacing: '-0.02em',
+          }}
+        >
+          Welcome, <span className="text-[#f5c14a]">{name}</span>
+        </h1>
+        <p className="dash-muted mb-6 text-[0.95rem]">Ready for your next milestone?</p>
+        <div className="flex flex-wrap gap-2.5">
+          <Link
+            href={startHref}
+            className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-[#0c0a00] transition-transform hover:-translate-y-0.5"
+            style={{
+              background: 'linear-gradient(180deg, #f5c14a 0%, #e0a82e 100%)',
+              boxShadow: '0 6px 20px rgba(245, 193, 74, 0.24)',
+            }}
+          >
+            Start a Practice Test
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </Link>
+          {!isPremium && (
+            <Link
+              href={upgradeHref}
+              className="dash-btn-secondary inline-flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-semibold transition-colors"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+                <path d="M12 2L4 8v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V8l-8-6z" />
+              </svg>
+              Unlock Premium
+            </Link>
+          )}
+        </div>
+      </div>
+
+      <div className="relative z-0 hidden w-[320px] max-w-[38%] shrink-0 md:block" aria-hidden="true">
+        <BooksIllustration />
+      </div>
+    </section>
+  );
+}
+
+function BooksIllustration() {
+  return (
+    <svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" className="h-auto w-full">
+      <defs>
+        <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#f5c14a" stopOpacity="0.55" />
+          <stop offset="100%" stopColor="#f5c14a" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <ellipse cx="160" cy="150" rx="150" ry="22" fill="url(#glow)" opacity="0.7" />
+      <rect x="40" y="135" width="240" height="6" rx="1" fill="#f5c14a" />
+      <rect x="60" y="141" width="10" height="10" fill="#b08a2c" />
+      <rect x="250" y="141" width="10" height="10" fill="#b08a2c" />
+      <rect x="120" y="50" width="80" height="85" fill="#3a3a52" />
+      <rect x="120" y="50" width="80" height="10" fill="#2a2a40" />
+      <rect x="125" y="65" width="70" height="3" fill="rgba(255,255,255,0.18)" />
+      <rect x="98" y="72" width="22" height="63" fill="#7a3a3a" />
+      <rect x="200" y="72" width="22" height="63" fill="#3a5a7a" />
+      <rect x="78" y="92" width="20" height="43" fill="#6a5a3a" />
+      <rect x="222" y="92" width="20" height="43" fill="#5a3a6a" />
+      <rect x="146" y="32" width="28" height="20" fill="#f5c14a" />
+      <rect x="146" y="32" width="28" height="3" fill="#e0a82e" />
+    </svg>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  accent,
+  children,
+}: {
+  label: string;
+  value: string;
+  accent: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div
+      className="dash-stat-card flex min-h-[130px] flex-col gap-2 rounded-2xl border px-5 py-4"
+    >
+      <div className="inline-flex items-center gap-2">
+        <span
+          className="h-3.5 w-3.5 rounded opacity-60"
+          style={{ background: accent }}
+        />
+        <span className="dash-muted text-[0.7rem] font-semibold tracking-[0.12em]">{label}</span>
+      </div>
+      <div
+        className="dash-stat-value"
+        style={{
+          fontFamily: "'Bebas Neue', sans-serif",
+          fontSize: '2.4rem',
+          lineHeight: 1,
+          letterSpacing: '0.04em',
+        }}
+      >
+        {value}
+      </div>
+      <div className="mt-auto">{children}</div>
+    </div>
+  );
+}
+
+function Sparkline({ color }: { color: string }) {
+  return (
+    <svg viewBox="0 0 200 30" preserveAspectRatio="none" className="h-6 w-full">
+      <polyline
+        fill="none"
+        stroke={color}
+        strokeWidth="1.5"
+        opacity="0.7"
+        points="0,22 25,20 50,17 75,18 100,14 125,12 150,10 175,9 200,6"
+      />
+    </svg>
+  );
+}
+
+function ProgressDots({ filled, total }: { filled: number; total: number }) {
+  return (
+    <div className="flex items-center gap-1">
+      {Array.from({ length: total }).map((_, i) => (
+        <span
+          key={i}
+          className={`h-1.5 flex-1 rounded-full ${i < filled ? '' : 'dash-progress-empty'}`}
+          style={i < filled ? { background: '#2be4c8' } : undefined}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ActionCard({
+  accent,
+  tag,
+  title,
+  description,
+  cta,
+  href,
+  icon,
+  locked = false,
+}: {
+  accent: string;
+  tag: string;
+  title: string;
+  description: ReactNode;
+  cta: string;
+  href: string;
+  icon: ReactNode;
+  locked?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className="dash-action-card group relative flex min-h-[200px] flex-col gap-2.5 overflow-hidden rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-0.5"
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = `${accent}55`;
+        e.currentTarget.style.boxShadow = `0 14px 36px ${accent}1f`;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = '';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+    >
+      <span
+        className="pointer-events-none absolute -bottom-[60%] -right-[40%] h-60 w-60 rounded-full"
+        style={{ background: `radial-gradient(closest-side, ${accent}22, transparent 70%)` }}
+        aria-hidden="true"
+      />
+      <div
+        className="inline-flex h-9 w-9 items-center justify-center rounded-[10px] border"
+        style={{
+          color: accent,
+          background: `${accent}15`,
+          borderColor: `${accent}33`,
+        }}
+      >
+        {icon}
+      </div>
+      <h3 className="dash-action-title mt-1 text-[1.05rem] font-bold">{title}</h3>
+      <p className="dash-muted text-[0.86rem] leading-[1.55]">{description}</p>
+      <div className="dash-action-foot mt-auto flex items-center justify-between border-t pt-2.5">
+        <span
+          className="inline-flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-[0.12em]"
+          style={{ color: accent }}
+        >
+          {locked && (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3 w-3">
+              <rect x="3" y="11" width="18" height="11" rx="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+          )}
+          {tag}
+        </span>
+        <span
+          className="inline-flex items-center gap-1.5 text-[0.78rem] font-semibold"
+          style={{ color: accent }}
+        >
+          {cta}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        </span>
+      </div>
+    </Link>
+  );
+}

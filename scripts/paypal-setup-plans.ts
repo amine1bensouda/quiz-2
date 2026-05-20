@@ -53,7 +53,7 @@ async function main() {
 
   for (const def of defs) {
     const cfg = PLANS[def.key];
-    const plan = await createPaypalPlan({
+    const planWithTrial = await createPaypalPlan({
       productId: product.id,
       name: def.name,
       description: def.description,
@@ -63,12 +63,24 @@ async function main() {
       intervalCount: 1,
       trialDays: 2, // PayPal granularity => 2 days ~ 48h
     });
-    console.log(`Plan ${def.key}: ${plan.id}`);
+    console.log(`Plan ${def.key} (with trial): ${planWithTrial.id}`);
+
+    const planNoTrial = await createPaypalPlan({
+      productId: product.id,
+      name: def.name.replace(' — ', ' (no trial) — '),
+      description: def.description.replace('48h d\'essai gratuit. ', ''),
+      currency: 'USD',
+      amountCents: cfg.priceCents,
+      intervalUnit: 'MONTH',
+      intervalCount: 1,
+      trialDays: 0,
+    });
+    console.log(`Plan ${def.key} (no trial): ${planNoTrial.id}`);
   }
 
   console.log('\nDone. Add the plan IDs to your .env :');
-  console.log('  PAYPAL_PLAN_SINGLE_COURSE_ID=<id above>');
-  console.log('  PAYPAL_PLAN_ALL_ACCESS_ID=<id above>');
+  console.log('  PAYPAL_PLAN_SINGLE_COURSE_ID=<with trial id above>');
+  console.log('  PAYPAL_PLAN_SINGLE_COURSE_NO_TRIAL_ID=<no trial id above>');
 }
 
 main().catch((err) => {

@@ -4,7 +4,7 @@
 
 /* Import Quill styles */
 @import 'react-quill/dist/quill.snow.css';
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@300;400;500;600&family=Bebas+Neue&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@300;400;500;600&family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600&display=swap');
 
 @layer base {
   body {
@@ -12,6 +12,29 @@
     font-feature-settings: "rlig" 1, "calt" 1;
     min-height: 100vh;
     transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  /* Modern paragraph typography site-wide */
+  p {
+    font-family: var(--font-paragraph), 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 1.0625rem;
+    font-weight: 400;
+    line-height: 1.75;
+    letter-spacing: -0.014em;
+    font-optical-sizing: auto;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Preserve editor / math / rich HTML behaviour */
+  .html-with-math-renderer p,
+  .quiz-rich-html p,
+  .ql-editor p,
+  .admin-app .ql-editor p {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    letter-spacing: normal;
+    font-weight: inherit;
   }
   
   html {
@@ -744,14 +767,17 @@ html.light .admin-app .admin-theme-toggle:hover {
 .ctc-home .orb-teal { width: 360px; height: 360px; background: rgba(20,180,160,0.12); bottom: 0; left: 40%; }
 
 .ctc-home .hero-badge {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   border: 1px solid rgba(245, 193, 74, 0.3);
   background: rgba(245, 193, 74, 0.06);
   border-radius: var(--r-pill);
-  padding: 7px 18px;
-  font-size: 0.78rem;
+  padding: 8px 20px;
   color: var(--amber);
   margin-bottom: 36px;
-  letter-spacing: 0.5px;
 }
 
 .ctc-home .hero-h1 {
@@ -764,9 +790,62 @@ html.light .admin-app .admin-theme-toggle:hover {
 }
 
 .ctc-home .hero-h1 em { color: var(--amber); font-style: italic; }
-.ctc-home .hero-sub { max-width: 560px; color: var(--muted); line-height: 1.7; margin-bottom: 44px; }
+.ctc-home .hero-sub {
+  max-width: 34rem;
+  color: var(--muted);
+  font-size: 1.125rem;
+  line-height: 1.8;
+  letter-spacing: -0.018em;
+  margin-bottom: 44px;
+}
 
-.ctc-home .actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.ctc-home .actions { display: flex; justify-content: center; }
+
+.ctc-home .btn-hero {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  gap: 10px;
+  padding: 16px 32px;
+  border-radius: var(--r-pill);
+  text-decoration: none;
+  color: var(--amber);
+  background: linear-gradient(
+    135deg,
+    rgba(245, 193, 74, 0.14) 0%,
+    rgba(245, 193, 74, 0.04) 100%
+  );
+  border: 1px solid rgba(245, 193, 74, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow:
+    0 4px 28px rgba(245, 193, 74, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: color 0.25s ease, background 0.25s ease, border-color 0.25s ease,
+    box-shadow 0.25s ease, transform 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+}
+
+.ctc-home .btn-hero-arrow {
+  display: inline-block;
+  transition: transform 0.25s ease;
+}
+
+.ctc-home .btn-hero:hover {
+  color: #0c0a00;
+  background: var(--amber);
+  border-color: var(--amber);
+  box-shadow: 0 10px 40px var(--amber-glow);
+  transform: translateY(-2px);
+}
+
+.ctc-home .btn-hero:hover .btn-hero-arrow {
+  transform: translateX(4px);
+}
+
 .ctc-home .btn-primary,
 .ctc-home .btn-secondary {
   border-radius: var(--r-pill);
@@ -827,7 +906,19 @@ html.light .admin-app .admin-theme-toggle:hover {
 .ctc-home .section { max-width: 1240px; margin: 0 auto; padding: 100px 5vw; }
 .ctc-home .section-title { font-family: 'Instrument Serif', serif; font-size: clamp(2rem, 4vw, 3.6rem); line-height: 1.1; margin-bottom: 14px; }
 .ctc-home .section-title em { color: var(--amber); }
-.ctc-home .section-desc { color: var(--muted); line-height: 1.7; }
+.ctc-home .section-desc {
+  color: var(--muted);
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  letter-spacing: -0.014em;
+  max-width: 40rem;
+}
+
+.ctc-home .step p.section-desc {
+  font-size: 0.975rem;
+  line-height: 1.7;
+  max-width: none;
+}
 
 .ctc-home .qbank-grid {
   margin-top: 42px;
@@ -875,7 +966,16 @@ html.light .admin-app .admin-theme-toggle:hover {
 }
 .ctc-home .qname { font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; letter-spacing: 2px; }
 .ctc-home .price { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; }
-.ctc-home .muted { color: var(--faint); font-size: 0.8rem; }
+.ctc-home .muted {
+  color: var(--faint);
+  font-size: 0.875rem;
+  line-height: 1.65;
+  letter-spacing: -0.01em;
+}
+
+.ctc-home p {
+  font-family: var(--font-paragraph), 'Plus Jakarta Sans', system-ui, sans-serif;
+}
 .ctc-home .card-btn {
   display: inline-block;
   margin-top: 18px;
@@ -1152,4 +1252,263 @@ html.dark .blog-post-content.prose strong {
 html.dark .blog-article-content .ql-size-large,
 html.dark .blog-article-content .ql-size-huge {
   color: #eeeaf4 !important;
+}
+
+/* ── Dashboard (dark default) ── */
+.dash-app {
+  background: #080810;
+  color: #eeeaf4;
+}
+
+.dash-sidebar {
+  background: #0a0a14;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.dash-sidebar-btn {
+  color: rgba(255, 255, 255, 0.5);
+}
+.dash-sidebar-btn:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+}
+
+.dash-nav-link {
+  color: rgba(255, 255, 255, 0.6);
+}
+.dash-nav-link:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+}
+.dash-nav-link-active {
+  background: rgba(245, 193, 74, 0.1);
+  color: #f5c14a;
+}
+
+.dash-hero {
+  border-color: rgba(255, 255, 255, 0.08);
+  background-image:
+    radial-gradient(120% 80% at 100% 100%, rgba(245, 193, 74, 0.12) 0%, rgba(245, 193, 74, 0) 60%),
+    linear-gradient(180deg, #11111f 0%, #0c0c18 100%);
+}
+
+.dash-hero-title {
+  color: #f5f2ff;
+}
+.dash-plan-badge {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.65);
+}
+.dash-plan-badge-premium {
+  border-color: rgba(245, 193, 74, 0.4);
+  background: rgba(245, 193, 74, 0.1);
+  color: #f5c14a;
+}
+.dash-muted {
+  color: rgba(255, 255, 255, 0.55);
+}
+.dash-strong {
+  color: rgba(255, 255, 255, 0.85);
+}
+.dash-btn-secondary {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.85);
+}
+.dash-btn-secondary:hover {
+  border-color: rgba(245, 193, 74, 0.45);
+  color: #f5c14a;
+}
+
+.dash-stat-card,
+.dash-action-card {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: linear-gradient(180deg, #11111f 0%, #0d0d18 100%);
+}
+.dash-stat-value {
+  color: rgba(255, 255, 255, 0.92);
+}
+.dash-action-title {
+  color: #f5f2ff;
+}
+.dash-action-foot {
+  border-color: rgba(255, 255, 255, 0.05);
+}
+.dash-progress-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+.dash-progress-empty {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dash-pill {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(255, 255, 255, 0.75);
+}
+.dash-pill:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+/* Dashboard light mode */
+html.light .dash-app {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+html.light .dash-sidebar {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.1);
+  box-shadow: 2px 0 24px rgba(15, 23, 42, 0.06);
+}
+html.light .dash-sidebar-btn {
+  color: rgba(15, 23, 42, 0.5);
+}
+html.light .dash-sidebar-btn:hover {
+  background: rgba(15, 23, 42, 0.05);
+  color: #0f172a;
+}
+html.light .dash-nav-link {
+  color: rgba(15, 23, 42, 0.65);
+}
+html.light .dash-nav-link:hover {
+  background: rgba(15, 23, 42, 0.05);
+  color: #0f172a;
+}
+html.light .dash-nav-link-active {
+  background: rgba(234, 179, 8, 0.12);
+  color: #b45309;
+}
+html.light .dash-hero {
+  border-color: rgba(15, 23, 42, 0.1);
+  background-image:
+    radial-gradient(120% 80% at 100% 100%, rgba(234, 179, 8, 0.15) 0%, rgba(234, 179, 8, 0) 60%),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+html.light .dash-hero-title {
+  color: #0f172a;
+}
+html.light .dash-plan-badge {
+  border-color: rgba(15, 23, 42, 0.12);
+  background: rgba(15, 23, 42, 0.04);
+  color: rgba(15, 23, 42, 0.65);
+}
+html.light .dash-plan-badge-premium {
+  border-color: rgba(180, 83, 9, 0.35);
+  background: rgba(234, 179, 8, 0.12);
+  color: #b45309;
+}
+html.light .dash-muted {
+  color: rgba(15, 23, 42, 0.55);
+}
+html.light .dash-strong {
+  color: rgba(15, 23, 42, 0.88);
+}
+html.light .dash-btn-secondary {
+  border-color: rgba(15, 23, 42, 0.15);
+  background: rgba(15, 23, 42, 0.04);
+  color: rgba(15, 23, 42, 0.85);
+}
+html.light .dash-btn-secondary:hover {
+  border-color: rgba(180, 83, 9, 0.45);
+  color: #b45309;
+}
+html.light .dash-stat-card,
+html.light .dash-action-card {
+  border-color: rgba(15, 23, 42, 0.1);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+}
+html.light .dash-stat-value {
+  color: #0f172a;
+}
+html.light .dash-action-title {
+  color: #0f172a;
+}
+html.light .dash-action-foot {
+  border-color: rgba(15, 23, 42, 0.08);
+}
+html.light .dash-progress-track {
+  background: rgba(15, 23, 42, 0.08);
+}
+html.light .dash-progress-empty {
+  background: rgba(15, 23, 42, 0.1);
+}
+html.light .dash-pill {
+  border-color: rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  color: rgba(15, 23, 42, 0.75);
+}
+html.light .dash-pill:hover {
+  border-color: rgba(15, 23, 42, 0.2);
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+/* Annule les overrides globaux html.light sur le texte du dashboard */
+html.light .dash-app .text-\[\#eeeaf4\],
+html.light .dash-app .text-\[\#f5f2ff\] {
+  color: inherit;
+}
+
+/* Dashboard — section exams */
+.dash-exams-title {
+  color: #f5f2ff;
+}
+.dash-exams-note {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+}
+.dash-exam-stat {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, #11111f 0%, #0d0d18 100%);
+}
+.dash-exam-card {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, #12121f 0%, #0d0d18 100%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+.dash-exam-card:hover {
+  border-color: rgba(245, 193, 74, 0.4);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
+}
+.dash-exam-card-title {
+  color: #f5f2ff;
+}
+.dash-exam-badge {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+html.light .dash-exams-title {
+  color: #0f172a;
+}
+html.light .dash-exams-note {
+  border-color: rgba(15, 23, 42, 0.1);
+  background: #ffffff;
+}
+html.light .dash-exam-stat {
+  border-color: rgba(15, 23, 42, 0.1);
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+}
+html.light .dash-exam-card {
+  border-color: rgba(15, 23, 42, 0.1);
+  background: #ffffff;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+}
+html.light .dash-exam-card:hover {
+  border-color: rgba(180, 83, 9, 0.35);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+}
+html.light .dash-exam-card-title {
+  color: #0f172a;
+}
+html.light .dash-exam-badge {
+  border-color: rgba(15, 23, 42, 0.1);
+  background: #f8fafc;
+  color: rgba(15, 23, 42, 0.75);
 }
