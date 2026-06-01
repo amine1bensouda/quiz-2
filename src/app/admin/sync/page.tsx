@@ -1,12 +1,14 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
+import QuizSyncTable from '@/components/Admin/QuizSyncTable';
 import SyncDatabaseError from '@/components/Admin/SyncDatabaseError';
+import { getMissingSyncEnvVars } from '@/lib/sync/env-check';
 import { formatPrismaDbError } from '@/lib/sync/db-error-message';
 
 export const dynamic = 'force-dynamic';
 
 async function loadSyncPageData() {
-  const [logs, publishedCount, outOfDateCount] = await Promise.all([
+  const [logs, publishedCount, outOfDateCount, quizzes] = await Promise.all([
     prisma.syncLog.findMany({
       orderBy: { createdAt: 'desc' },
       take: 100,
@@ -16,13 +18,28 @@ async function loadSyncPageData() {
     }),
     prisma.quiz.count({ where: { syncPublishStatus: 'PUBLISHED' } }),
     prisma.quiz.count({ where: { syncPublishStatus: 'OUT_OF_DATE' } }),
+    prisma.quiz.findMany({
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        syncPublishStatus: true,
+        lastSyncedAt: true,
+        freeQuizId: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 80,
+    }),
   ]);
-  return { logs, publishedCount, outOfDateCount };
+  return { logs, publishedCount, outOfDateCount, quizzes };
 }
 
 export default async function AdminSyncPage() {
+  const missingEnv = getMissingSyncEnvVars();
+
   try {
-    const { logs, publishedCount, outOfDateCount } = await loadSyncPageData();
+    const { logs, publishedCount, outOfDateCount, quizzes } =
+      await loadSyncPageData();
 
     return (
       <div className="space-y-6">
@@ -31,12 +48,49 @@ export default async function AdminSyncPage() {
             Synchronisation → The School
           </h1>
           <p className="text-gray-600">
-            Publication des quiz vers le site gratuit ({publishedCount} publiés,{' '}
-            {outOfDateCount} à republier)
+            Choisissez un quiz ci-dessous et cliquez <strong>Publier</strong> pour
+            l&apos;envoyer vers theschoolofmathematics.com ({publishedCount}{' '}
+            publiés, {outOfDateCount} à republier).
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+        {missingEnv.length > 0 && (
+          <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <p className="font-semibold">Configuration sync incomplète (.env)</p>
+            <p className="mt-1">
+              Variables manquantes sur le serveur :{' '}
+              <code>{missingEnv.join(', ')}</code>
+            </p>
+            <p className="mt-2 text-amber-800">
+              Ajoutez-les dans <code>/var/www/quizz/.env</code>, les mêmes clés
+              côté school (<code>SYNC_API_KEY</code>, <code>SYNC_HMAC_SECRET</code>
+              ), puis <code>pm2 restart quiz --update-env</code>.
+            </p>
+          </div>
+        )}
+
+        <section className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="px-4 py-3 border-b bg-gray-50 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-semibold text-gray-900">Quiz à publier</h2>
+            <Link
+              href="/admin/quizzes"
+              className="text-sm text-indigo-600 hover:underline font-medium"
+            >
+              Tous les quiz →
+            </Link>
+          </div>
+          <QuizSyncTable
+            quizzes={quizzes.map((q) => ({
+              ...q,
+              lastSyncedAt: q.lastSyncedAt?.toISOString() ?? null,
+            }))}
+          />
+        </section>
+
+        <section className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+          <h2 className="px-4 py-3 font-semibold text-gray-900 border-b bg-gray-50">
+            Historique des synchronisations
+          </h2>
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
               <tr>
@@ -61,7 +115,7 @@ export default async function AdminSyncPage() {
               {logs.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                    Aucune synchronisation pour le moment.
+                    Aucune tentative encore — utilisez le bouton Publier ci-dessus.
                   </td>
                 </tr>
               ) : (
@@ -110,7 +164,7 @@ export default async function AdminSyncPage() {
               )}
             </tbody>
           </table>
-        </div>
+        </section>
       </div>
     );
   } catch (error) {
