@@ -116,8 +116,8 @@ export default async function AdminSyncPage() {
   } catch (error) {
     return (
       <SyncDatabaseError
-        appLabel="quiz-main (payant)"
-        message={formatPrismaDbError(error)}
+        appLabel="Crack The Curve (payant)"
+        errorInfo={formatPrismaDbError(error)}
       />
     );
   }

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db';
+import { getAdminDashboardFallbackMessage } from '@/lib/admin-dashboard-fallback';
 import { isSafeModeEnabled } from '@/lib/runtime-flags';
 
 type AdminCountRow = {
@@ -13,6 +14,7 @@ export default async function AdminDashboard() {
   try {
     const safeMode = isSafeModeEnabled();
     let usedFallback = false;
+    let lastFallbackError: unknown = null;
     const safe = async <T,>(label: string, fn: () => Promise<T>, fallback: T): Promise<T> => {
       if (safeMode) {
         usedFallback = true;
@@ -23,11 +25,12 @@ export default async function AdminDashboard() {
       } catch (error) {
         console.error(`AdminDashboard ${label} fallback:`, error);
         usedFallback = true;
+        lastFallbackError = error;
         return fallback;
       }
     };
 
-    // Tolérant: si Supabase pool timeout, on n'affiche pas une erreur bloquante.
+    // Tolérant: une requête en échec n'affiche pas une page blanche.
     const countRows = await safe<AdminCountRow[]>(
       'counts',
       () => prisma.$queryRaw<AdminCountRow[]>`
@@ -127,7 +130,7 @@ export default async function AdminDashboard() {
       </div>
       {usedFallback && (
         <div className="admin-dashboard-alert rounded-xl border border-[#f5c14a]/40 bg-[#f5c14a]/10 px-4 py-3 text-sm text-[#fff7e0]">
-          Showing partial data: the database is temporarily unavailable or SAFE_MODE is enabled.
+          {getAdminDashboardFallbackMessage(lastFallbackError)}
         </div>
       )}
 
