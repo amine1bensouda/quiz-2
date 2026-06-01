@@ -86,6 +86,11 @@ model Quiz {
   order            Int           @default(0)
   questions        Question[]
   quizAttempts     QuizAttempt[]
+  syncPublishStatus String       @default("NOT_PUBLISHED") @map("sync_publish_status")
+  lastSyncedAt      DateTime?     @map("last_synced_at")
+  freeQuizId        String?       @map("free_quiz_id")
+  lastSyncPayloadHash String?     @map("last_sync_payload_hash")
+  syncLogs          SyncLog[]
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
@@ -93,6 +98,22 @@ model Quiz {
   @@index([slug])
   @@index([moduleId])
   @@index([moduleId, order])
+  @@index([syncPublishStatus])
+}
+
+model SyncLog {
+  id            String   @id @default(cuid())
+  quizId        String   @map("quiz_id")
+  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  direction     String   @default("TO_FREE")
+  status        String
+  freeQuizId    String?  @map("free_quiz_id")
+  payloadHash   String?  @map("payload_hash")
+  errorMessage  String?  @map("error_message")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("sync_logs")
+  @@index([quizId, createdAt(sort: Desc)])
 }
 
 model Question {

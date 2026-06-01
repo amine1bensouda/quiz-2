@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import QuizForm from '@/components/Admin/QuizForm';
+import PublishToFreeButton from '@/components/Admin/PublishToFreeButton';
 
 const quizInclude = {
   module: {
@@ -98,6 +99,13 @@ export default async function EditQuizPage({ params }: { params: { id: string } 
         </h1>
         <p className="text-gray-600">Modify quiz information</p>
       </div>
+      <PublishToFreeButton
+        quizId={quiz.id}
+        quizTitle={quiz.title}
+        syncPublishStatus={quiz.syncPublishStatus}
+        lastSyncedAt={quiz.lastSyncedAt?.toISOString() ?? null}
+        freeQuizId={quiz.freeQuizId}
+      />
       <QuizForm initialData={quizData} />
     </div>
   );

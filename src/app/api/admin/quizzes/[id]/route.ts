@@ -3,6 +3,7 @@ import { isFullRequest } from '@/lib/request-utils';
 import { revalidatePath } from 'next/cache';
 import { invalidatePublishedQuizzesCache } from '@/lib/cache';
 import { prisma } from '@/lib/db';
+import { markQuizSyncOutOfDateIfPublished } from '@/lib/sync/publish-quiz';
 import { generateSlug } from '@/lib/utils';
 
 
@@ -120,6 +121,8 @@ export async function PUT(
             updatedAt: true,
           },
         });
+
+    await markQuizSyncOutOfDateIfPublished(params.id);
 
     // Invalider le cache de la page quiz pour afficher les nouvelles données
     invalidatePublishedQuizzesCache();

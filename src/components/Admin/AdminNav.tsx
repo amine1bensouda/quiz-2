@@ -29,6 +29,7 @@ export default function AdminNav() {
     { href: '/admin/modules', label: 'Modules', icon: '📦' },
     { href: '/admin/lessons', label: 'Lessons', icon: '📄' },
     { href: '/admin/quizzes', label: 'Quizzes', icon: '📝' },
+    { href: '/admin/sync', label: 'Sync gratuit', icon: '🔄' },
     { href: '/admin/subscriptions', label: 'Subscriptions', icon: '💳' },
     { href: '/admin/blogs', label: 'Blogs', icon: '📰' },
     { href: '/admin/pages', label: 'Pages', icon: '📄' },
