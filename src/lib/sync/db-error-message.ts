@@ -49,12 +49,12 @@ export function formatPrismaDbError(error: unknown): DbErrorInfo {
     return {
       kind,
       message:
-        'Schéma de base non à jour : les tables/colonnes de synchronisation manquent sur ce serveur.',
+        'Schéma Prisma non aligné : colonnes/tables de sync manquantes sur ce serveur.',
       hints: [
-        'Sur le VPS, dans le dossier de l’application : cd /var/www/quizz (ou /var/www/school)',
-        'Exécuter : npx prisma migrate deploy',
-        'Puis : npm run build && pm2 restart <nom-du-processus>',
-        'Vérifier : npm run health:db',
+        'Sur le VPS : cd /var/www/quizz && git pull',
+        'chmod +x scripts/vps-migrate-sync.sh && ./scripts/vps-migrate-sync.sh',
+        'npm run build && pm2 restart quizz',
+        'npm run health:db',
       ],
     };
   }
