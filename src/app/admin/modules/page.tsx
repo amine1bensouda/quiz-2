@@ -64,57 +64,49 @@ export default async function AdminModulesPage({
     );
   }
 
+  const filterPill = (active: boolean) =>
+    active
+      ? 'rounded-lg bg-[#f5c14a] px-3 py-1.5 text-sm font-semibold text-[#0c0a00]'
+      : 'rounded-lg border border-white/15 bg-[#0e0e1a] px-3 py-1.5 text-sm font-medium text-[rgba(238,234,244,0.75)] transition-colors hover:border-[#f5c14a]/40 hover:text-[#f5c14a]';
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 text-[#eeeaf4]">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            Module Management
-          </h1>
-          <p className="text-gray-600">
+          <h1 className="mb-2 text-4xl font-bold tracking-tight text-[#eeeaf4]">Module Management</h1>
+          <p className="text-[rgba(238,234,244,0.55)]">
             {modules.length} module{modules.length !== 1 ? 's' : ''} total
             {searchParams.courseId && ' for this course'}
           </p>
         </div>
         <Link
           href={searchParams.courseId ? `/admin/modules/new?courseId=${searchParams.courseId}` : '/admin/modules/new'}
-          className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-lg"
+          className="rounded-full bg-[#f5c14a] px-6 py-3 text-sm font-semibold text-[#0c0a00] shadow-[0_4px_20px_rgba(245,193,74,0.2)] transition-colors hover:bg-[#f9d06a]"
         >
-          ➕ New Module
+          + New Module
         </Link>
       </div>
 
       {courses.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4">
-          <p className="text-sm font-medium text-gray-700 mb-2">Filter by course:</p>
+        <div className="admin-surface rounded-2xl border border-white/10 bg-[#12121f] p-4 shadow-lg">
+          <p className="mb-2 text-sm font-medium text-[rgba(238,234,244,0.75)]">Filter by course:</p>
           <div className="flex flex-wrap gap-2">
-            <Link
-              href="/admin/modules"
-              className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                !searchParams.courseId
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
+            <Link href="/admin/modules" className={filterPill(!searchParams.courseId)}>
               All
             </Link>
             {courses.map((course) => (
               <Link
                 key={course.id}
                 href={`/admin/modules?courseId=${course.id}`}
-                className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                  searchParams.courseId === course.id
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className={filterPill(searchParams.courseId === course.id)}
               >
                 {course.title}
                 {course.status !== 'published' ? (
                   <span
                     className={
                       searchParams.courseId === course.id
-                        ? 'ml-1 text-white/80 font-normal'
-                        : 'ml-1 text-amber-700/90'
+                        ? 'ml-1 font-normal text-[#0c0a00]/70'
+                        : 'ml-1 text-amber-300/90'
                     }
                   >
                     (draft)
@@ -129,7 +121,7 @@ export default async function AdminModulesPage({
       {modules.length > 0 ? (
         searchParams.courseId ? (
           <>
-            <p className="text-sm text-gray-600 mb-3">
+            <p className="mb-3 text-sm text-[rgba(238,234,244,0.55)]">
               Use the <span className="inline-block align-middle">↑</span> <span className="inline-block align-middle">↓</span> arrows to change module order.
             </p>
             <ModuleTableWithReorder
@@ -146,63 +138,63 @@ export default async function AdminModulesPage({
           />
           </>
         ) : (
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="admin-surface overflow-hidden rounded-2xl border border-white/10 bg-[#12121f] shadow-lg">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="border-b border-white/10 bg-[#0e0e1a]">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                       Title
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                       Course
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                       Slug
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                       Quiz
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                       Order
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-white/10">
                   {modules.map((module) => (
-                    <tr key={module.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={module.id} className="transition-colors hover:bg-white/[0.03]">
                       <td className="px-6 py-4">
-                        <div className="font-semibold text-gray-900">{module.title}</div>
+                        <div className="font-semibold text-[#eeeaf4]">{module.title}</div>
                         {module.description && (
-                          <div className="text-sm text-gray-500 mt-1 line-clamp-1">
+                          <div className="mt-1 line-clamp-1 text-sm text-[rgba(238,234,244,0.45)]">
                             {module.description}
                           </div>
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="px-3 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800">
+                        <span className="rounded-full border border-[#b388ff]/30 bg-[#b388ff]/15 px-3 py-1 text-xs font-medium text-[#d4b8ff]">
                           {module.course.title}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <code className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-700">
+                        <code className="rounded border border-white/10 bg-[#0e0e1a] px-2 py-1 text-xs text-[rgba(238,234,244,0.55)]">
                           {module.slug}
                         </code>
                       </td>
-                      <td className="px-6 py-4 text-gray-700">
+                      <td className="px-6 py-4 text-[rgba(238,234,244,0.75)]">
                         {module._count.quizzes}
                       </td>
-                      <td className="px-6 py-4 text-gray-700">
+                      <td className="px-6 py-4 text-[rgba(238,234,244,0.75)]">
                         {module.order}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center gap-2">
                           <Link
                             href={`/admin/modules/${module.id}/edit`}
-                            className="px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                            className="rounded-lg border border-white/15 px-3 py-1 text-sm font-medium text-[#eeeaf4] transition-colors hover:border-[#f5c14a]/50 hover:text-[#f5c14a]"
                           >
                             Edit
                           </Link>
@@ -217,13 +209,13 @@ export default async function AdminModulesPage({
           </div>
         )
       ) : (
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center">
-          <div className="text-6xl mb-4">📦</div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">No modules</h3>
-          <p className="text-gray-600 mb-6">Start by creating your first module</p>
+        <div className="admin-surface rounded-2xl border border-white/10 bg-[#12121f] p-12 text-center shadow-lg">
+          <div className="mb-4 text-6xl">📦</div>
+          <h3 className="mb-2 text-2xl font-bold text-[#eeeaf4]">No modules</h3>
+          <p className="mb-6 text-[rgba(238,234,244,0.55)]">Start by creating your first module</p>
           <Link
             href={searchParams.courseId ? `/admin/modules/new?courseId=${searchParams.courseId}` : '/admin/modules/new'}
-            className="inline-block px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium"
+            className="inline-block rounded-full bg-[#f5c14a] px-6 py-3 text-sm font-semibold text-[#0c0a00] transition-colors hover:bg-[#f9d06a]"
           >
             Create a module
           </Link>

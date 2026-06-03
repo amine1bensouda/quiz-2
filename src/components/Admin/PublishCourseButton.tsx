@@ -68,11 +68,11 @@ export default function PublishCourseButton({
     <button
       onClick={handleToggleStatus}
       disabled={isLoading}
-      className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
+      className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
         status === 'published'
-          ? 'bg-green-600 text-white hover:bg-green-700'
-          : 'bg-gray-400 text-white hover:bg-gray-500'
-      } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          ? 'border border-emerald-500/40 bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/25'
+          : 'border border-white/15 bg-white/5 text-[rgba(238,234,244,0.75)] hover:border-white/25'
+      } ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
       title={status === 'published' ? 'Click to set to draft' : 'Click to publish'}
     >
       {isLoading ? (

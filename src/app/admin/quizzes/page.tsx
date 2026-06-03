@@ -55,33 +55,33 @@ export default async function AdminQuizzesPage({
   const allQuizzesCount = quizzes.length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-[#eeeaf4]">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          <h1 className="mb-2 text-4xl font-bold tracking-tight text-[#eeeaf4]">
             Quiz Management
           </h1>
-          <p className="text-gray-600">{allQuizzesCount} quiz total</p>
+          <p className="text-[rgba(238,234,244,0.55)]">{allQuizzesCount} quiz total</p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+        <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
           <form method="get" className="flex items-center gap-2">
             <input
               type="text"
               name="q"
               placeholder="Search by title or slug..."
               defaultValue={searchParams?.q || ''}
-              className="w-full sm:w-64 px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full rounded-xl border border-white/10 bg-[#0e0e1a] px-3 py-2 text-sm text-[#eeeaf4] placeholder:text-[rgba(238,234,244,0.35)] focus:border-[#f5c14a]/60 focus:outline-none focus:ring-2 focus:ring-[#f5c14a]/20 sm:w-64"
             />
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors"
+              className="rounded-lg bg-[#f5c14a] px-4 py-2 text-sm font-semibold text-[#0c0a00] transition-colors hover:bg-[#f9d06a]"
             >
               Search
             </button>
             {searchQuery && (
               <a
                 href="/admin/quizzes"
-                className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                className="rounded-lg border border-white/15 px-3 py-2 text-sm font-medium text-[#eeeaf4] transition-colors hover:border-[#f5c14a]/50 hover:text-[#f5c14a]"
               >
                 Reset
               </a>
@@ -89,9 +89,9 @@ export default async function AdminQuizzesPage({
           </form>
           <a
             href="/admin/quizzes/new"
-            className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-lg text-center"
+            className="rounded-full bg-[#f5c14a] px-6 py-2.5 text-center text-sm font-semibold text-[#0c0a00] shadow-[0_4px_20px_rgba(245,193,74,0.2)] transition-colors hover:bg-[#f9d06a]"
           >
-            ➕ New Quiz
+            + New Quiz
           </a>
         </div>
       </div>
@@ -107,21 +107,21 @@ export default async function AdminQuizzesPage({
             return (
               <section
                 key={courseTitle}
-                className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden"
+                className="admin-surface overflow-hidden rounded-2xl border border-white/10 bg-[#12121f] shadow-lg"
               >
-                <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+                <div className="flex items-center justify-between border-b border-white/10 bg-[#0e0e1a] px-6 py-4">
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900">
+                    <h2 className="text-xl font-semibold text-[#eeeaf4]">
                       {courseTitle}
                     </h2>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-[rgba(238,234,244,0.45)]">
                       {courseQuizCount} quiz
                       {courseQuizCount > 1 ? 'zes' : ''} in this course
                     </p>
                   </div>
                 </div>
 
-                <div className="divide-y divide-gray-200">
+                <div className="divide-y divide-white/10">
                   {Object.entries(modules).map(([moduleTitle, moduleQuizzes]) => {
                     const list = moduleQuizzes as any[];
                     if (list.length === 0) return null;
@@ -130,10 +130,10 @@ export default async function AdminQuizzesPage({
                       <div key={moduleTitle} className="px-4 py-4">
                         <div className="flex items-center justify-between mb-3 px-2">
                           <div>
-                            <h3 className="text-lg font-semibold text-gray-900">
+                            <h3 className="text-lg font-semibold text-[#eeeaf4]">
                               {moduleTitle}
                             </h3>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-[rgba(238,234,244,0.45)]">
                               {list.length} quiz
                               {list.length > 1 ? 'zes' : ''} in this
                               module
@@ -143,49 +143,49 @@ export default async function AdminQuizzesPage({
 
                         <div className="overflow-x-auto">
                           <table className="w-full">
-                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <thead className="border-b border-white/10 bg-[#0e0e1a]">
                               <tr>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                                   Title
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                                   Slug
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                                   Questions
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                                   Difficulty
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                                   Actions
                                 </th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
+                            <tbody className="divide-y divide-white/10">
                               {list.map((quiz: any) => (
                                 <tr
                                   key={quiz.prismaId ?? quiz.id}
-                                  className="hover:bg-gray-50 transition-colors"
+                                  className="transition-colors hover:bg-white/[0.03]"
                                 >
                                   <td className="px-6 py-3">
-                                    <div className="font-semibold text-gray-900">
+                                    <div className="font-semibold text-[#eeeaf4]">
                                       {typeof quiz.title === 'string'
                                         ? quiz.title
                                         : quiz.title?.rendered || 'No title'}
                                     </div>
                                     {quiz.content?.rendered && (
-                                      <div className="text-sm text-gray-500 mt-1 truncate max-w-xl">
+                                      <div className="mt-1 max-w-xl truncate text-sm text-[rgba(238,234,244,0.45)]">
                                         {stripHtml(quiz.content.rendered)}
                                       </div>
                                     )}
                                   </td>
                                   <td className="px-6 py-3">
-                                    <code className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-700">
+                                    <code className="rounded border border-white/10 bg-[#0e0e1a] px-2 py-1 text-xs text-[rgba(238,234,244,0.55)]">
                                       {quiz.slug}
                                     </code>
                                   </td>
-                                  <td className="px-6 py-3 text-gray-700">
+                                  <td className="px-6 py-3 text-[rgba(238,234,244,0.75)]">
                                     {quiz.acf?.questions?.length ||
                                       quiz.acf?.nombre_questions ||
                                       0}
@@ -201,8 +201,8 @@ export default async function AdminQuizzesPage({
                                         <span
                                           className={`px-3 py-1 text-xs font-medium rounded-full ${
                                             isEmpty
-                                              ? 'bg-gray-100 text-gray-600'
-                                              : 'bg-indigo-100 text-indigo-800'
+                                              ? 'bg-white/10 text-[rgba(238,234,244,0.55)]'
+                                              : 'border border-[#b388ff]/30 bg-[#b388ff]/15 text-[#d4b8ff]'
                                           }`}
                                         >
                                           {label}
@@ -216,7 +216,7 @@ export default async function AdminQuizzesPage({
                                         href={`/admin/quizzes/${encodeURIComponent(
                                           quiz.slug
                                         )}/edit`}
-                                        className="px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                                        className="rounded-lg border border-white/15 px-3 py-1 text-sm font-medium text-[#eeeaf4] transition-colors hover:border-[#f5c14a]/50 hover:text-[#f5c14a]"
                                       >
                                         Edit
                                       </a>
@@ -245,15 +245,15 @@ export default async function AdminQuizzesPage({
           })}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center">
-          <div className="text-6xl mb-4">📝</div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">No quizzes</h3>
-          <p className="text-gray-600 mb-6">
+        <div className="admin-surface rounded-2xl border border-white/10 bg-[#12121f] p-12 text-center shadow-lg">
+          <div className="mb-4 text-6xl">📝</div>
+          <h3 className="mb-2 text-2xl font-bold text-[#eeeaf4]">No quizzes</h3>
+          <p className="mb-6 text-[rgba(238,234,244,0.55)]">
             Start by creating your first quiz
           </p>
           <a
             href="/admin/quizzes/new"
-            className="inline-block px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium"
+            className="inline-block rounded-full bg-[#f5c14a] px-6 py-3 text-sm font-semibold text-[#0c0a00] transition-colors hover:bg-[#f9d06a]"
           >
             Create a quiz
           </a>

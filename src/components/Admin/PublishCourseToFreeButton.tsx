@@ -62,13 +62,13 @@ export default function PublishCourseToFreeButton({
         type="button"
         onClick={handlePublishCourse}
         disabled={loading || totalQuizzes <= 0}
-        className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 disabled:opacity-50 transition-colors"
+        className="rounded-lg border border-sky-500/40 bg-sky-500/15 px-4 py-2 text-sm font-medium text-sky-200 transition-colors hover:bg-sky-500/25 disabled:opacity-50"
         title="Publish all quizzes from this course to The School"
       >
         {loading ? 'Publishing course...' : `Publish course (${totalQuizzes})`}
       </button>
-      {message && <p className="text-xs text-emerald-700">{message}</p>}
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {message && <p className="text-xs text-emerald-300">{message}</p>}
+      {error && <p className="text-xs text-red-300">{error}</p>}
     </div>
   );
 }

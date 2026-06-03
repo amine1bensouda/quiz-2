@@ -34,6 +34,17 @@ async function loadSyncPageData() {
   return { logs, publishedCount, outOfDateCount, quizzes };
 }
 
+function logStatusClass(status: string): string {
+  switch (status) {
+    case 'success':
+      return 'bg-emerald-500/20 text-emerald-300';
+    case 'pending':
+      return 'bg-white/10 text-[rgba(238,234,244,0.65)]';
+    default:
+      return 'bg-red-500/20 text-red-300';
+  }
+}
+
 export default async function AdminSyncPage() {
   const missingEnv = getMissingSyncEnvVars();
 
@@ -42,41 +53,42 @@ export default async function AdminSyncPage() {
       await loadSyncPageData();
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 text-[#eeeaf4]">
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            Synchronization -&gt; The School
+          <h1 className="mb-2 text-4xl font-bold tracking-tight text-[#eeeaf4]">
+            Synchronization → The School
           </h1>
-          <p className="text-gray-600">
-            Choose a quiz below and click <strong>Publish</strong> to send it to
+          <p className="text-[rgba(238,234,244,0.55)]">
+            Choose a quiz below and click <strong className="text-[#eeeaf4]">Publish</strong> to send it to
             theschoolofmathematics.com ({publishedCount} published, {outOfDateCount}{' '}
             out of date).
           </p>
         </div>
 
         {missingEnv.length > 0 && (
-          <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
             <p className="font-semibold">Incomplete sync configuration (.env)</p>
-            <p className="mt-1">
+            <p className="mt-1 text-amber-100/90">
               Missing variables on server:{' '}
-              <code>{missingEnv.join(', ')}</code>
+              <code className="rounded border border-white/10 bg-[#0e0e1a] px-1">{missingEnv.join(', ')}</code>
             </p>
-            <p className="mt-2 text-amber-800">
-              Add them to <code>/var/www/quizz/.env</code>, then use the same keys on
-              school (<code>SYNC_API_KEY</code>, <code>SYNC_HMAC_SECRET</code>), and run{' '}
-              <code>pm2 restart quiz --update-env</code>.
+            <p className="mt-2 text-amber-100/80">
+              Add them to <code className="rounded border border-white/10 bg-[#0e0e1a] px-1">/var/www/quizz/.env</code>, then use the same keys on
+              school (<code className="rounded border border-white/10 bg-[#0e0e1a] px-1">SYNC_API_KEY</code>,{' '}
+              <code className="rounded border border-white/10 bg-[#0e0e1a] px-1">SYNC_HMAC_SECRET</code>), and run{' '}
+              <code className="rounded border border-white/10 bg-[#0e0e1a] px-1">pm2 restart quiz --update-env</code>.
             </p>
           </div>
         )}
 
-        <section className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="px-4 py-3 border-b bg-gray-50 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-semibold text-gray-900">Quizzes to publish</h2>
+        <section className="admin-surface overflow-hidden rounded-2xl border border-white/10 bg-[#12121f] shadow-lg">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 bg-[#0e0e1a] px-4 py-3">
+            <h2 className="font-semibold text-[#eeeaf4]">Quizzes to publish</h2>
             <Link
               href="/admin/quizzes"
-              className="text-sm text-indigo-600 hover:underline font-medium"
+              className="text-sm font-medium text-[#f5c14a] hover:underline"
             >
-              All quizzes -&gt;
+              All quizzes →
             </Link>
           </div>
           <QuizSyncTable
@@ -87,48 +99,48 @@ export default async function AdminSyncPage() {
           />
         </section>
 
-        <section className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-          <h2 className="px-4 py-3 font-semibold text-gray-900 border-b bg-gray-50">
+        <section className="admin-surface overflow-hidden rounded-2xl border border-white/10 bg-[#12121f] shadow-lg">
+          <h2 className="border-b border-white/10 bg-[#0e0e1a] px-4 py-3 font-semibold text-[#eeeaf4]">
             Sync history
           </h2>
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b">
+            <thead className="border-b border-white/10 bg-[#0e0e1a]">
               <tr>
-                <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                <th className="px-4 py-3 text-left font-semibold text-[rgba(238,234,244,0.55)]">
                   Date
                 </th>
-                <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                <th className="px-4 py-3 text-left font-semibold text-[rgba(238,234,244,0.55)]">
                   Quiz
                 </th>
-                <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                <th className="px-4 py-3 text-left font-semibold text-[rgba(238,234,244,0.55)]">
                   Status
                 </th>
-                <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                <th className="px-4 py-3 text-left font-semibold text-[rgba(238,234,244,0.55)]">
                   Free ID
                 </th>
-                <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                <th className="px-4 py-3 text-left font-semibold text-[rgba(238,234,244,0.55)]">
                   Error
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody className="divide-y divide-white/10">
               {logs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan={5} className="px-4 py-8 text-center text-[rgba(238,234,244,0.45)]">
                     No sync attempts yet — use the Publish button above.
                   </td>
                 </tr>
               ) : (
                 logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                  <tr key={log.id} className="transition-colors hover:bg-white/[0.03]">
+                    <td className="whitespace-nowrap px-4 py-3 text-[rgba(238,234,244,0.55)]">
                       {log.createdAt.toLocaleString('en-US')}
                     </td>
                     <td className="px-4 py-3">
                       {log.quiz ? (
                         <Link
                           href={`/admin/quizzes/${log.quiz.id}/edit`}
-                          className="text-indigo-600 hover:underline font-medium"
+                          className="font-medium text-[#f5c14a] hover:underline"
                         >
                           {log.quiz.title}
                         </Link>
@@ -138,25 +150,21 @@ export default async function AdminSyncPage() {
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                          log.status === 'success'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : log.status === 'pending'
-                              ? 'bg-gray-100 text-gray-700'
-                              : 'bg-red-100 text-red-800'
-                        }`}
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${logStatusClass(log.status)}`}
                       >
                         {log.status}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       {log.freeQuizId ? (
-                        <code className="text-xs">{log.freeQuizId}</code>
+                        <code className="rounded border border-white/10 bg-[#0e0e1a] px-1 text-xs text-[rgba(238,234,244,0.55)]">
+                          {log.freeQuizId}
+                        </code>
                       ) : (
                         '—'
                       )}
                     </td>
-                    <td className="px-4 py-3 text-red-600 text-xs max-w-xs truncate">
+                    <td className="max-w-xs truncate px-4 py-3 text-xs text-red-300">
                       {log.errorMessage || '—'}
                     </td>
                   </tr>

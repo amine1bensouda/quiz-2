@@ -12,14 +12,14 @@ export default function SyncDatabaseError({ appLabel, errorInfo }: Props) {
       : 'Database issue';
 
   return (
-    <div className="max-w-2xl rounded-2xl border border-red-200 bg-red-50 p-6 space-y-4">
-      <h1 className="text-xl font-bold text-red-900">
+    <div className="max-w-2xl space-y-4 rounded-2xl border border-red-500/40 bg-red-500/10 p-6 text-[#eeeaf4]">
+      <h1 className="text-xl font-bold text-red-200">
         {title} — {appLabel}
       </h1>
-      <p className="text-sm text-red-800 whitespace-pre-wrap">
+      <p className="whitespace-pre-wrap text-sm text-red-100/90">
         {errorInfo.message}
       </p>
-      <div className="text-sm text-gray-800 space-y-2 bg-white rounded-lg p-4 border border-red-100">
+      <div className="space-y-2 rounded-lg border border-red-500/30 bg-[#12121f] p-4 text-sm text-[rgba(238,234,244,0.75)]">
         <p className="font-semibold">On the VPS:</p>
         <ol className="list-decimal list-inside space-y-1">
           {errorInfo.hints.map((hint) => (

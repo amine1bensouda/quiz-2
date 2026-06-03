@@ -132,7 +132,7 @@ export default function LessonForm({ initialData, defaultModuleId, hideModuleFie
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
+      <div className="admin-surface rounded-2xl border border-white/10 bg-[#12121f] shadow-lg p-6 space-y-6">
         <h2 className="text-2xl font-bold text-gray-900">Lesson Information</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {!hideModuleField && (
@@ -183,7 +183,7 @@ export default function LessonForm({ initialData, defaultModuleId, hideModuleFie
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-4">
+      <div className="admin-surface rounded-2xl border border-white/10 bg-[#12121f] shadow-lg p-6 space-y-4">
         <h2 className="text-2xl font-bold text-gray-900">Content</h2>
         <RichTextEditor
           value={formData.content}
@@ -192,7 +192,7 @@ export default function LessonForm({ initialData, defaultModuleId, hideModuleFie
         />
       </div>
 
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
+      <div className="admin-surface rounded-2xl border border-white/10 bg-[#12121f] shadow-lg p-6 space-y-6">
         <h2 className="text-2xl font-bold text-gray-900">
           Call-to-Action <span className="text-sm font-normal text-gray-500">(optional)</span>
         </h2>
@@ -220,7 +220,7 @@ export default function LessonForm({ initialData, defaultModuleId, hideModuleFie
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
+      <div className="admin-surface rounded-2xl border border-white/10 bg-[#12121f] shadow-lg p-6 space-y-6">
         <h2 className="text-2xl font-bold text-gray-900">Media</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="md:col-span-2">
@@ -261,7 +261,7 @@ export default function LessonForm({ initialData, defaultModuleId, hideModuleFie
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
+      <div className="admin-surface rounded-2xl border border-white/10 bg-[#12121f] shadow-lg p-6 space-y-6">
         <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>

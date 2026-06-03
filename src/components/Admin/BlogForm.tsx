@@ -158,7 +158,7 @@ export default function BlogForm({ initialData }: BlogFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Main information */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
+      <div className="admin-surface rounded-2xl border border-white/10 bg-[#12121f] shadow-lg p-6 space-y-6">
         <h2 className="text-2xl font-bold text-gray-900">Blog Information</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -261,7 +261,7 @@ export default function BlogForm({ initialData }: BlogFormProps) {
       </div>
 
       {/* Content */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-4">
+      <div className="admin-surface rounded-2xl border border-white/10 bg-[#12121f] shadow-lg p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900">Blog source</h2>
           <div className="flex bg-gray-100 rounded-lg p-1">
@@ -322,7 +322,7 @@ export default function BlogForm({ initialData }: BlogFormProps) {
       </div>
 
       {/* CTA (optional) */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
+      <div className="admin-surface rounded-2xl border border-white/10 bg-[#12121f] shadow-lg p-6 space-y-6">
         <h2 className="text-2xl font-bold text-gray-900">
           Call-to-Action <span className="text-sm font-normal text-gray-500">(optional)</span>
         </h2>

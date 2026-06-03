@@ -64,7 +64,7 @@ export default function PdfUploadField({
           />
           <label
             htmlFor="pdf-upload-field"
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-medium cursor-pointer hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed ${uploading ? 'opacity-70' : ''}`}
+            className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border border-white/15 bg-[#0e0e1a] px-4 py-2 text-sm font-medium text-[#eeeaf4] transition-colors hover:border-[#f5c14a]/40 hover:text-[#f5c14a] disabled:cursor-not-allowed disabled:opacity-50 ${uploading ? 'opacity-70' : ''}`}
           >
             {uploading ? (
               <>⏳ Uploading...</>

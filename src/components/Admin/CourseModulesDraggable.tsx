@@ -87,16 +87,16 @@ export default function CourseModulesDraggable({ courseId, modules: initialModul
   };
 
   return (
-    <div className="mt-4 pt-4 border-t border-gray-200">
-      <h3 className="text-sm font-semibold text-gray-700 mb-3">
+    <div className="mt-4 border-t border-white/10 pt-4">
+      <h3 className="mb-3 text-sm font-semibold text-[rgba(238,234,244,0.75)]">
         Modules:
         {modules.length > 0 && (
-          <span className="ml-2 text-gray-500 font-normal">
+          <span className="ml-2 font-normal text-[rgba(238,234,244,0.45)]">
             Drag a card to reorder
           </span>
         )}
       </h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
         {modules.map((module) => (
           <div
             key={module.id}
@@ -107,37 +107,40 @@ export default function CourseModulesDraggable({ courseId, modules: initialModul
             onDrop={(e) => handleDrop(e, module.id)}
             onDragEnd={handleDragEnd}
             className={`
-              bg-gray-50 rounded-lg p-3 border cursor-grab active:cursor-grabbing
-              transition-all duration-150
-              ${draggedId === module.id ? 'opacity-50 scale-95 shadow-lg' : ''}
-              ${dragOverId === module.id ? 'ring-2 ring-indigo-400 ring-offset-2 bg-indigo-50' : 'border-gray-200'}
+              cursor-grab rounded-lg border bg-[#0e0e1a] p-3 transition-all duration-150 active:cursor-grabbing
+              ${draggedId === module.id ? 'scale-95 opacity-50 shadow-lg' : ''}
+              ${dragOverId === module.id ? 'border-[#f5c14a]/50 bg-[#16162a] ring-2 ring-[#f5c14a]/30' : 'border-white/10'}
               ${saving ? 'pointer-events-none' : ''}
             `}
           >
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="text-gray-400 select-none flex-shrink-0" title="Drag to reorder">
+              <div className="flex min-w-0 items-center gap-2">
+                <span
+                  className="flex-shrink-0 select-none text-[rgba(238,234,244,0.35)]"
+                  title="Drag to reorder"
+                >
                   ⋮⋮
                 </span>
                 <div className="min-w-0">
-                  <h4 className="font-medium text-gray-900 truncate">{module.title}</h4>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <h4 className="truncate font-medium text-[#eeeaf4]">{module.title}</h4>
+                  <p className="mt-1 text-xs text-[rgba(238,234,244,0.45)]">
                     {module._count.quizzes} quiz
-                    {(module._count.lessons ?? 0) > 0 && ` · ${module._count.lessons} lesson${module._count.lessons !== 1 ? 's' : ''}`}
+                    {(module._count.lessons ?? 0) > 0 &&
+                      ` · ${module._count.lessons} lesson${module._count.lessons !== 1 ? 's' : ''}`}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex flex-shrink-0 items-center gap-2">
                 <Link
                   href={`/admin/lessons/new?moduleId=${module.id}`}
-                  className="text-emerald-600 hover:text-emerald-800 text-sm font-medium"
+                  className="text-sm font-medium text-[#2be4c8] hover:text-[#5ef0d4]"
                   onClick={(e) => e.stopPropagation()}
                 >
                   + Lesson
                 </Link>
                 <Link
                   href={`/admin/modules/${module.id}/edit`}
-                  className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                  className="text-sm font-medium text-[#f5c14a] hover:text-[#f9d06a]"
                   onClick={(e) => e.stopPropagation()}
                 >
                   Edit

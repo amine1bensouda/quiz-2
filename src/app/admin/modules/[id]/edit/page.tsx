@@ -34,19 +34,17 @@ export default async function EditModulePage({ params }: { params: { id: string 
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-[#eeeaf4]">
       <div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-          Edit Module
-        </h1>
-        <p className="text-gray-600">Modify module information</p>
+        <h1 className="mb-2 text-4xl font-bold tracking-tight text-[#eeeaf4]">Edit Module</h1>
+        <p className="text-[rgba(238,234,244,0.55)]">Modify module information</p>
       </div>
       <ModuleForm initialData={moduleData} />
 
       <div className="space-y-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Quiz order in this module</h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <h2 className="text-2xl font-bold text-[#eeeaf4]">Quiz order in this module</h2>
+          <p className="mt-1 text-sm text-[rgba(238,234,244,0.55)]">
             Use the arrows to set the order quizzes appear on the course page (top to bottom).
           </p>
         </div>

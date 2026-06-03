@@ -2,6 +2,11 @@ import { prisma } from '@/lib/db';
 import Link from 'next/link';
 import DeleteLessonButton from '@/components/Admin/DeleteLessonButton';
 
+const filterPill = (active: boolean) =>
+  active
+    ? 'rounded-lg bg-[#f5c14a] px-3 py-1.5 text-sm font-semibold text-[#0c0a00]'
+    : 'rounded-lg border border-white/15 bg-[#0e0e1a] px-3 py-1.5 text-sm font-medium text-[rgba(238,234,244,0.75)] transition-colors hover:border-[#f5c14a]/40 hover:text-[#f5c14a]';
+
 export default async function AdminLessonsPage({
   searchParams,
 }: {
@@ -29,44 +34,35 @@ export default async function AdminLessonsPage({
       });
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 text-[#eeeaf4]">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            Lesson Management
-          </h1>
-          <p className="text-gray-600">
+          <h1 className="mb-2 text-4xl font-bold tracking-tight text-[#eeeaf4]">Lesson Management</h1>
+          <p className="text-[rgba(238,234,244,0.55)]">
             {lessons.length} lesson{lessons.length !== 1 ? 's' : ''} total
             {searchParams.moduleId && ' in this module'}
           </p>
         </div>
         <Link
           href={searchParams.moduleId ? `/admin/lessons/new?moduleId=${searchParams.moduleId}` : '/admin/lessons/new'}
-          className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 font-medium shadow-lg"
+          className="rounded-full bg-[#f5c14a] px-6 py-3 text-sm font-semibold text-[#0c0a00] shadow-[0_4px_20px_rgba(245,193,74,0.2)] transition-colors hover:bg-[#f9d06a]"
         >
-          ➕ New Lesson
+          + New Lesson
         </Link>
       </div>
 
       {modules.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4">
-          <p className="text-sm font-medium text-gray-700 mb-2">Filter by module:</p>
+        <div className="admin-surface rounded-2xl border border-white/10 bg-[#12121f] p-4 shadow-lg">
+          <p className="mb-2 text-sm font-medium text-[rgba(238,234,244,0.75)]">Filter by module:</p>
           <div className="flex flex-wrap gap-2">
-            <Link
-              href="/admin/lessons"
-              className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                !searchParams.moduleId ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
+            <Link href="/admin/lessons" className={filterPill(!searchParams.moduleId)}>
               All
             </Link>
             {modules.map((mod) => (
               <Link
                 key={mod.id}
                 href={`/admin/lessons?moduleId=${mod.id}`}
-                className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                  searchParams.moduleId === mod.id ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className={filterPill(searchParams.moduleId === mod.id)}
               >
                 {mod.course.title} → {mod.title}
               </Link>
@@ -76,24 +72,32 @@ export default async function AdminLessonsPage({
       )}
 
       {lessons.length > 0 ? (
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="admin-surface overflow-hidden rounded-2xl border border-white/10 bg-[#12121f] shadow-lg">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="border-b border-white/10 bg-[#0e0e1a]">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Title</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Module / Course</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Order</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Actions</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
+                    Title
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
+                    Module / Course
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
+                    Order
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
+                    Actions
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-white/10">
                 {lessons.map((lesson) => (
-                  <tr key={lesson.id} className="hover:bg-gray-50">
+                  <tr key={lesson.id} className="transition-colors hover:bg-white/[0.03]">
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-gray-900">{lesson.title}</div>
+                      <div className="font-semibold text-[#eeeaf4]">{lesson.title}</div>
                       {lesson.content && (
-                        <div className="text-sm text-gray-500 mt-1 line-clamp-1">
+                        <div className="mt-1 line-clamp-1 text-sm text-[rgba(238,234,244,0.45)]">
                           {lesson.content.replace(/<[^>]*>/g, '').slice(0, 80)}
                           {lesson.content.length > 80 ? '…' : ''}
                         </div>
@@ -102,23 +106,25 @@ export default async function AdminLessonsPage({
                     <td className="px-6 py-4">
                       {lesson.module ? (
                         <>
-                          <span className="px-2 py-1 text-xs font-medium rounded bg-purple-100 text-purple-800">
+                          <span className="rounded-full border border-[#b388ff]/30 bg-[#b388ff]/15 px-3 py-1 text-xs font-medium text-[#d4b8ff]">
                             {lesson.module.title}
                           </span>
-                          <span className="text-gray-500 text-sm ml-1">({lesson.module.course.title})</span>
+                          <span className="ml-1 text-sm text-[rgba(238,234,244,0.45)]">
+                            ({lesson.module.course.title})
+                          </span>
                         </>
                       ) : (
-                        <span className="px-2 py-1 text-xs font-medium rounded bg-slate-100 text-slate-700">
+                        <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-[rgba(238,234,244,0.65)]">
                           Independent
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-gray-700">{lesson.order}</td>
+                    <td className="px-6 py-4 text-[rgba(238,234,244,0.75)]">{lesson.order}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <Link
                           href={`/admin/lessons/${lesson.id}/edit`}
-                          className="px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
+                          className="rounded-lg border border-white/15 px-3 py-1 text-sm font-medium text-[#eeeaf4] transition-colors hover:border-[#f5c14a]/50 hover:text-[#f5c14a]"
                         >
                           Edit
                         </Link>
@@ -132,13 +138,13 @@ export default async function AdminLessonsPage({
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center">
-          <div className="text-6xl mb-4">📄</div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">No lessons</h3>
-          <p className="text-gray-600 mb-6">Create a lesson and attach it to a module</p>
+        <div className="admin-surface rounded-2xl border border-white/10 bg-[#12121f] p-12 text-center shadow-lg">
+          <div className="mb-4 text-6xl">📄</div>
+          <h3 className="mb-2 text-2xl font-bold text-[#eeeaf4]">No lessons</h3>
+          <p className="mb-6 text-[rgba(238,234,244,0.55)]">Create a lesson and attach it to a module</p>
           <Link
             href={searchParams.moduleId ? `/admin/lessons/new?moduleId=${searchParams.moduleId}` : '/admin/lessons/new'}
-            className="inline-block px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 font-medium"
+            className="inline-block rounded-full bg-[#f5c14a] px-6 py-3 text-sm font-semibold text-[#0c0a00] transition-colors hover:bg-[#f9d06a]"
           >
             Create Lesson
           </Link>

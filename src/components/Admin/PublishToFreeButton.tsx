@@ -14,19 +14,19 @@ type Props = {
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   NOT_PUBLISHED: {
     label: 'Not published',
-    className: 'bg-gray-100 text-gray-700',
+    className: 'bg-white/10 text-[rgba(238,234,244,0.65)]',
   },
   PUBLISHED: {
     label: 'Published',
-    className: 'bg-emerald-100 text-emerald-800',
+    className: 'bg-emerald-500/20 text-emerald-300',
   },
   OUT_OF_DATE: {
     label: 'Out of date',
-    className: 'bg-amber-100 text-amber-900',
+    className: 'bg-amber-500/20 text-amber-300',
   },
   FAILED: {
     label: 'Failed',
-    className: 'bg-red-100 text-red-800',
+    className: 'bg-red-500/20 text-red-300',
   },
 };
 
@@ -82,25 +82,27 @@ export default function PublishToFreeButton({
   };
 
   return (
-    <div className="rounded-xl border border-indigo-200 bg-indigo-50/80 p-5 space-y-3">
+    <div className="space-y-3 rounded-xl border border-[#f5c14a]/25 bg-[#f5c14a]/8 p-5">
       <div className="flex flex-wrap items-center gap-2">
-        <h3 className="font-semibold text-gray-900">Free Site (The School)</h3>
+        <h3 className="font-semibold text-[#eeeaf4]">Free Site (The School)</h3>
         <span
-          className={`text-xs font-medium px-2.5 py-1 rounded-full ${status.className}`}
+          className={`rounded-full px-2.5 py-1 text-xs font-medium ${status.className}`}
         >
           {status.label}
         </span>
       </div>
 
       {lastSyncedAt && (
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-[rgba(238,234,244,0.55)]">
           Last sync:{' '}
           {new Date(lastSyncedAt).toLocaleString('en-US')}
           {freeQuizId && (
             <>
               {' '}
               · Free ID:{' '}
-              <code className="text-xs bg-white px-1 rounded">{freeQuizId}</code>
+              <code className="rounded border border-white/10 bg-[#0e0e1a] px-1 text-xs text-[rgba(238,234,244,0.55)]">
+                {freeQuizId}
+              </code>
             </>
           )}
         </p>
@@ -110,7 +112,7 @@ export default function PublishToFreeButton({
         type="button"
         onClick={handlePublish}
         disabled={loading}
-        className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+        className="rounded-lg bg-[#f5c14a] px-4 py-2 text-sm font-semibold text-[#0c0a00] transition-colors hover:bg-[#f9d06a] disabled:opacity-50"
       >
         {loading
           ? 'Publishing...'
@@ -119,16 +121,8 @@ export default function PublishToFreeButton({
             : 'Publish to The School'}
       </button>
 
-      {message && (
-        <p className="text-sm text-emerald-700" role="status">
-          {message}
-        </p>
-      )}
-      {error && (
-        <p className="text-sm text-red-600" role="alert">
-          {error}
-        </p>
-      )}
+      {message && <p className="text-sm text-emerald-300">{message}</p>}
+      {error && <p className="text-sm text-red-300">{error}</p>}
     </div>
   );
 }

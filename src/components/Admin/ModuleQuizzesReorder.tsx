@@ -52,45 +52,48 @@ export default function ModuleQuizzesReorder({ moduleId, quizzes: initialQuizzes
 
   if (quizzes.length === 0) {
     return (
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-[rgba(238,234,244,0.5)]">
         No quizzes in this module. Create a quiz and assign it to this module to reorder it.
       </p>
     );
   }
 
+  const arrowBtn =
+    'rounded-lg border border-white/15 bg-[#0e0e1a] p-1.5 text-[rgba(238,234,244,0.75)] transition-colors hover:border-[#f5c14a]/40 hover:text-[#f5c14a] disabled:cursor-not-allowed disabled:opacity-50';
+
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <div className="admin-surface overflow-hidden rounded-2xl border border-white/10 bg-[#12121f] shadow-lg">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="border-b border-white/10 bg-[#0e0e1a]">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-24">
+              <th className="w-24 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                 Order
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                 Title
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                 Slug
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-28">
+              <th className="w-28 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-white/10">
             {quizzes.map((quiz, index) => (
-              <tr key={quiz.id} className="hover:bg-gray-50 transition-colors">
+              <tr key={quiz.id} className="transition-colors hover:bg-white/[0.03]">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1">
                     <button
                       type="button"
                       onClick={() => reorder(index, 'up')}
                       disabled={index === 0 || loadingId !== null}
-                      className="p-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600"
+                      className={arrowBtn}
                       title="Move up"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                       </svg>
                     </button>
@@ -98,23 +101,25 @@ export default function ModuleQuizzesReorder({ moduleId, quizzes: initialQuizzes
                       type="button"
                       onClick={() => reorder(index, 'down')}
                       disabled={index === quizzes.length - 1 || loadingId !== null}
-                      className="p-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600"
+                      className={arrowBtn}
                       title="Move down"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
                   </div>
                 </td>
-                <td className="px-4 py-3 font-medium text-gray-900">{quiz.title}</td>
+                <td className="px-4 py-3 font-medium text-[#eeeaf4]">{quiz.title}</td>
                 <td className="px-4 py-3">
-                  <code className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-700">{quiz.slug}</code>
+                  <code className="rounded border border-white/10 bg-[#0e0e1a] px-2 py-1 text-xs text-[rgba(238,234,244,0.55)]">
+                    {quiz.slug}
+                  </code>
                 </td>
                 <td className="px-4 py-3">
                   <Link
                     href={`/admin/quizzes/${encodeURIComponent(quiz.slug)}/edit`}
-                    className="text-sm font-semibold text-amber-700 hover:text-amber-900"
+                    className="text-sm font-semibold text-[#f5c14a] hover:text-[#f9d06a]"
                   >
                     Edit
                   </Link>

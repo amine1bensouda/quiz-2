@@ -80,9 +80,9 @@ export default function QuestionEditor({ question, index, onUpdate, onDelete }: 
   };
 
   return (
-    <div className="border border-gray-300 rounded-lg p-6 bg-gray-50">
+    <div className="rounded-lg border border-white/10 bg-[#0e0e1a] p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Question {index + 1}</h3>
+        <h3 className="text-lg font-semibold text-[#eeeaf4]">Question {index + 1}</h3>
         <button
           type="button"
           onClick={onDelete}
@@ -165,7 +165,7 @@ export default function QuestionEditor({ question, index, onUpdate, onDelete }: 
             </div>
             <div className="space-y-3">
               {localQuestion.answers.map((answer, answerIndex) => (
-                <div key={answerIndex} className="bg-white p-4 rounded-lg border border-gray-200">
+                <div key={answerIndex} className="rounded-lg border border-white/10 bg-[#0e0e1a] p-4">
                   <div className="flex items-start space-x-3">
                     <input
                       type="checkbox"
@@ -230,7 +230,7 @@ export default function QuestionEditor({ question, index, onUpdate, onDelete }: 
                 </button>
               ) : (
                 localQuestion.answers.map((answer, answerIndex) => (
-                  <div key={answerIndex} className="bg-white p-4 rounded-lg border border-gray-200">
+                  <div key={answerIndex} className="rounded-lg border border-white/10 bg-[#0e0e1a] p-4">
                     <div className="flex items-start space-x-3">
                       <div className="flex-1 space-y-2">
                         <label className="block text-sm font-medium text-gray-700">Expected answer (for reference) *</label>

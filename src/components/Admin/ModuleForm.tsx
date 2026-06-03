@@ -102,78 +102,77 @@ export default function ModuleForm({ initialData, defaultCourseId }: ModuleFormP
     }
   };
 
+  const inputClass =
+    'w-full rounded-xl border border-white/10 bg-[#0e0e1a] px-4 py-2.5 text-[#eeeaf4] placeholder:text-[rgba(238,234,244,0.35)] focus:border-[#f5c14a]/60 focus:outline-none focus:ring-2 focus:ring-[#f5c14a]/20';
+  const labelClass = 'mb-2 block text-sm font-medium text-[rgba(238,234,244,0.9)]';
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
+      <div className="admin-surface space-y-6 rounded-2xl border border-white/10 bg-[#12121f] p-6 shadow-lg">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Module Information</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <h2 className="mb-4 text-2xl font-bold text-[#eeeaf4]">Module Information</h2>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Title *
-              </label>
+              <label className={labelClass}>Title *</label>
               <input
                 type="text"
                 required
                 value={formData.title}
                 onChange={(e) => handleTitleChange(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className={inputClass}
                 placeholder="Ex: MODULE 1: FUNDAMENTAL QUIZZES"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Slug *
-              </label>
+              <label className={labelClass}>Slug *</label>
               <input
                 type="text"
                 required
                 value={formData.slug}
                 onChange={(e) => setFormData((prev) => ({ ...prev, slug: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className={inputClass}
                 placeholder="ex: module-1-fundamental"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Course *
-              </label>
+              <label className={labelClass}>Course *</label>
               <select
                 required
                 value={formData.courseId}
                 onChange={(e) => setFormData((prev) => ({ ...prev, courseId: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className={inputClass}
               >
-                <option value="">Select a course</option>
+                <option value="" className="bg-[#0e0e1a]">
+                  Select a course
+                </option>
                 {courses.map((course) => (
-                  <option key={course.id} value={course.id}>
+                  <option key={course.id} value={course.id} className="bg-[#0e0e1a]">
                     {course.title}
                     {course.status !== 'published' ? ' (draft)' : ''}
                   </option>
                 ))}
               </select>
               {courses.length === 0 && (
-                <p className="text-sm text-gray-500 mt-1">
-                  No courses available. <a href="/admin/courses/new" className="text-indigo-600 hover:text-indigo-800">Create a course</a>
+                <p className="mt-1 text-sm text-[rgba(238,234,244,0.5)]">
+                  No courses available.{' '}
+                  <a href="/admin/courses/new" className="text-[#f5c14a] hover:underline">
+                    Create a course
+                  </a>
                 </p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Order
-              </label>
+              <label className={labelClass}>Order</label>
               <input
                 type="number"
                 min="0"
                 value={formData.order}
                 onChange={(e) => setFormData((prev) => ({ ...prev, order: parseInt(e.target.value) || 0 }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className={inputClass}
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
-              </label>
+              <label className={labelClass}>Description</label>
               <RichTextEditor
                 value={formData.description}
                 onChange={(value) => setFormData((prev) => ({ ...prev, description: value }))}
@@ -184,18 +183,18 @@ export default function ModuleForm({ initialData, defaultCourseId }: ModuleFormP
         </div>
       </div>
 
-      <div className="flex items-center justify-end space-x-4">
+      <div className="flex items-center justify-end gap-4">
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+          className="rounded-lg border border-white/15 px-6 py-3 text-sm font-medium text-[#eeeaf4] transition-colors hover:border-white/25 hover:bg-white/5"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={loading || !formData.title || !formData.slug || !formData.courseId}
-          className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded-full bg-[#f5c14a] px-6 py-3 text-sm font-semibold text-[#0c0a00] shadow-[0_4px_20px_rgba(245,193,74,0.2)] transition-colors hover:bg-[#f9d06a] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? 'Saving...' : initialData ? 'Update' : 'Create Module'}
         </button>

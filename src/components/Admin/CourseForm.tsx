@@ -94,7 +94,7 @@ export default function CourseForm({ initialData }: CourseFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
+      <div className="admin-surface rounded-2xl border border-white/10 bg-[#12121f] shadow-lg p-6 space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Course Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

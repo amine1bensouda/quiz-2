@@ -28,12 +28,12 @@ export default async function EditCoursePage({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-[#eeeaf4]">
       <div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+        <h1 className="mb-2 text-4xl font-bold tracking-tight text-[#eeeaf4]">
           Edit Course
         </h1>
-        <p className="text-gray-600">Modify course information</p>
+        <p className="text-[rgba(238,234,244,0.55)]">Modify course information</p>
       </div>
       <CourseForm initialData={courseData} />
     </div>

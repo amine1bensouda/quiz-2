@@ -108,21 +108,35 @@ export default function RichTextEditor({
           min-height: 100px;
         }
         .rich-text-editor .ql-toolbar {
-          border-top: 1px solid #d1d5db;
-          border-left: 1px solid #d1d5db;
-          border-right: 1px solid #d1d5db;
-          border-radius: 8px 8px 0 0;
-          background-color: #f9fafb;
+          border-top: 1px solid rgba(255, 255, 255, 0.12);
+          border-left: 1px solid rgba(255, 255, 255, 0.12);
+          border-right: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 12px 12px 0 0;
+          background-color: #16162a;
         }
         .rich-text-editor .ql-container {
-          border-bottom: 1px solid #d1d5db;
-          border-left: 1px solid #d1d5db;
-          border-right: 1px solid #d1d5db;
-          border-radius: 0 0 8px 8px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+          border-left: 1px solid rgba(255, 255, 255, 0.12);
+          border-right: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 0 0 12px 12px;
+          background: #0e0e1a;
+        }
+        .rich-text-editor .ql-editor {
+          color: #eeeaf4;
+          background: #0e0e1a;
         }
         .rich-text-editor .ql-editor.ql-blank::before {
-          color: #9ca3af;
+          color: rgba(238, 234, 244, 0.35);
           font-style: normal;
+        }
+        .rich-text-editor .ql-stroke {
+          stroke: rgba(238, 234, 244, 0.65);
+        }
+        .rich-text-editor .ql-fill {
+          fill: rgba(238, 234, 244, 0.65);
+        }
+        .rich-text-editor .ql-picker-label {
+          color: rgba(238, 234, 244, 0.75);
         }
         /* Quill + préflight Tailwind : forcer gras et souligné même combinés */
         .rich-text-editor .ql-editor strong,

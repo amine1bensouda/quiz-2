@@ -1549,3 +1549,186 @@ html.light .paywall-page select {
   color: #eeeaf4 !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
+
+/* Admin rich text editor (Quill) — dark theme */
+.admin-app .rich-text-editor .ql-toolbar {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  border-radius: 12px 12px 0 0;
+  background: #16162a !important;
+}
+.admin-app .rich-text-editor .ql-container {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  border-radius: 0 0 12px 12px;
+  background: #0e0e1a !important;
+}
+.admin-app .rich-text-editor .ql-editor {
+  color: #eeeaf4;
+  background: #0e0e1a;
+}
+.admin-app .rich-text-editor .ql-editor.ql-blank::before {
+  color: rgba(238, 234, 244, 0.35) !important;
+}
+.admin-app .rich-text-editor .ql-stroke {
+  stroke: rgba(238, 234, 244, 0.65);
+}
+.admin-app .rich-text-editor .ql-fill {
+  fill: rgba(238, 234, 244, 0.65);
+}
+.admin-app .rich-text-editor .ql-picker-label {
+  color: rgba(238, 234, 244, 0.75);
+}
+.admin-app .rich-text-editor .ql-picker-options {
+  background: #12121f;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Admin forms — dark inputs (legacy QuizForm, LessonForm, etc.) */
+.admin-app form input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='color']):not([type='hidden']),
+.admin-app form select,
+.admin-app form textarea {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: #0e0e1a !important;
+  color: #eeeaf4 !important;
+}
+.admin-app form input::placeholder,
+.admin-app form textarea::placeholder {
+  color: rgba(238, 234, 244, 0.35) !important;
+}
+.admin-app form select option {
+  background-color: #0e0e1a;
+  color: #eeeaf4;
+}
+.admin-app form label {
+  color: rgba(238, 234, 244, 0.9);
+}
+.admin-app form .text-gray-900,
+.admin-app form .text-gray-800,
+.admin-app form .text-gray-700 {
+  color: #eeeaf4 !important;
+}
+.admin-app form .text-gray-600,
+.admin-app form .text-gray-500 {
+  color: rgba(238, 234, 244, 0.55) !important;
+}
+.admin-app form .text-gray-400 {
+  color: rgba(238, 234, 244, 0.4) !important;
+}
+.admin-app form .bg-gray-50,
+.admin-app form .bg-gray-100 {
+  background-color: #0e0e1a !important;
+}
+.admin-app form .border-gray-200,
+.admin-app form .border-gray-300 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+.admin-app form .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Admin — headings, panels, buttons (legacy components) */
+.admin-app form h2,
+.admin-app form h3 {
+  color: #eeeaf4 !important;
+}
+.admin-app form .bg-gray-50,
+.admin-app form .bg-slate-50 {
+  background-color: #0e0e1a !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+.admin-app .flex.bg-gray-100.rounded-lg {
+  background-color: #0e0e1a !important;
+}
+.admin-app .flex.bg-gray-100.rounded-lg button.bg-white {
+  background-color: #12121f !important;
+  color: #f5c14a !important;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.3) !important;
+}
+.admin-app .flex.bg-gray-100.rounded-lg button:not(.bg-white) {
+  color: rgba(238, 234, 244, 0.55) !important;
+}
+.admin-app button.bg-indigo-600,
+.admin-app a.bg-indigo-600 {
+  background-color: #f5c14a !important;
+  color: #0c0a00 !important;
+}
+.admin-app button.bg-indigo-600:hover:not(:disabled),
+.admin-app a.bg-indigo-600:hover {
+  background-color: #f9d06a !important;
+}
+.admin-app button[class*='from-indigo-600'],
+.admin-app a[class*='from-indigo-600'] {
+  background: #f5c14a !important;
+  color: #0c0a00 !important;
+}
+.admin-app button[class*='from-indigo-600']:hover:not(:disabled),
+.admin-app a[class*='from-indigo-600']:hover {
+  background: #f9d06a !important;
+}
+.admin-app button.border-gray-300,
+.admin-app button.bg-gray-300 {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  background-color: transparent !important;
+  color: #eeeaf4 !important;
+}
+.admin-app button.bg-gray-300:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+.admin-app .border.border-gray-300.rounded-lg.p-6.bg-gray-50 {
+  background-color: #0e0e1a !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+.admin-app .rounded-xl.border-indigo-200,
+.admin-app .border-indigo-200.bg-indigo-50\/80 {
+  border-color: rgba(245, 193, 74, 0.25) !important;
+  background-color: rgba(245, 193, 74, 0.08) !important;
+}
+.admin-app .rounded-xl.border-indigo-200 h3,
+.admin-app .border-indigo-200.bg-indigo-50\/80 h3 {
+  color: #eeeaf4 !important;
+}
+.admin-app .rounded-lg.border.border-gray-200.overflow-hidden.bg-white {
+  background-color: #0e0e1a !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+.admin-app .bg-red-50 {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+.admin-app .bg-red-50 h2 {
+  color: #fecaca !important;
+}
+.admin-app .bg-red-50 p,
+.admin-app .bg-red-50 details,
+.admin-app .bg-red-50 summary {
+  color: #fca5a5 !important;
+}
+.admin-app .bg-red-100 {
+  background-color: #12121f !important;
+  color: #fecaca !important;
+}
+.admin-app .bg-indigo-100.text-indigo-700,
+.admin-app .bg-indigo-100.text-indigo-800 {
+  background-color: rgba(179, 136, 255, 0.15) !important;
+  color: #d4b8ff !important;
+}
+.admin-app .bg-emerald-100.text-emerald-800 {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+  color: #6ee7b7 !important;
+}
+.admin-app .bg-amber-100.text-amber-900,
+.admin-app .bg-amber-100.text-amber-800 {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+  color: #fcd34d !important;
+}
+.admin-app .bg-gray-100.text-gray-700,
+.admin-app .bg-gray-100.text-gray-800 {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(238, 234, 244, 0.65) !important;
+}
+.admin-app .border-gray-200.bg-gray-50 {
+  background-color: #0e0e1a !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+.admin-app .text-red-600 {
+  color: #f87171 !important;
+}

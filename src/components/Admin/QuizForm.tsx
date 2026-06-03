@@ -277,7 +277,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
+      <div className="admin-surface rounded-2xl border border-white/10 bg-[#12121f] shadow-lg p-6 space-y-6">
         {/* Informations de base */}
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Informations de base</h2>
@@ -569,7 +569,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
       </div>
 
       {/* Questions */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+      <div className="admin-surface rounded-2xl border border-white/10 bg-[#12121f] shadow-lg p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Questions</h2>
           <button

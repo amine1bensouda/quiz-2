@@ -9,69 +9,69 @@ export default async function AdminBlogsPage() {
     });
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 text-[#eeeaf4]">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            <h1 className="mb-2 text-4xl font-bold tracking-tight text-[#eeeaf4]">
             Blog Management
           </h1>
-          <p className="text-gray-600">{blogs.length} post{blogs.length !== 1 ? 's' : ''} total</p>
+          <p className="text-[rgba(238,234,244,0.55)]">{blogs.length} post{blogs.length !== 1 ? 's' : ''} total</p>
           </div>
           <Link
             href="/admin/blogs/new"
-            className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-lg"
+            className="rounded-full bg-[#f5c14a] px-6 py-3 text-sm font-semibold text-[#0c0a00] shadow-[0_4px_20px_rgba(245,193,74,0.2)] transition-colors hover:bg-[#f9d06a]"
           >
             + New Blog Post
           </Link>
         </div>
 
         {blogs.length > 0 ? (
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="admin-surface overflow-hidden rounded-2xl border border-white/10 bg-[#12121f] shadow-lg">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700">Title</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700">Category</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700">Status</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-gray-700">Date</th>
-                  <th className="text-right px-6 py-4 text-sm font-semibold text-gray-700">Actions</th>
+                <tr className="border-b border-white/10 bg-[#0e0e1a]">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[rgba(238,234,244,0.55)]">Title</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[rgba(238,234,244,0.55)]">Category</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[rgba(238,234,244,0.55)]">Status</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-[rgba(238,234,244,0.55)]">Date</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-[rgba(238,234,244,0.55)]">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-white/10">
                 {blogs.map((blog) => (
                   <tr
                     key={blog.id}
-                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                    className="transition-colors hover:bg-white/[0.03]"
                   >
                     <td className="px-6 py-4">
                       <div>
-                        <p className="font-semibold text-gray-900">{blog.title}</p>
-                        <code className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600">
+                        <p className="font-semibold text-[#eeeaf4]">{blog.title}</p>
+                        <code className="rounded border border-white/10 bg-[#0e0e1a] px-2 py-0.5 text-xs text-[rgba(238,234,244,0.55)]">
                           {blog.slug}
                         </code>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       {blog.category ? (
-                        <span className="px-3 py-1 text-xs font-medium rounded-full bg-indigo-100 text-indigo-800">
+                        <span className="rounded-full border border-[#b388ff]/30 bg-[#b388ff]/15 px-3 py-1 text-xs font-medium text-[#d4b8ff]">
                           {blog.category}
                         </span>
                       ) : (
-                        <span className="text-gray-400 text-sm">—</span>
+                        <span className="text-sm text-[rgba(238,234,244,0.35)]">—</span>
                       )}
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`px-3 py-1 text-xs font-medium rounded-full ${
+                        className={`rounded-full px-3 py-1 text-xs font-medium ${
                           blog.status === 'published'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
+                            ? 'bg-emerald-500/20 text-emerald-300'
+                            : 'bg-white/10 text-[rgba(238,234,244,0.65)]'
                         }`}
                       >
                         {blog.status === 'published' ? 'Published' : 'Draft'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-[rgba(238,234,244,0.55)]">
                       {new Date(blog.createdAt).toLocaleDateString('fr-FR', {
                         year: 'numeric',
                         month: 'short',
@@ -82,7 +82,7 @@ export default async function AdminBlogsPage() {
                       <div className="flex items-center justify-end gap-2">
                         <Link
                           href={`/admin/blogs/${blog.id}/edit`}
-                          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                          className="rounded-lg border border-white/15 px-4 py-2 text-sm font-medium text-[#eeeaf4] transition-colors hover:border-[#f5c14a]/50 hover:text-[#f5c14a]"
                         >
                           Edit
                         </Link>
@@ -95,13 +95,13 @@ export default async function AdminBlogsPage() {
             </table>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center">
-            <div className="text-6xl mb-4">📰</div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">No blog posts</h3>
-            <p className="text-gray-600 mb-6">Start by creating your first blog post</p>
+          <div className="admin-surface rounded-2xl border border-white/10 bg-[#12121f] p-12 text-center shadow-lg">
+            <div className="mb-4 text-6xl">📰</div>
+            <h3 className="mb-2 text-2xl font-bold text-[#eeeaf4]">No blog posts</h3>
+            <p className="mb-6 text-[rgba(238,234,244,0.55)]">Start by creating your first blog post</p>
             <Link
               href="/admin/blogs/new"
-              className="inline-block px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium"
+              className="inline-block rounded-full bg-[#f5c14a] px-6 py-3 text-sm font-semibold text-[#0c0a00] transition-colors hover:bg-[#f9d06a]"
             >
               Create a post
             </Link>
@@ -112,20 +112,22 @@ export default async function AdminBlogsPage() {
   } catch (error: any) {
     console.error('AdminBlogsPage:', error);
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 text-[#eeeaf4]">
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          <h1 className="mb-2 text-4xl font-bold tracking-tight text-[#eeeaf4]">
             Blog Management
           </h1>
         </div>
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-red-800 mb-2">Connection Error</h2>
-          <p className="text-red-600 mb-4">
+        <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-6">
+          <h2 className="mb-2 text-xl font-semibold text-red-200">Connection Error</h2>
+          <p className="mb-4 text-red-100/90">
             Unable to connect to the database. Please check your configuration.
           </p>
-          <details className="text-sm text-red-700">
+          <details className="text-sm text-red-200/90">
             <summary className="cursor-pointer font-medium">Error Details</summary>
-            <pre className="mt-2 p-2 bg-red-100 rounded overflow-auto">{error.message}</pre>
+            <pre className="mt-2 overflow-auto rounded border border-red-500/30 bg-[#12121f] p-2 text-red-100">
+              {error.message}
+            </pre>
           </details>
         </div>
       </div>

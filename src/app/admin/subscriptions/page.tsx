@@ -33,19 +33,19 @@ function formatDate(date: Date | null | undefined): string {
 function statusBadge(status: string): string {
   switch (status) {
     case 'trialing':
-      return 'bg-blue-100 text-blue-800';
+      return 'bg-blue-500/20 text-blue-300';
     case 'active':
-      return 'bg-green-100 text-green-800';
+      return 'bg-emerald-500/20 text-emerald-300';
     case 'past_due':
-      return 'bg-amber-100 text-amber-800';
+      return 'bg-amber-500/20 text-amber-300';
     case 'canceled':
-      return 'bg-gray-200 text-gray-700';
+      return 'bg-white/10 text-[rgba(238,234,244,0.55)]';
     case 'expired':
-      return 'bg-gray-200 text-gray-700';
+      return 'bg-white/10 text-[rgba(238,234,244,0.55)]';
     case 'incomplete':
-      return 'bg-yellow-100 text-yellow-800';
+      return 'bg-yellow-500/20 text-yellow-300';
     default:
-      return 'bg-gray-100 text-gray-700';
+      return 'bg-white/10 text-[rgba(238,234,244,0.65)]';
   }
 }
 
@@ -75,14 +75,17 @@ export default async function AdminSubscriptionsPage({
     where: { status: { in: ['trialing', 'active', 'past_due'] } },
   });
 
+  const inputClass =
+    'rounded-xl border border-white/10 bg-[#0e0e1a] px-3 py-2 text-sm text-[#eeeaf4] focus:border-[#f5c14a]/60 focus:outline-none focus:ring-2 focus:ring-[#f5c14a]/20';
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-[#eeeaf4]">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          <h1 className="mb-2 text-4xl font-bold tracking-tight text-[#eeeaf4]">
             Subscriptions
           </h1>
-          <p className="text-gray-600">
+          <p className="text-[rgba(238,234,244,0.55)]">
             {totalAll} total subscriptions — {totalActive} active
           </p>
         </div>
@@ -90,16 +93,16 @@ export default async function AdminSubscriptionsPage({
 
       <form
         method="get"
-        className="flex flex-wrap gap-3 items-end bg-white rounded-2xl shadow border border-gray-200 p-4"
+        className="admin-surface flex flex-wrap items-end gap-3 rounded-2xl border border-white/10 bg-[#12121f] p-4 shadow-lg"
       >
         <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-1">
+          <label className="mb-1 block text-xs font-semibold text-[rgba(238,234,244,0.75)]">
             Status
           </label>
           <select
             name="status"
             defaultValue={status || ''}
-            className="px-3 py-2 rounded-lg border border-gray-300 text-sm"
+            className={inputClass}
           >
             {STATUS_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -109,13 +112,13 @@ export default async function AdminSubscriptionsPage({
           </select>
         </div>
         <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-1">
+          <label className="mb-1 block text-xs font-semibold text-[rgba(238,234,244,0.75)]">
             Plan
           </label>
           <select
             name="plan"
             defaultValue={plan || ''}
-            className="px-3 py-2 rounded-lg border border-gray-300 text-sm"
+            className={inputClass}
           >
             {PLAN_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -126,97 +129,97 @@ export default async function AdminSubscriptionsPage({
         </div>
         <button
           type="submit"
-          className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors"
+          className="rounded-lg bg-[#f5c14a] px-4 py-2 text-sm font-semibold text-[#0c0a00] transition-colors hover:bg-[#f9d06a]"
         >
           Apply
         </button>
         {(status || plan) && (
           <Link
             href="/admin/subscriptions"
-            className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+            className="rounded-lg border border-white/15 px-3 py-2 text-sm font-medium text-[#eeeaf4] transition-colors hover:border-[#f5c14a]/50 hover:text-[#f5c14a]"
           >
             Reset
           </Link>
         )}
       </form>
 
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+      <div className="admin-surface overflow-hidden rounded-2xl border border-white/10 bg-[#12121f] shadow-lg">
         {subscriptions.length === 0 ? (
-          <div className="p-12 text-center text-gray-500">
+          <div className="p-12 text-center text-[rgba(238,234,244,0.45)]">
             No subscriptions match the current filters.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="border-b border-white/10 bg-[#0e0e1a]">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                     User
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                     Plan
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                     Course
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                     Provider
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                     Status
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                     Trial end
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                     Period end
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[rgba(238,234,244,0.55)]">
                     Updated
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-white/10">
                 {subscriptions.map((sub) => {
                   const planDef = getPlan(sub.plan);
                   return (
-                    <tr key={sub.id} className="hover:bg-gray-50">
+                    <tr key={sub.id} className="transition-colors hover:bg-white/[0.03]">
                       <td className="px-4 py-3">
-                        <div className="text-sm font-semibold text-gray-900">
+                        <div className="text-sm font-semibold text-[#eeeaf4]">
                           {sub.user?.name || '—'}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-[rgba(238,234,244,0.45)]">
                           {sub.user?.email || '—'}
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-[#eeeaf4]">
                           {planDef?.label || sub.plan}
                         </div>
                         {planDef && (
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-[rgba(238,234,244,0.45)]">
                             {formatPlanPrice(planDef)}
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
+                      <td className="px-4 py-3 text-sm text-[rgba(238,234,244,0.75)]">
                         {sub.course ? (
                           <Link
                             href={`/quiz/course/${sub.course.slug}`}
-                            className="text-indigo-600 hover:underline"
+                            className="text-[#f5c14a] hover:underline"
                           >
                             {sub.course.title}
                           </Link>
                         ) : sub.plan === 'ALL_ACCESS' ? (
-                          <span className="text-gray-500">All courses</span>
+                          <span className="text-[rgba(238,234,244,0.45)]">All courses</span>
                         ) : (
-                          <span className="text-gray-400">—</span>
+                          <span className="text-[rgba(238,234,244,0.35)]">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700 capitalize">
+                      <td className="px-4 py-3 text-sm capitalize text-[rgba(238,234,244,0.75)]">
                         {sub.provider}
                         {sub.cancelAtPeriodEnd && (
-                          <div className="text-xs text-amber-700">
+                          <div className="text-xs text-amber-300">
                             cancel at period end
                           </div>
                         )}
@@ -230,13 +233,13 @@ export default async function AdminSubscriptionsPage({
                           {sub.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
+                      <td className="px-4 py-3 text-sm text-[rgba(238,234,244,0.75)]">
                         {formatDate(sub.trialEndsAt)}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
+                      <td className="px-4 py-3 text-sm text-[rgba(238,234,244,0.75)]">
                         {formatDate(sub.currentPeriodEnd)}
                       </td>
-                      <td className="px-4 py-3 text-xs text-gray-500">
+                      <td className="px-4 py-3 text-xs text-[rgba(238,234,244,0.45)]">
                         {formatDate(sub.updatedAt)}
                       </td>
                     </tr>
