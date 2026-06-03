@@ -33,7 +33,18 @@ export default function ConditionalLayout({
   }, [pathname]);
 
   // Pas de Header/Footer : admin, dashboard, ou utilisateur connecté
-  if (isAdminArea || isDashboardArea || isEnConstruction || isMaintenance || isLoggedIn) {
+  const isSubscribePage = pathname === '/subscribe';
+  const hideChrome =
+    isAdminArea || isDashboardArea || isEnConstruction || isMaintenance || (isLoggedIn && !isSubscribePage);
+
+  if (hideChrome) {
+    if (isSubscribePage) {
+      return (
+        <div className="min-h-screen bg-[#080810] text-[#eeeaf4] subscribe-page">
+          {children}
+        </div>
+      );
+    }
     return <>{children}</>;
   }
 

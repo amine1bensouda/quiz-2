@@ -16,17 +16,11 @@ interface CourseOption {
 }
 
 interface SubscriptionPaywallProps {
-  /** Published courses shown in the SINGLE_COURSE selector */
   courses: CourseOption[];
-  /** Pre-selected course when the user lands from a specific course */
   defaultCourseId?: string | null;
-  /** Whether the user is logged in. If not, show login/register links */
   isAuthenticated: boolean;
-  /** Contextual title (e.g. "Unlock this quiz", "Unlock this course") */
   title?: string;
-  /** Contextual subtitle */
   subtitle?: string;
-  /** Return URL after login (to land back on the protected page) */
   returnUrl?: string;
 }
 
@@ -99,7 +93,7 @@ export default function SubscriptionPaywall({
     if (popup) {
       popup.document.title = 'Loading payment...';
       popup.document.body.innerHTML =
-        '<div style="font-family:Arial,sans-serif;padding:24px">Opening secure payment page...</div>';
+        '<div style="font-family:Arial,sans-serif;padding:24px;background:#080810;color:#eeeaf4">Opening secure payment page...</div>';
       popup.focus();
     }
     return popup;
@@ -143,7 +137,6 @@ export default function SubscriptionPaywall({
       const url = provider === 'stripe' ? data.url : data.approveUrl;
       if (!url) throw new Error('Payment provider returned no URL.');
 
-      // Stripe Payment Links (buy.stripe.com) work best with a full-page redirect.
       if (provider === 'stripe' && data.paymentLink) {
         if (pendingPopup && !pendingPopup.closed) {
           pendingPopup.close();
@@ -169,23 +162,26 @@ export default function SubscriptionPaywall({
   }
 
   return (
-    <section className="max-w-5xl mx-auto my-12 px-4">
-      <header className="text-center mb-10">
-        <p className="mb-3 inline-flex rounded-full border border-[#f5c14a]/35 bg-[#f5c14a]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-amber-800 dark:border-[#f5c14a]/40 dark:bg-[#f5c14a]/10 dark:text-[#f5c14a]">
+    <section className="paywall-page relative max-w-5xl mx-auto my-12 px-4">
+      <div className="pointer-events-none absolute -left-8 top-0 h-48 w-48 rounded-full bg-[#f5c14a]/8 blur-3xl" />
+      <div className="pointer-events-none absolute right-0 bottom-0 h-56 w-56 rounded-full bg-[#b388ff]/8 blur-3xl" />
+
+      <header className="relative text-center mb-10">
+        <p className="mb-3 inline-flex rounded-full border border-[#f5c14a]/40 bg-[#f5c14a]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-[#f5c14a]">
           Crack The Curve
         </p>
-        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3 dark:text-[#f5f2ff] font-['Instrument_Serif',serif]">
+        <h1 className="text-3xl md:text-4xl font-bold text-[#eeeaf4] mb-3 font-['Instrument_Serif',serif]">
           {title}
         </h1>
-        <p className="text-lg text-slate-600 dark:text-[#d4d0dc]">
+        <p className="text-lg text-[rgba(238,234,244,0.65)]">
           {trialChecked && !trialEligible
             ? '$7/month per course — subscribe now, billed immediately.'
             : subtitle}
         </p>
         {trialChecked && trialEligible && (
-          <p className="text-sm text-slate-500 mt-3 dark:text-[#9d98ab]">
+          <p className="text-sm text-[rgba(238,234,244,0.5)] mt-3">
             One-time 48h free trial per account — first charge on{' '}
-            <strong className="text-slate-800 dark:text-[#f5c14a]">
+            <strong className="text-[#f5c14a]">
               {firstChargeDate.toLocaleDateString('en-US', {
                 day: 'numeric',
                 month: 'long',
@@ -196,13 +192,13 @@ export default function SubscriptionPaywall({
           </p>
         )}
         {trialChecked && !trialEligible && (
-          <p className="text-sm text-amber-700 mt-3 dark:text-amber-200/90">
+          <p className="text-sm text-amber-200/90 mt-3">
             You have already used your free trial on this account.
           </p>
         )}
       </header>
 
-      <div className="grid gap-6 mb-8 max-w-xl mx-auto">
+      <div className="relative grid gap-6 mb-8 max-w-xl mx-auto">
         {PURCHASABLE_PLAN_IDS.map((key) => {
           const plan = PLANS[key];
           const isSelected = selectedPlan === key;
@@ -211,29 +207,29 @@ export default function SubscriptionPaywall({
               key={key}
               type="button"
               onClick={() => setSelectedPlan(key)}
-              className={`text-left rounded-2xl border-2 p-6 transition shadow-sm hover:shadow-md ${
+              className={`text-left rounded-2xl border-2 p-6 transition-all duration-200 ${
                 isSelected
-                  ? 'border-indigo-500 bg-indigo-50/95 shadow-md shadow-indigo-900/10 dark:border-[#f5c14a]/50 dark:bg-[#16162a]/95 dark:shadow-[0_8px_32px_rgba(245,193,74,0.12)]'
-                  : 'border-slate-200 bg-white hover:border-slate-300 dark:border-white/10 dark:bg-[#111121]/90 dark:hover:border-white/20'
+                  ? 'border-[#f5c14a]/50 bg-[#12121f]/95 shadow-[0_8px_32px_rgba(245,193,74,0.12)]'
+                  : 'border-white/10 bg-[#111121]/90 hover:border-white/20 hover:bg-[#12121f]/80'
               }`}
             >
               <div className="flex items-baseline justify-between mb-2">
-                <h2 className="text-xl font-semibold text-slate-900 dark:text-[#f5f2ff]">{plan.label}</h2>
+                <h2 className="text-xl font-semibold text-[#eeeaf4]">{plan.label}</h2>
                 {isSelected && (
-                  <span className="text-xs font-semibold uppercase tracking-wide text-indigo-700 dark:text-[#f5c14a]">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-[#f5c14a]">
                     Selected
                   </span>
                 )}
               </div>
-              <div className="text-3xl font-bold text-slate-900 mb-3 dark:text-[#eeeaf4]">
+              <div className="text-3xl font-bold text-[#eeeaf4] mb-3">
                 ${(plan.priceCents / 100).toFixed(0)}
-                <span className="text-base font-medium text-slate-500 dark:text-[#9d98ab]">/month</span>
+                <span className="text-base font-medium text-[rgba(238,234,244,0.5)]">/month</span>
               </div>
-              <p className="text-sm text-slate-600 mb-4 dark:text-[#c8c3d2]">{plan.description}</p>
-              <ul className="space-y-2 text-sm text-slate-700 dark:text-[#d4d0dc]">
+              <p className="text-sm text-[rgba(238,234,244,0.65)] mb-4">{plan.description}</p>
+              <ul className="space-y-2 text-sm text-[rgba(238,234,244,0.75)]">
                 {planHighlightsForTrial(plan, trialEligible).map((h) => (
                   <li key={h} className="flex items-start gap-2">
-                    <span className="text-emerald-600 font-semibold dark:text-emerald-400">✓</span>
+                    <span className="text-[#2be4c8] font-semibold">✓</span>
                     <span>{h}</span>
                   </li>
                 ))}
@@ -244,24 +240,24 @@ export default function SubscriptionPaywall({
       </div>
 
       {PLANS[selectedPlan].requiresCourseId && (
-        <div className="mb-8 rounded-xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-[#111121]/90">
+        <div className="relative mb-8 rounded-xl border border-white/10 bg-[#111121]/90 p-5 backdrop-blur-sm">
           <label
             htmlFor="course-select"
-            className="block text-sm font-semibold text-slate-700 mb-2 dark:text-[#d4d0dc]"
+            className="block text-sm font-semibold text-[rgba(238,234,244,0.9)] mb-2"
           >
             Which course do you want to unlock?
           </label>
           {courses.length === 0 ? (
-            <p className="text-sm text-slate-500 dark:text-[#9d98ab]">No published courses yet.</p>
+            <p className="text-sm text-[rgba(238,234,244,0.5)]">No published courses yet.</p>
           ) : (
             <select
               id="course-select"
               value={selectedCourseId}
               onChange={(e) => setSelectedCourseId(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-white/15 dark:bg-[#0c0c18] dark:text-[#eeeaf4]"
+              className="w-full rounded-xl border border-white/10 bg-[#0e0e1a] px-4 py-3 text-[#eeeaf4] focus:border-[#f5c14a]/60 focus:outline-none focus:ring-2 focus:ring-[#f5c14a]/20"
             >
               {courses.map((c) => (
-                <option key={c.id} value={c.id}>
+                <option key={c.id} value={c.id} className="bg-[#0e0e1a]">
                   {c.title}
                 </option>
               ))}
@@ -271,24 +267,24 @@ export default function SubscriptionPaywall({
       )}
 
       {error && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/35 dark:bg-red-950/40 dark:text-red-200">
+        <div className="relative mb-6 rounded-xl border border-red-500/40 bg-red-900/20 px-4 py-3 text-sm text-red-200">
           {error}
         </div>
       )}
 
       {!isAuthenticated ? (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 mb-6 text-sm text-amber-900 dark:border-amber-500/35 dark:bg-amber-950/35 dark:text-amber-100">
+        <div className="relative rounded-xl border border-amber-500/35 bg-amber-950/35 px-5 py-4 mb-6 text-sm text-amber-100">
           You need to be signed in to start the trial.{' '}
           <Link
             href={`/login${returnUrl ? `?redirect=${encodeURIComponent(returnUrl)}` : ''}`}
-            className="font-semibold underline text-amber-950 dark:text-[#f5c14a]"
+            className="font-semibold underline text-[#f5c14a]"
           >
             Sign in
           </Link>{' '}
           or{' '}
           <Link
             href={`/register${returnUrl ? `?redirect=${encodeURIComponent(returnUrl)}` : ''}`}
-            className="font-semibold underline text-amber-950 dark:text-[#f5c14a]"
+            className="font-semibold underline text-[#f5c14a]"
           >
             create an account
           </Link>
@@ -296,15 +292,15 @@ export default function SubscriptionPaywall({
         </div>
       ) : null}
 
-      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+      <div className="relative flex flex-col sm:flex-row gap-3 justify-center">
         <button
           type="button"
           disabled={loadingProvider !== null}
           onClick={() => startCheckout('stripe')}
-          className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-6 py-3 text-white font-semibold shadow-sm hover:bg-indigo-700 disabled:opacity-60 dark:shadow-[0_4px_20px_rgba(79,70,229,0.35)]"
+          className="inline-flex items-center justify-center rounded-xl px-6 py-3 text-[#0c0a00] font-semibold transition-colors disabled:opacity-60 bg-[#f5c14a] hover:bg-[#f9d06a] shadow-[0_4px_20px_rgba(245,193,74,0.24)]"
         >
           {loadingProvider === 'stripe'
-            ? 'Opening Stripe popup…'
+            ? 'Opening Stripe…'
             : trialEligible
               ? 'Start 48h trial (card)'
               : 'Subscribe with card'}
@@ -313,17 +309,17 @@ export default function SubscriptionPaywall({
           type="button"
           disabled={loadingProvider !== null}
           onClick={() => startCheckout('paypal')}
-          className="inline-flex items-center justify-center rounded-xl bg-[#f5c14a] px-6 py-3 text-[#0c0a00] font-semibold shadow-sm hover:bg-[#f9d06a] disabled:opacity-60"
+          className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-[#12121f] px-6 py-3 text-[#eeeaf4] font-semibold transition-colors hover:border-white/25 hover:bg-[#16162a] disabled:opacity-60"
         >
           {loadingProvider === 'paypal'
-            ? 'Opening PayPal popup…'
+            ? 'Opening PayPal…'
             : trialEligible
               ? 'Start 48h trial with PayPal'
               : 'Subscribe with PayPal'}
         </button>
       </div>
 
-      <p className="mt-8 text-center text-xs text-slate-500 dark:text-[#9d98ab]">
+      <p className="relative mt-8 text-center text-xs text-[rgba(238,234,244,0.45)]">
         Cancel anytime from your dashboard. No commitment after the trial period.
       </p>
     </section>
