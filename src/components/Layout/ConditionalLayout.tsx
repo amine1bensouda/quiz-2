@@ -40,7 +40,7 @@ export default function ConditionalLayout({
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors dark:bg-[#080810] dark:text-[#eeeaf4]">
+      <div className="min-h-screen bg-[#080810] text-[#eeeaf4]">
         {children}
       </div>
       <Footer />

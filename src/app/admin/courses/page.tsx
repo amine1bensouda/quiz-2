@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db';
 import Link from 'next/link';
 import DeleteCourseButton from '@/components/Admin/DeleteCourseButton';
 import PublishCourseButton from '@/components/Admin/PublishCourseButton';
+import PublishCourseToFreeButton from '@/components/Admin/PublishCourseToFreeButton';
 import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
 import CourseModulesDraggable from '@/components/Admin/CourseModulesDraggable';
 
@@ -104,7 +105,13 @@ export default async function AdminCoursesPage({
 
       {courses.length > 0 ? (
         <div className="space-y-6">
-          {courses.map((course) => (
+          {courses.map((course) => {
+            const totalQuizzesInCourse = course.modules.reduce(
+              (acc, module) => acc + module._count.quizzes,
+              0
+            );
+
+            return (
             <div
               key={course.id}
               className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6"
@@ -144,13 +151,18 @@ export default async function AdminCoursesPage({
                       rel="noopener noreferrer"
                       className="px-4 py-2 rounded-lg border border-amber-400 bg-amber-50 text-amber-900 hover:bg-amber-100 transition-colors text-sm font-medium"
                     >
-                      Prévisualiser
+                      Preview
                     </Link>
                   )}
                   <PublishCourseButton
                     courseId={course.id}
                     courseTitle={course.title}
                     currentStatus={(course.status as 'published' | 'draft') || 'draft'}
+                  />
+                  <PublishCourseToFreeButton
+                    courseId={course.id}
+                    courseTitle={course.title}
+                    totalQuizzes={totalQuizzesInCourse}
                   />
                   <Link
                     href={`/admin/courses/${course.id}/edit`}
@@ -168,7 +180,7 @@ export default async function AdminCoursesPage({
                 </div>
               </div>
 
-              {/* Course Modules (glisser-déposer pour réordonner) */}
+              {/* Course Modules (drag and drop to reorder) */}
               {course.modules.length > 0 ? (
                 <>
                   <CourseModulesDraggable
@@ -197,7 +209,8 @@ export default async function AdminCoursesPage({
                 </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center">

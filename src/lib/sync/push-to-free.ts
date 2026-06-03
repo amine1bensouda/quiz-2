@@ -8,7 +8,7 @@ function getFreeSiteUrl(): string {
     '';
   if (!url) {
     throw new Error(
-      'FREE_SITE_URL manquant (ex. http://localhost:3002 pour the-school)'
+      'FREE_SITE_URL is missing (e.g. http://localhost:3002 for the-school)'
     );
   }
   return url.replace(/\/$/, '');
@@ -18,7 +18,7 @@ function getSyncSecrets(): { apiKey: string; hmacSecret: string } {
   const apiKey = process.env.FREE_SYNC_API_KEY?.trim();
   const hmacSecret = process.env.FREE_SYNC_HMAC_SECRET?.trim();
   if (!apiKey || !hmacSecret) {
-    throw new Error('FREE_SYNC_API_KEY et FREE_SYNC_HMAC_SECRET requis');
+    throw new Error('FREE_SYNC_API_KEY and FREE_SYNC_HMAC_SECRET are required');
   }
   return { apiKey, hmacSecret };
 }

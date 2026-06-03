@@ -13,7 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const blogPosts = await getAllBlogPostsFromDB();
   const hasBlogPosts = blogPosts.length > 0;
 
-  // Pages statiques
+  // Static pages
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
@@ -62,7 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  // Récupérer tous les quiz
+  // Fetch all quizzes
   let quizPages: MetadataRoute.Sitemap = [];
   try {
     const quizSlugs = await getAllQuizSlugs();
@@ -73,10 +73,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
   } catch (error) {
-    console.error('Erreur récupération slugs quiz pour sitemap:', error);
+    console.error('Error fetching quiz slugs for sitemap:', error);
   }
 
-  // Récupérer tous les cours publiés
+  // Fetch all published courses
   let coursePages: MetadataRoute.Sitemap = [];
   try {
     const courses = await getCourses();
@@ -87,10 +87,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
   } catch (error) {
-    console.error('Erreur récupération cours pour sitemap:', error);
+    console.error('Error fetching courses for sitemap:', error);
   }
 
-  // Récupérer toutes les catégories
+  // Fetch all categories
   let categoryPages: MetadataRoute.Sitemap = [];
   try {
     const categories = await getAllCategories();
@@ -101,10 +101,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
   } catch (error) {
-    console.error('Erreur récupération catégories pour sitemap:', error);
+    console.error('Error fetching categories for sitemap:', error);
   }
 
-  // Pages d'articles de blog
+  // Blog post pages
   const blogPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
     url: `${baseUrl}/blogs/${encodeURIComponent(post.slug)}`,
     lastModified: post.date ? new Date(post.date) : currentDate,
@@ -112,7 +112,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  // Pages custom publiées (HTML/CSS depuis le panel admin), indexables uniquement
+  // Published custom pages (HTML/CSS from admin panel), indexable only
   let customPages: MetadataRoute.Sitemap = [];
   try {
     const pages = await getAllPublishedPagesData();
@@ -125,10 +125,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.6,
       }));
   } catch (error) {
-    console.error('Erreur récupération pages custom pour sitemap:', error);
+    console.error('Error fetching custom pages for sitemap:', error);
   }
 
-  // Combiner toutes les pages
+  // Combine all pages
   return [
     ...staticPages,
     ...quizPages,

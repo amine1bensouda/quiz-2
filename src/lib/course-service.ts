@@ -3,45 +3,45 @@ import { getAllPublishedCoursesData, getCourses, getPublishedCoursesSummaryData 
 import { convertPrismaQuizToQuiz } from './quiz-service';
 
 /**
- * Service pour gérer les cours avec Prisma
+ * Service to handle courses with Prisma
  */
 
 /**
- * Récupère tous les cours publiés avec leurs modules et quiz (cache Next ~1 h).
+ * Fetch all published courses with modules and quizzes (Next cache ~1h).
  */
 export async function getAllPublishedCourses() {
   try {
     return await getAllPublishedCoursesData();
   } catch (error) {
-    console.error('Erreur getAllPublishedCourses:', error);
+    console.error('getAllPublishedCourses error:', error);
 
-    // En dev, on logue l'erreur mais on ne casse pas toute la page.
-    // On retourne simplement un tableau vide de cours.
+    // In dev, log the error without breaking the whole page.
+    // Return an empty courses array instead.
     return [];
   }
 }
 
 /**
- * Résumé de cours pour APIs/listes (payload réduit).
+ * Course summary for APIs/lists (reduced payload).
  */
 export async function getPublishedCoursesSummary() {
   try {
     return await getPublishedCoursesSummaryData();
   } catch (error) {
-    console.error('Erreur getPublishedCoursesSummary:', error);
+    console.error('getPublishedCoursesSummary error:', error);
     return [];
   }
 }
 
 export type GetCourseBySlugOptions = {
   /**
-   * Si true, inclut les cours en brouillon (réservé au serveur, après vérif. admin).
+   * If true, includes draft courses (server-only, after admin check).
    */
   allowUnpublished?: boolean;
 };
 
 /**
- * Récupère un cours par son slug avec ses modules et quiz
+ * Fetch a course by slug with modules and quizzes
  */
 export async function getCourseBySlug(slug: string, options?: GetCourseBySlugOptions) {
   try {
@@ -121,7 +121,7 @@ export async function getCourseBySlug(slug: string, options?: GetCourseBySlugOpt
       return null;
     }
 
-    // Convertir les quiz au format attendu par le frontend
+    // Convert quizzes to the format expected by the frontend
     const courseWithConvertedQuizzes = {
       ...course,
       modules: course.modules.map((module) => ({
@@ -132,9 +132,9 @@ export async function getCourseBySlug(slug: string, options?: GetCourseBySlugOpt
 
     return courseWithConvertedQuizzes;
   } catch (error) {
-    console.error(`Erreur getCourseBySlug(${slug}):`, error);
+    console.error(`getCourseBySlug(${slug}) error:`, error);
     
-    // Vérifier si c'est une erreur de connexion
+    // Check if this is a connection error
     if (error instanceof Error) {
       const errorMessage = error.message.toLowerCase();
       if (errorMessage.includes('connect') || errorMessage.includes('connection') || errorMessage.includes('database')) {
@@ -147,13 +147,13 @@ export async function getCourseBySlug(slug: string, options?: GetCourseBySlugOpt
 }
 
 /**
- * Récupère le nombre de cours publiés par type de test et retourne les slugs pour les liens
+ * Fetch count of published courses by test type and return link slugs
  */
 export async function getCourseStatsByTestType() {
   try {
     const courses = await getCourses();
 
-    // Filtrer les cours par type de test en fonction du titre ou slug
+    // Filter courses by test type based on title or slug
     const actCourses = courses.filter(
       (course) =>
         course.title.toLowerCase().includes('act') ||
@@ -189,7 +189,7 @@ export async function getCourseStatsByTestType() {
       },
     };
   } catch (error) {
-    console.error('Erreur getCourseStatsByTestType:', error);
+    console.error('getCourseStatsByTestType error:', error);
     return {
       act: { count: 0, slug: null },
       sat: { count: 0, slug: null },

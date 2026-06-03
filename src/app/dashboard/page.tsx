@@ -1,12 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getCurrentUser, getQuizStats, logout, type User } from '@/lib/auth-client';
 import { excerptFromHtml } from '@/lib/utils';
 import LoadingSpinner from '@/components/Layout/LoadingSpinner';
-import ThemeToggle from '@/components/Layout/ThemeToggle';
 
 interface Course {
   id: string;
@@ -35,12 +34,17 @@ type NavKey =
   | 'dashboard'
   | 'exams'
   | 'practice'
-  | 'review'
   | 'analytics'
   | 'notifications'
-  | 'upgrade'
   | 'profile'
   | 'resources';
+
+const DASHBOARD_HASH_KEYS: Record<string, NavKey> = {
+  exams: 'exams',
+  analytics: 'analytics',
+  notifications: 'notifications',
+  profile: 'profile',
+};
 
 interface NavItem {
   key: NavKey;
@@ -71,12 +75,6 @@ const ICON: Record<NavKey, ReactNode> = {
       <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
     </svg>
   ),
-  review: (
-    <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-    </svg>
-  ),
   analytics: (
     <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
       <path d="M3 3v18h18" />
@@ -87,12 +85,6 @@ const ICON: Record<NavKey, ReactNode> = {
     <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
       <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
       <path d="M13.7 21a2 2 0 0 1-3.4 0" />
-    </svg>
-  ),
-  upgrade: (
-    <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M12 2L4 8v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V8l-8-6z" />
-      <path d="M9 12l2 2 4-4" />
     </svg>
   ),
   profile: (
@@ -113,18 +105,30 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: ICON.dashboard },
   { key: 'exams', label: 'Exams', href: '/dashboard#exams', icon: ICON.exams },
   { key: 'practice', label: 'Practice', href: '/quiz', icon: ICON.practice },
-  { key: 'review', label: 'Review', href: '/dashboard#history', icon: ICON.review },
   { key: 'analytics', label: 'Analytics', href: '/dashboard#analytics', icon: ICON.analytics },
   { key: 'notifications', label: 'Notifications', href: '/dashboard#notifications', icon: ICON.notifications },
-  { key: 'upgrade', label: 'Upgrade', href: '/subscribe', icon: ICON.upgrade },
   { key: 'profile', label: 'Profile', href: '/dashboard#profile', icon: ICON.profile },
   { key: 'resources', label: 'Resources', href: '/blogs', icon: ICON.resources },
 ];
 
+function resolveActiveNavKey(pathname: string, hash: string): NavKey {
+  if (pathname === '/quiz' || pathname.startsWith('/quiz/')) return 'practice';
+  if (pathname === '/blogs' || pathname.startsWith('/blogs/')) return 'resources';
+  if (pathname !== '/dashboard') return 'dashboard';
+
+  const section = hash.replace('#', '');
+  if (section && DASHBOARD_HASH_KEYS[section]) {
+    return DASHBOARD_HASH_KEYS[section];
+  }
+  return 'dashboard';
+}
+
 export default function DashboardPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [stats, setStats] = useState<any>(null);
+  const [activeNavKey, setActiveNavKey] = useState<NavKey>('dashboard');
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(true);
@@ -153,18 +157,77 @@ export default function DashboardPage() {
         router.push('/login');
       } finally {
         setLoading(false);
-        setCoursesLoading(false);
       }
     }
     loadUserAndStats();
   }, [router]);
 
   useEffect(() => {
-    if (loading) return;
-    if (typeof window !== 'undefined' && window.location.hash === '#exams') {
-      document.getElementById('exams')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (loading || !user) return;
+
+    let isMounted = true;
+
+    async function loadCourses() {
+      setCoursesLoading(true);
+      try {
+        const response = await fetch('/api/courses', { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch courses: ${response.status}`);
+        }
+
+        const data: Course[] = await response.json();
+        if (isMounted) {
+          setCourses(Array.isArray(data) ? data : []);
+        }
+      } catch (error) {
+        console.error('Error loading dashboard exams:', error);
+        if (isMounted) {
+          setCourses([]);
+        }
+      } finally {
+        if (isMounted) {
+          setCoursesLoading(false);
+        }
+      }
     }
-  }, [loading, coursesLoading]);
+
+    loadCourses();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [loading, user]);
+
+  const scrollToSection = useCallback((hash: string) => {
+    if (typeof window === 'undefined') return;
+    const id = hash.replace('#', '');
+    if (!id) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
+  useEffect(() => {
+    if (loading) return;
+
+    const syncNav = () => {
+      const hash = typeof window !== 'undefined' ? window.location.hash : '';
+      setActiveNavKey(resolveActiveNavKey(pathname, hash));
+    };
+
+    syncNav();
+    window.addEventListener('hashchange', syncNav);
+    return () => window.removeEventListener('hashchange', syncNav);
+  }, [loading, pathname]);
+
+  useEffect(() => {
+    if (loading || coursesLoading) return;
+    const hash = typeof window !== 'undefined' ? window.location.hash : '';
+    if (!hash) return;
+    const timer = window.setTimeout(() => scrollToSection(hash), 80);
+    return () => window.clearTimeout(timer);
+  }, [loading, coursesLoading, scrollToSection]);
 
   const examTotals = useMemo(() => {
     const totalQuizzes = courses.reduce((sum, c) => sum + (c.totalQuizzes || 0), 0);
@@ -209,19 +272,35 @@ export default function DashboardPage() {
         collapsed={collapsed}
         onToggle={() => setCollapsed((v) => !v)}
         onLogout={handleLogout}
-        activeKey="dashboard"
+        activeKey={activeNavKey}
+        onNavClick={(item) => {
+          if (item.href.startsWith('/dashboard#')) {
+            const hash = item.href.slice('/dashboard'.length);
+            setActiveNavKey(item.key);
+            window.history.pushState(null, '', item.href);
+            scrollToSection(hash);
+          } else if (item.href === '/dashboard') {
+            setActiveNavKey('dashboard');
+            window.history.pushState(null, '', '/dashboard');
+            scrollToSection('');
+          } else {
+            setActiveNavKey(item.key);
+          }
+        }}
       />
 
       <main
         className="flex-1 px-4 py-6 transition-[margin] duration-200 md:px-8 md:py-7"
         style={{ marginLeft: collapsed ? '72px' : '240px' }}
       >
-        <WelcomeHero
-          name={firstName}
-          isPremium={isPremium}
-          startHref="/dashboard#exams"
-          upgradeHref="/subscribe"
-        />
+        <div id="dashboard" className="scroll-mt-6">
+          <WelcomeHero
+            name={firstName}
+            isPremium={isPremium}
+            startHref="/dashboard#exams"
+            upgradeHref="/subscribe"
+          />
+        </div>
 
         <section className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="SUPERSCORE" value="--" accent="#f5c14a">
@@ -313,7 +392,7 @@ export default function DashboardPage() {
               </>
             }
             cta="Learn"
-            href="/dashboard#history"
+            href="/dashboard#analytics"
             icon={
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-5 h-5">
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
@@ -343,6 +422,10 @@ export default function DashboardPage() {
             }
           />
         </section>
+
+        <AnalyticsSection stats={stats} />
+        <NotificationsSection />
+        <ProfileSection user={user} subscription={subscription} isPremium={isPremium} />
 
         <section className="flex flex-wrap gap-3">
           <Link
@@ -495,16 +578,165 @@ function DashboardExamCard({ course }: { course: Course }) {
   );
 }
 
+function DashboardPanel({
+  id,
+  title,
+  subtitle,
+  children,
+}: {
+  id: string;
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section id={id} className="mb-8 scroll-mt-6">
+      <div className="mb-5">
+        <h2
+          className="dash-exams-title mb-2"
+          style={{
+            fontFamily: "'Instrument Serif', serif",
+            fontSize: 'clamp(1.5rem, 2.5vw, 2rem)',
+            lineHeight: 1.1,
+          }}
+        >
+          {title}
+        </h2>
+        {subtitle && <p className="dash-muted text-sm md:text-base">{subtitle}</p>}
+      </div>
+      <div className="dash-exam-stat rounded-2xl border p-6">{children}</div>
+    </section>
+  );
+}
+
+function AnalyticsSection({ stats }: { stats: { totalAttempts: number; averageScore: number; passedQuizzes: number; totalTimeSpent: number; attempts: Array<{ quizTitle: string; percentage: number; completedAt: string }> } }) {
+  const attempts = stats.attempts ?? [];
+  return (
+    <DashboardPanel
+      id="analytics"
+      title="Analytics"
+      subtitle="Track your progress and recent quiz performance."
+    >
+      <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-center">
+          <p className="text-2xl font-bold text-[#2be4c8]">{stats.totalAttempts}</p>
+          <p className="dash-muted text-xs uppercase tracking-wider">Tests taken</p>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-center">
+          <p className="text-2xl font-bold text-[#b388ff]">
+            {stats.averageScore > 0 ? `${stats.averageScore}%` : '--'}
+          </p>
+          <p className="dash-muted text-xs uppercase tracking-wider">Avg score</p>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-center">
+          <p className="text-2xl font-bold text-[#f5c14a]">{stats.passedQuizzes}</p>
+          <p className="dash-muted text-xs uppercase tracking-wider">Passed (70%+)</p>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-center">
+          <p className="text-2xl font-bold text-[#60c8ff]">
+            {stats.totalTimeSpent > 0 ? `${Math.round(stats.totalTimeSpent / 60)}m` : '--'}
+          </p>
+          <p className="dash-muted text-xs uppercase tracking-wider">Time spent</p>
+        </div>
+      </div>
+      {attempts.length > 0 ? (
+        <ul className="space-y-3">
+          {attempts.slice(0, 8).map((attempt, index) => (
+            <li
+              key={`${attempt.quizTitle}-${attempt.completedAt}-${index}`}
+              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3"
+            >
+              <span className="font-medium">{attempt.quizTitle}</span>
+              <span className="text-sm text-[#b388ff]">{attempt.percentage}%</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="dash-muted text-center">Complete a practice test to see your analytics here.</p>
+      )}
+    </DashboardPanel>
+  );
+}
+
+function NotificationsSection() {
+  return (
+    <DashboardPanel
+      id="notifications"
+      title="Notifications"
+      subtitle="Stay updated on your progress and account activity."
+    >
+      <p className="dash-muted text-center py-4">You&apos;re all caught up — no new notifications.</p>
+    </DashboardPanel>
+  );
+}
+
+function ProfileSection({
+  user,
+  subscription,
+  isPremium,
+}: {
+  user: User;
+  subscription: SubscriptionInfo | null;
+  isPremium: boolean;
+}) {
+  return (
+    <DashboardPanel id="profile" title="Profile" subtitle="Your account details and subscription status.">
+      <dl className="grid gap-4 sm:grid-cols-2">
+        <div className="rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3">
+          <dt className="dash-muted text-xs uppercase tracking-wider">Name</dt>
+          <dd className="mt-1 font-semibold">{user.name}</dd>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3">
+          <dt className="dash-muted text-xs uppercase tracking-wider">Email</dt>
+          <dd className="mt-1 font-semibold">{user.email}</dd>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3">
+          <dt className="dash-muted text-xs uppercase tracking-wider">Plan</dt>
+          <dd className="mt-1 font-semibold">{isPremium ? 'Premium' : 'Free'}</dd>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3">
+          <dt className="dash-muted text-xs uppercase tracking-wider">Member since</dt>
+          <dd className="mt-1 font-semibold">
+            {new Date(user.createdAt).toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+          </dd>
+        </div>
+      </dl>
+      {subscription?.course && (
+        <p className="dash-muted mt-4 text-sm">
+          Active course: <span className="text-[#f5c14a]">{subscription.course.title}</span>
+        </p>
+      )}
+      {!isPremium && (
+        <Link
+          href="/subscribe"
+          className="mt-5 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-[#0c0a00] transition-transform hover:-translate-y-0.5"
+          style={{
+            background: 'linear-gradient(180deg, #f5c14a 0%, #e0a82e 100%)',
+          }}
+        >
+          Unlock Premium
+        </Link>
+      )}
+    </DashboardPanel>
+  );
+}
+
 function Sidebar({
   collapsed,
   onToggle,
   onLogout,
   activeKey,
+  onNavClick,
 }: {
   collapsed: boolean;
   onToggle: () => void;
   onLogout: () => void;
   activeKey: NavKey;
+  onNavClick?: (item: NavItem) => void;
 }) {
   return (
     <aside
@@ -530,7 +762,6 @@ function Sidebar({
         </svg>
         {!collapsed && <span>Collapse</span>}
         </button>
-        <ThemeToggle className="shrink-0" />
       </div>
 
       <nav className="flex flex-1 flex-col gap-0.5">
@@ -541,6 +772,7 @@ function Sidebar({
               key={item.key}
               href={item.href}
               title={collapsed ? item.label : undefined}
+              onClick={() => onNavClick?.(item)}
               className={`dash-nav-link flex items-center gap-3 rounded-lg px-3 py-2.5 text-[0.92rem] font-medium transition-colors ${
                 isActive ? 'dash-nav-link-active' : ''
               }`}

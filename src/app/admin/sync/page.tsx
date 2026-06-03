@@ -45,38 +45,38 @@ export default async function AdminSyncPage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            Synchronisation → The School
+            Synchronization -&gt; The School
           </h1>
           <p className="text-gray-600">
-            Choisissez un quiz ci-dessous et cliquez <strong>Publier</strong> pour
-            l&apos;envoyer vers theschoolofmathematics.com ({publishedCount}{' '}
-            publiés, {outOfDateCount} à republier).
+            Choose a quiz below and click <strong>Publish</strong> to send it to
+            theschoolofmathematics.com ({publishedCount} published, {outOfDateCount}{' '}
+            out of date).
           </p>
         </div>
 
         {missingEnv.length > 0 && (
           <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            <p className="font-semibold">Configuration sync incomplète (.env)</p>
+            <p className="font-semibold">Incomplete sync configuration (.env)</p>
             <p className="mt-1">
-              Variables manquantes sur le serveur :{' '}
+              Missing variables on server:{' '}
               <code>{missingEnv.join(', ')}</code>
             </p>
             <p className="mt-2 text-amber-800">
-              Ajoutez-les dans <code>/var/www/quizz/.env</code>, les mêmes clés
-              côté school (<code>SYNC_API_KEY</code>, <code>SYNC_HMAC_SECRET</code>
-              ), puis <code>pm2 restart quiz --update-env</code>.
+              Add them to <code>/var/www/quizz/.env</code>, then use the same keys on
+              school (<code>SYNC_API_KEY</code>, <code>SYNC_HMAC_SECRET</code>), and run{' '}
+              <code>pm2 restart quiz --update-env</code>.
             </p>
           </div>
         )}
 
         <section className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
           <div className="px-4 py-3 border-b bg-gray-50 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-semibold text-gray-900">Quiz à publier</h2>
+            <h2 className="font-semibold text-gray-900">Quizzes to publish</h2>
             <Link
               href="/admin/quizzes"
               className="text-sm text-indigo-600 hover:underline font-medium"
             >
-              Tous les quiz →
+              All quizzes -&gt;
             </Link>
           </div>
           <QuizSyncTable
@@ -89,7 +89,7 @@ export default async function AdminSyncPage() {
 
         <section className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
           <h2 className="px-4 py-3 font-semibold text-gray-900 border-b bg-gray-50">
-            Historique des synchronisations
+            Sync history
           </h2>
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
@@ -101,13 +101,13 @@ export default async function AdminSyncPage() {
                   Quiz
                 </th>
                 <th className="px-4 py-3 text-left font-semibold text-gray-700">
-                  Statut
+                  Status
                 </th>
                 <th className="px-4 py-3 text-left font-semibold text-gray-700">
-                  ID gratuit
+                  Free ID
                 </th>
                 <th className="px-4 py-3 text-left font-semibold text-gray-700">
-                  Erreur
+                  Error
                 </th>
               </tr>
             </thead>
@@ -115,14 +115,14 @@ export default async function AdminSyncPage() {
               {logs.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                    Aucune tentative encore — utilisez le bouton Publier ci-dessus.
+                    No sync attempts yet — use the Publish button above.
                   </td>
                 </tr>
               ) : (
                 logs.map((log) => (
                   <tr key={log.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
-                      {log.createdAt.toLocaleString('fr-FR')}
+                      {log.createdAt.toLocaleString('en-US')}
                     </td>
                     <td className="px-4 py-3">
                       {log.quiz ? (
@@ -170,7 +170,7 @@ export default async function AdminSyncPage() {
   } catch (error) {
     return (
       <SyncDatabaseError
-        appLabel="Crack The Curve (payant)"
+        appLabel="Crack The Curve (paid)"
         errorInfo={formatPrismaDbError(error)}
       />
     );

@@ -8,8 +8,8 @@ export const dynamic = 'force-dynamic';
 
 /**
  * POST /api/admin/quizzes
- * Crée un nouveau quiz (admin uniquement)
- * TODO: Ajouter authentification
+ * Create a new quiz (admin only)
+ * TODO: Add authentication
  */
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       questions: rawQuestions,
     } = body;
 
-    // Validation basique
+    // Basic validation
     if (!title || typeof title !== 'string' || !slug || typeof slug !== 'string') {
       return NextResponse.json(
         { error: 'Title and slug are required' },
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     const safeDuration = (duration != null && duration !== '' && !Number.isNaN(durationNum))
       ? Math.max(0, Math.floor(durationNum))
       : 0;
-    // Chaîne vide si non renseigné (la DB peut avoir une contrainte NOT NULL sur difficulty)
+    // Empty string when not provided (DB may enforce NOT NULL on difficulty)
     const safeDifficulty = (difficulty != null && difficulty !== '') ? String(difficulty) : '';
     const safePassingGrade = passingGrade != null && passingGrade !== '' ? Math.max(0, Math.min(100, Number(passingGrade) || 70)) : 70;
     const maxQuestionsNum = (maxQuestions != null && maxQuestions !== '') ? Math.floor(Number(maxQuestions)) : NaN;
@@ -123,9 +123,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(quiz, { status: 201 });
   } catch (error: any) {
-    console.error('Erreur création quiz:', error);
+    console.error('Error creating quiz:', error);
     
-    // Gérer les erreurs de contrainte unique (slug déjà existant)
+    // Handle unique constraint errors (slug already exists)
     if (error.code === 'P2002') {
       return NextResponse.json(
         { error: 'A quiz with this slug already exists' },

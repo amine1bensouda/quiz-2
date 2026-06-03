@@ -49,9 +49,9 @@ export function formatPrismaDbError(error: unknown): DbErrorInfo {
     return {
       kind,
       message:
-        'Schéma Prisma non aligné : colonnes/tables de sync manquantes sur ce serveur.',
+        'Prisma schema is out of sync: sync columns/tables are missing on this server.',
       hints: [
-        'Sur le VPS : cd /var/www/quizz && git pull',
+        'On the VPS: cd /var/www/quizz && git pull',
         'chmod +x scripts/vps-migrate-sync.sh && ./scripts/vps-migrate-sync.sh',
         'npm run build && pm2 restart quizz',
         'npm run health:db',
@@ -63,41 +63,41 @@ export function formatPrismaDbError(error: unknown): DbErrorInfo {
     return {
       kind,
       message:
-        'PostgreSQL a refusé la connexion. Vérifiez DATABASE_URL et DIRECT_URL dans le fichier .env du serveur.',
+        'PostgreSQL rejected the connection. Check DATABASE_URL and DIRECT_URL in the server .env file.',
       hints: [
-        'Utilisateur, mot de passe et nom de base (ex. quizdb / school_db)',
-        'Sur VPS : postgresql://USER:PASS@localhost:5432/NOM_BASE',
-        'Caractères spéciaux dans le mot de passe : les encoder en URL (%21 pour !)',
-        'Test : npm run health:db',
+        'Verify username, password, and database name (e.g. quizdb / school_db)',
+        'On VPS: postgresql://USER:PASS@localhost:5432/DB_NAME',
+        'Special characters in password must be URL-encoded (%21 for !)',
+        'Test: npm run health:db',
       ],
     };
   }
 
   if (kind === 'connection') {
     const hints = [
-      'PostgreSQL démarré : sudo systemctl status postgresql',
-      'DATABASE_URL pointe vers la bonne base sur ce serveur (souvent localhost:5432)',
-      'Test : npm run health:db',
+      'PostgreSQL is running: sudo systemctl status postgresql',
+      'DATABASE_URL points to the correct database on this server (usually localhost:5432)',
+      'Test: npm run health:db',
     ];
     if (isSupabaseHost()) {
       hints.unshift(
-        'Projet Supabase actif (non en pause) — URL dans Settings → Database'
+        'Supabase project is active (not paused) - check URL in Settings -> Database'
       );
     }
     return {
       kind,
-      message: 'Impossible de joindre le serveur PostgreSQL.',
+      message: 'Unable to reach the PostgreSQL server.',
       hints,
     };
   }
 
   return {
     kind: 'unknown',
-    message: raw || 'Erreur lors de l’accès à la base de données.',
+    message: raw || 'Error while accessing the database.',
     hints: [
-      'Consulter les logs : pm2 logs',
-      'Vérifier DATABASE_URL dans .env',
-      'npx prisma migrate deploy puis redémarrer l’app',
+      'Check logs: pm2 logs',
+      'Verify DATABASE_URL in .env',
+      'Run npx prisma migrate deploy, then restart the app',
     ],
   };
 }

@@ -5,18 +5,18 @@ export function getAdminDashboardFallbackMessage(
   lastError: unknown | null
 ): string {
   if (isSafeModeEnabled()) {
-    return 'SAFE_MODE=1 dans .env : certaines requêtes sont désactivées. Retirez SAFE_MODE puis redémarrez l’app.';
+    return 'SAFE_MODE=1 in .env: some queries are disabled. Remove SAFE_MODE and restart the app.';
   }
 
   if (lastError) {
     const kind = classifyPrismaError(lastError);
     if (kind === 'missing_migration') {
-      return 'Schéma Prisma non à jour sur le serveur. Exécutez : npx prisma migrate deploy puis rebuild + pm2 restart.';
+      return 'Prisma schema is not up to date on the server. Run: npx prisma migrate deploy, then rebuild + pm2 restart.';
     }
     if (kind === 'auth') {
-      return 'Connexion PostgreSQL refusée pour une requête du dashboard. Vérifiez DATABASE_URL dans .env.';
+      return 'PostgreSQL connection was rejected for a dashboard query. Check DATABASE_URL in .env.';
     }
   }
 
-  return 'Une requête du dashboard a échoué. Consultez pm2 logs ou appliquez les migrations Prisma.';
+  return 'A dashboard query failed. Check pm2 logs or apply Prisma migrations.';
 }

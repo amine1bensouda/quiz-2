@@ -115,7 +115,10 @@ async function handleCheckoutSessionCompleted(
   if (session.mode !== 'subscription') return;
 
   const metadataSubId =
-    (session.metadata?.subscriptionId as string | undefined) ?? null;
+    (session.metadata?.subscriptionId as string | undefined) ??
+    (typeof session.client_reference_id === 'string'
+      ? session.client_reference_id
+      : null);
   const stripeSubId =
     typeof session.subscription === 'string'
       ? session.subscription

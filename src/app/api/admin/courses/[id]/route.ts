@@ -8,14 +8,14 @@ export const dynamic = 'force-dynamic';
 
 /**
  * PUT /api/admin/courses/[id]
- * Met à jour un cours
+ * Update a course
  */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    // Gérer les params synchrones et asynchrones (Next.js 14+)
+    // Handle sync and async params (Next.js 14+)
     const resolvedParams = await Promise.resolve(params);
     const courseId = resolvedParams.id;
 
@@ -33,7 +33,7 @@ export async function PUT(
       updateData.description = description || null;
     }
     if (status !== undefined && status !== null) {
-      // Valider le statut
+      // Validate status
       if (status !== 'published' && status !== 'draft') {
         return NextResponse.json(
           { error: 'Invalid status. Must be "published" or "draft"' },
@@ -43,7 +43,7 @@ export async function PUT(
       updateData.status = status;
     }
 
-    // Vérifier qu'il y a au moins un champ à mettre à jour
+    // Ensure at least one field to update
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json(
         { error: 'No fields to update' },
@@ -51,7 +51,7 @@ export async function PUT(
       );
     }
 
-    // Vérifier que le cours existe
+    // Ensure course exists
     const existingCourse = await prisma.course.findUnique({
       where: { id: courseId },
     });
@@ -86,12 +86,12 @@ export async function PUT(
 
     invalidatePublishedCoursesCache();
 
-    console.log(`✅ Cours ${courseId} mis à jour via PUT:`, updateData);
+    console.log(`✅ Course ${courseId} updated via PUT:`, updateData);
 
     return NextResponse.json(course);
   } catch (error: any) {
     const resolvedParams = await Promise.resolve(params);
-    console.error(`Erreur mise à jour cours ${resolvedParams.id}:`, error);
+    console.error(`Error updating course ${resolvedParams.id}:`, error);
     
     if (error.code === 'P2025') {
       return NextResponse.json(
@@ -109,21 +109,21 @@ export async function PUT(
 
 /**
  * PATCH /api/admin/courses/[id]
- * Met à jour partiellement un cours (notamment le statut)
+ * Partially update a course (especially status)
  */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    // Gérer les params synchrones et asynchrones (Next.js 14+)
+    // Handle sync and async params (Next.js 14+)
     const resolvedParams = await Promise.resolve(params);
     const courseId = resolvedParams.id;
 
     const body = await request.json();
     const { status, title, slug, description } = body;
 
-    // Valider le statut si fourni
+    // Validate status if provided
     if (status && status !== 'published' && status !== 'draft') {
       return NextResponse.json(
         { error: 'Invalid status. Must be "published" or "draft"' },
@@ -145,7 +145,7 @@ export async function PATCH(
       updateData.description = description || null;
     }
 
-    // Vérifier qu'il y a au moins un champ à mettre à jour
+    // Ensure at least one field to update
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json(
         { error: 'No fields to update' },
@@ -153,7 +153,7 @@ export async function PATCH(
       );
     }
 
-    // Vérifier que le cours existe
+    // Ensure course exists
     const existingCourse = await prisma.course.findUnique({
       where: { id: courseId },
     });
@@ -186,12 +186,12 @@ export async function PATCH(
           },
         });
 
-    console.log(`✅ Cours ${courseId} mis à jour: status=${course.status}`);
+    console.log(`✅ Course ${courseId} updated: status=${course.status}`);
 
     return NextResponse.json(course);
   } catch (error: any) {
     const resolvedParams = await Promise.resolve(params);
-    console.error(`❌ Erreur mise à jour cours ${resolvedParams.id}:`, error);
+    console.error(`❌ Error updating course ${resolvedParams.id}:`, error);
     console.error('   Code:', error.code);
     console.error('   Message:', error.message);
     console.error('   Stack:', error.stack);
@@ -216,14 +216,14 @@ export async function PATCH(
 
 /**
  * DELETE /api/admin/courses/[id]
- * Supprime un cours
+ * Delete a course
  */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    // Gérer les params synchrones et asynchrones (Next.js 14+)
+    // Handle sync and async params (Next.js 14+)
     const resolvedParams = await Promise.resolve(params);
     const courseId = resolvedParams.id;
 
@@ -236,7 +236,7 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error: any) {
     const resolvedParams = await Promise.resolve(params);
-    console.error(`Erreur suppression cours ${resolvedParams.id}:`, error);
+    console.error(`Error deleting course ${resolvedParams.id}:`, error);
     
     if (error.code === 'P2025') {
       return NextResponse.json(

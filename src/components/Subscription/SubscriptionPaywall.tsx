@@ -142,6 +142,16 @@ export default function SubscriptionPaywall({
       }
       const url = provider === 'stripe' ? data.url : data.approveUrl;
       if (!url) throw new Error('Payment provider returned no URL.');
+
+      // Stripe Payment Links (buy.stripe.com) work best with a full-page redirect.
+      if (provider === 'stripe' && data.paymentLink) {
+        if (pendingPopup && !pendingPopup.closed) {
+          pendingPopup.close();
+        }
+        window.location.href = url;
+        return;
+      }
+
       if (pendingPopup && !pendingPopup.closed) {
         pendingPopup.location.href = url;
         pendingPopup.focus();

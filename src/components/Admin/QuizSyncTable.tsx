@@ -14,10 +14,10 @@ export type QuizSyncRow = {
 };
 
 const STATUS: Record<string, { label: string; className: string }> = {
-  NOT_PUBLISHED: { label: 'Non publié', className: 'bg-gray-100 text-gray-700' },
-  PUBLISHED: { label: 'Publié', className: 'bg-emerald-100 text-emerald-800' },
-  OUT_OF_DATE: { label: 'À republier', className: 'bg-amber-100 text-amber-900' },
-  FAILED: { label: 'Échec', className: 'bg-red-100 text-red-800' },
+  NOT_PUBLISHED: { label: 'Not published', className: 'bg-gray-100 text-gray-700' },
+  PUBLISHED: { label: 'Published', className: 'bg-emerald-100 text-emerald-800' },
+  OUT_OF_DATE: { label: 'Out of date', className: 'bg-amber-100 text-amber-900' },
+  FAILED: { label: 'Failed', className: 'bg-red-100 text-red-800' },
 };
 
 export default function QuizSyncTable({ quizzes }: { quizzes: QuizSyncRow[] }) {
@@ -28,8 +28,8 @@ export default function QuizSyncTable({ quizzes }: { quizzes: QuizSyncRow[] }) {
   const publish = async (quiz: QuizSyncRow) => {
     const msg =
       quiz.syncPublishStatus === 'PUBLISHED'
-        ? `Republier « ${quiz.title} » vers The School ?`
-        : `Publier « ${quiz.title} » vers The School ?`;
+        ? `Republish "${quiz.title}" to The School?`
+        : `Publish "${quiz.title}" to The School?`;
     if (!window.confirm(msg)) return;
 
     setLoadingId(quiz.id);
@@ -41,18 +41,18 @@ export default function QuizSyncTable({ quizzes }: { quizzes: QuizSyncRow[] }) {
         { method: 'POST' }
       );
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Échec');
+      if (!res.ok) throw new Error(data.error || 'Failed');
       setFeedback((f) => ({
         ...f,
         [quiz.id]: data.alreadyUpToDate
-          ? 'Déjà à jour'
-          : `OK — ID gratuit : ${data.freeQuizId}`,
+          ? 'Already up to date'
+          : `OK — Free ID: ${data.freeQuizId}`,
       }));
       router.refresh();
     } catch (e) {
       setFeedback((f) => ({
         ...f,
-        [quiz.id]: e instanceof Error ? e.message : 'Erreur',
+        [quiz.id]: e instanceof Error ? e.message : 'Error',
       }));
     } finally {
       setLoadingId(null);
@@ -61,7 +61,7 @@ export default function QuizSyncTable({ quizzes }: { quizzes: QuizSyncRow[] }) {
 
   if (quizzes.length === 0) {
     return (
-      <p className="px-4 py-8 text-center text-gray-500">Aucun quiz en base.</p>
+      <p className="px-4 py-8 text-center text-gray-500">No quizzes found.</p>
     );
   }
 
@@ -72,7 +72,7 @@ export default function QuizSyncTable({ quizzes }: { quizzes: QuizSyncRow[] }) {
           <tr>
             <th className="px-4 py-3 text-left font-semibold text-gray-700">Quiz</th>
             <th className="px-4 py-3 text-left font-semibold text-gray-700">Slug</th>
-            <th className="px-4 py-3 text-left font-semibold text-gray-700">Statut sync</th>
+            <th className="px-4 py-3 text-left font-semibold text-gray-700">Sync status</th>
             <th className="px-4 py-3 text-left font-semibold text-gray-700">Actions</th>
           </tr>
         </thead>
@@ -94,7 +94,7 @@ export default function QuizSyncTable({ quizzes }: { quizzes: QuizSyncRow[] }) {
                   </span>
                   {q.lastSyncedAt && (
                     <p className="text-xs text-gray-500 mt-1">
-                      {new Date(q.lastSyncedAt).toLocaleString('fr-FR')}
+                      {new Date(q.lastSyncedAt).toLocaleString('en-US')}
                     </p>
                   )}
                 </td>
@@ -109,19 +109,19 @@ export default function QuizSyncTable({ quizzes }: { quizzes: QuizSyncRow[] }) {
                       {loadingId === q.id
                         ? '…'
                         : q.syncPublishStatus === 'PUBLISHED'
-                          ? 'Republier'
-                          : 'Publier'}
+                          ? 'Republish'
+                          : 'Publish'}
                     </button>
                     <Link
                       href={`/admin/quizzes/${q.id}/edit`}
                       className="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-medium text-gray-700 hover:bg-gray-100"
                     >
-                      Éditer
+                      Edit
                     </Link>
                   </div>
                   {fb && (
                     <p
-                      className={`text-xs ${fb.startsWith('OK') ? 'text-emerald-700' : fb === 'Déjà à jour' ? 'text-gray-600' : 'text-red-600'}`}
+                      className={`text-xs ${fb.startsWith('OK') ? 'text-emerald-700' : fb === 'Already up to date' ? 'text-gray-600' : 'text-red-600'}`}
                     >
                       {fb}
                     </p>

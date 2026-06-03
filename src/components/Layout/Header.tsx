@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { SITE_NAME } from '@/lib/constants';
 import { getCurrentUser } from '@/lib/auth-client';
-import ThemeToggle from './ThemeToggle';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -69,7 +68,7 @@ export default function Header() {
           <nav className="hidden md:flex items-center gap-1">
             <Link
               href="/quiz"
-              className={`px-5 py-2.5 text-sm font-medium text-[rgba(238,234,244,0.55)] transition-colors relative ${
+              className={`px-5 py-2.5 text-sm font-medium text-[rgba(238,234,244,0.7)] transition-colors relative ${
                 isActive('/quiz')
                   ? 'text-[#eeeaf4]' 
                   : 'hover:text-[#eeeaf4]'
@@ -82,33 +81,19 @@ export default function Header() {
             </Link>
             <Link
               href="/#how"
-              className={`px-5 py-2.5 text-sm font-medium text-[rgba(238,234,244,0.55)] transition-colors relative ${
-                pathname === '/' 
-                  ? 'text-[#eeeaf4]' 
-                  : 'hover:text-[#eeeaf4]'
-              }`}
+              className="px-5 py-2.5 text-sm font-medium text-[rgba(238,234,244,0.7)] transition-colors relative hover:text-[#eeeaf4]"
             >
               How it works
-              {pathname === '/' && (
-                <span className="absolute bottom-0 left-3 right-3 h-px bg-[#f5c14a] rounded-full"></span>
-              )}
             </Link>
             <Link
               href="/#qbanks"
-              className={`px-5 py-2.5 text-sm font-medium text-[rgba(238,234,244,0.55)] transition-colors relative ${
-                pathname === '/'
-                  ? 'text-[#eeeaf4]' 
-                  : 'hover:text-[#eeeaf4]'
-              }`}
+              className="px-5 py-2.5 text-sm font-medium text-[rgba(238,234,244,0.7)] transition-colors relative hover:text-[#eeeaf4]"
             >
               Pricing
-              {pathname === '/' && (
-                <span className="absolute bottom-0 left-3 right-3 h-px bg-[#f5c14a] rounded-full"></span>
-              )}
             </Link>
             <Link
               href="/blogs"
-              className={`px-5 py-2.5 text-sm font-medium text-[rgba(238,234,244,0.55)] transition-colors relative ${
+              className={`px-5 py-2.5 text-sm font-medium text-[rgba(238,234,244,0.7)] transition-colors relative ${
                 isActive('/blogs') 
                   ? 'text-[#eeeaf4]' 
                   : 'hover:text-[#eeeaf4]'
@@ -123,7 +108,6 @@ export default function Header() {
 
           {/* User menu */}
           <div className="hidden md:flex items-center gap-3">
-            <ThemeToggle />
             {user ? (
               <Link
                 href="/dashboard"
@@ -176,7 +160,7 @@ export default function Header() {
               <Link
                 href="/quiz"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 font-medium text-[rgba(238,234,244,0.75)] transition-colors rounded-lg ${
+                className={`px-4 py-3 font-medium text-[rgba(238,234,244,0.85)] transition-colors rounded-lg ${
                   isActive('/quiz') 
                     ? 'bg-white/10 text-[#eeeaf4]' 
                     : 'hover:bg-white/5'
@@ -187,29 +171,21 @@ export default function Header() {
               <Link
                 href="/#how"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 font-medium text-[rgba(238,234,244,0.75)] transition-colors rounded-lg ${
-                  pathname === '/'
-                    ? 'bg-white/10 text-[#eeeaf4]' 
-                    : 'hover:bg-white/5'
-                }`}
+                className="px-4 py-3 font-medium text-[rgba(238,234,244,0.85)] transition-colors rounded-lg hover:bg-white/5"
               >
                 How it works
               </Link>
               <Link
                 href="/#qbanks"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 font-medium text-[rgba(238,234,244,0.75)] transition-colors rounded-lg ${
-                  pathname === '/'
-                    ? 'bg-white/10 text-[#eeeaf4]' 
-                    : 'hover:bg-white/5'
-                }`}
+                className="px-4 py-3 font-medium text-[rgba(238,234,244,0.85)] transition-colors rounded-lg hover:bg-white/5"
               >
                 Pricing
               </Link>
               <Link
                 href="/blogs"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 font-medium text-[rgba(238,234,244,0.75)] transition-colors rounded-lg ${
+                className={`px-4 py-3 font-medium text-[rgba(238,234,244,0.85)] transition-colors rounded-lg ${
                   isActive('/blogs') 
                     ? 'bg-white/10 text-[#eeeaf4]' 
                     : 'hover:bg-white/5'
@@ -217,10 +193,6 @@ export default function Header() {
               >
                 Blog
               </Link>
-              <div className="border-t border-white/10 my-2"></div>
-              <div className="px-4 py-2">
-                <ThemeToggle />
-              </div>
               <div className="border-t border-white/10 my-2"></div>
               {user ? (
                 <Link

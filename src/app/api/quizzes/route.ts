@@ -21,7 +21,7 @@ export const revalidate = 3600;
 
 /**
  * GET /api/quizzes
- * Récupère tous les quiz
+ * Fetch all quizzes
  */
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
     response.headers.set('X-RateLimit-Remaining', String(rate.remaining));
     return addResponseObservability(response, startTime, '/api/quizzes');
   } catch (error) {
-    console.error('Erreur API quizzes:', error);
+    console.error('Quizzes API error:', error);
     return addResponseObservability(
       NextResponse.json(
       { error: 'Failed to fetch quizzes' },

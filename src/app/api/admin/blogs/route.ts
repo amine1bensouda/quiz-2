@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
         });
     return NextResponse.json(blogs);
   } catch (error: any) {
-    console.error('Erreur récupération blogs:', error);
+    console.error('Failed to fetch blogs:', error);
     return NextResponse.json(
       { error: 'Failed to fetch blogs', details: error.message },
       { status: 500 }
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(blog, { status: 201 });
   } catch (error: any) {
-    console.error('Erreur création blog:', error);
+    console.error('Failed to create blog:', error);
 
     if (error.code === 'P2002') {
       return NextResponse.json(

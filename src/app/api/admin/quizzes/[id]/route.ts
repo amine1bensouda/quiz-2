@@ -11,8 +11,8 @@ export const dynamic = 'force-dynamic';
 
 /**
  * PUT /api/admin/quizzes/[id]
- * Met à jour un quiz existant
- * TODO: Ajouter authentification
+ * Update an existing quiz
+ * TODO: Add authentication
  */
 export async function PUT(
   request: NextRequest,
@@ -36,10 +36,10 @@ export async function PUT(
       questions,
     } = body;
 
-    // Normaliser le slug si fourni
+    // Normalize slug if provided
     const normalizedSlug = slug ? generateSlug(slug) : undefined;
 
-    // Supprimer toutes les questions existantes et leurs réponses
+    // Remove all existing questions and answers
     await prisma.answer.deleteMany({
       where: {
         question: {
@@ -53,7 +53,7 @@ export async function PUT(
       },
     });
 
-    // Mettre à jour le quiz et créer les nouvelles questions
+    // Update quiz and create new questions
     const updateData = {
       ...(title && { title }),
       ...(normalizedSlug && { slug: normalizedSlug }),
@@ -61,7 +61,7 @@ export async function PUT(
       ...(description !== undefined && { description: description || null }),
       ...(excerpt !== undefined && { excerpt: excerpt || null }),
       ...(duration !== undefined && { duration: (duration === null || duration === '' || Number(duration) <= 0) ? 0 : Math.max(0, Number(duration)) }),
-      // Toujours mettre à jour difficulty si présente dans le body (y compris '' pour "Not specified")
+      // Always update difficulty if present in body (including '' for "Not specified")
       ...('difficulty' in body && { difficulty: (body.difficulty === null || body.difficulty === '') ? '' : body.difficulty }),
       ...(passingGrade !== undefined && { passingGrade }),
       ...(randomizeOrder !== undefined && { randomizeOrder }),
@@ -124,13 +124,13 @@ export async function PUT(
 
     await markQuizSyncOutOfDateIfPublished(params.id);
 
-    // Invalider le cache de la page quiz pour afficher les nouvelles données
+    // Invalidate quiz page cache to show updated data
     invalidatePublishedQuizzesCache();
     revalidatePath(`/quiz/${quiz.slug}`);
 
     return NextResponse.json(quiz);
   } catch (error: any) {
-    console.error(`Erreur mise à jour quiz ${params.id}:`, error);
+    console.error(`Error updating quiz ${params.id}:`, error);
     
     if (error.code === 'P2025') {
       return NextResponse.json(
@@ -148,8 +148,8 @@ export async function PUT(
 
 /**
  * DELETE /api/admin/quizzes/[id]
- * Supprime un quiz
- * TODO: Ajouter authentification
+ * Delete a quiz
+ * TODO: Add authentication
  */
 export async function DELETE(
   request: NextRequest,
@@ -167,7 +167,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error(`Erreur suppression quiz ${params.id}:`, error);
+    console.error(`Error deleting quiz ${params.id}:`, error);
     
     if (error.code === 'P2025') {
       return NextResponse.json(

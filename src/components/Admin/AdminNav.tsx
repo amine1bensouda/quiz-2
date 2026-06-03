@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState } from 'react';
-import ThemeToggle from '@/components/Layout/ThemeToggle';
 
 export default function AdminNav() {
   const router = useRouter();
@@ -52,7 +51,6 @@ export default function AdminNav() {
               <span className="text-[#eeeaf4]">ADMIN</span>
             </Link>
             <div className="flex items-center gap-2 lg:hidden">
-              <ThemeToggle className="admin-theme-toggle" />
               <Link
                 href="/"
                 className="rounded-full border border-white/20 px-3 py-2 text-xs font-semibold text-[#eeeaf4] sm:text-sm"
@@ -96,7 +94,6 @@ export default function AdminNav() {
           </div>
 
           <div className="hidden shrink-0 items-center gap-2 lg:flex lg:gap-3">
-            <ThemeToggle className="admin-theme-toggle" />
             <Link
               href="/"
               className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-[#eeeaf4] transition-colors hover:border-[#f5c14a]/50 hover:text-[#f5c14a]"

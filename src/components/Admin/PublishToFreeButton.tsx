@@ -13,19 +13,19 @@ type Props = {
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   NOT_PUBLISHED: {
-    label: 'Non publié',
+    label: 'Not published',
     className: 'bg-gray-100 text-gray-700',
   },
   PUBLISHED: {
-    label: 'Publié',
+    label: 'Published',
     className: 'bg-emerald-100 text-emerald-800',
   },
   OUT_OF_DATE: {
-    label: 'À republier',
+    label: 'Out of date',
     className: 'bg-amber-100 text-amber-900',
   },
   FAILED: {
-    label: 'Échec',
+    label: 'Failed',
     className: 'bg-red-100 text-red-800',
   },
 };
@@ -48,8 +48,8 @@ export default function PublishToFreeButton({
   const handlePublish = async () => {
     const confirmMsg =
       syncPublishStatus === 'PUBLISHED'
-        ? `Republier « ${quizTitle} » vers le site gratuit ? Les modifications premium écraseront le contenu sur The School (sauf si verrouillé côté gratuit).`
-        : `Publier « ${quizTitle} » vers le site gratuit (The School) ?`;
+        ? `Republish "${quizTitle}" to The School? Premium changes will overwrite free-site content unless local edits are locked.`
+        : `Publish "${quizTitle}" to The School (free site)?`;
 
     if (!window.confirm(confirmMsg)) return;
 
@@ -65,17 +65,17 @@ export default function PublishToFreeButton({
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Échec de la publication');
+        throw new Error(data.error || 'Publishing failed');
       }
 
       setMessage(
         data.alreadyUpToDate
-          ? 'Déjà à jour sur le site gratuit.'
-          : `Publié avec succès (ID gratuit : ${data.freeQuizId}).`
+          ? 'Already up to date on the free site.'
+          : `Published successfully (Free ID: ${data.freeQuizId}).`
       );
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erreur');
+      setError(e instanceof Error ? e.message : 'Error');
     } finally {
       setLoading(false);
     }
@@ -84,7 +84,7 @@ export default function PublishToFreeButton({
   return (
     <div className="rounded-xl border border-indigo-200 bg-indigo-50/80 p-5 space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        <h3 className="font-semibold text-gray-900">Site gratuit (The School)</h3>
+        <h3 className="font-semibold text-gray-900">Free Site (The School)</h3>
         <span
           className={`text-xs font-medium px-2.5 py-1 rounded-full ${status.className}`}
         >
@@ -94,12 +94,12 @@ export default function PublishToFreeButton({
 
       {lastSyncedAt && (
         <p className="text-sm text-gray-600">
-          Dernière sync :{' '}
-          {new Date(lastSyncedAt).toLocaleString('fr-FR')}
+          Last sync:{' '}
+          {new Date(lastSyncedAt).toLocaleString('en-US')}
           {freeQuizId && (
             <>
               {' '}
-              · ID gratuit :{' '}
+              · Free ID:{' '}
               <code className="text-xs bg-white px-1 rounded">{freeQuizId}</code>
             </>
           )}
@@ -113,10 +113,10 @@ export default function PublishToFreeButton({
         className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
       >
         {loading
-          ? 'Publication…'
+          ? 'Publishing...'
           : syncPublishStatus === 'PUBLISHED'
-            ? 'Republier vers The School'
-            : 'Publier vers The School'}
+            ? 'Republish to The School'
+            : 'Publish to The School'}
       </button>
 
       {message && (

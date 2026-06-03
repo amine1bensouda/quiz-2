@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 /**
  * POST /api/admin/quizzes/[id]/publish-to-free
- * Publie un quiz vers the-school (site gratuit).
+ * Publish one quiz to the free site.
  */
 export async function POST(
   _request: NextRequest,
@@ -24,14 +24,14 @@ export async function POST(
     return NextResponse.json({
       success: true,
       message: result.alreadyUpToDate
-        ? 'Quiz déjà à jour sur le site gratuit'
-        : 'Quiz publié vers le site gratuit',
+        ? 'Quiz already up to date on free site'
+        : 'Quiz published to free site',
       ...result,
     });
   } catch (error) {
     console.error('publish-to-free:', error);
     const message =
-      error instanceof Error ? error.message : 'Échec de la publication';
+      error instanceof Error ? error.message : 'Publishing failed';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -7,6 +7,10 @@ import { getUserActiveSubscription } from '@/lib/subscription-access';
 import { canUserStartFreeTrial } from '@/lib/trial-eligibility';
 import { addResponseObservability } from '@/lib/traffic-guard';
 import { SITE_BRAND_UPPER } from '@/lib/constants';
+import {
+  buildStripePaymentLinkUrl,
+  getStripePaymentLinkBaseUrl,
+} from '@/lib/stripe-payment-link';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -52,11 +56,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!plan.stripePriceId) {
+    const paymentLinkBase = getStripePaymentLinkBaseUrl();
+    if (!paymentLinkBase && !plan.stripePriceId) {
       return addResponseObservability(
         NextResponse.json(
           {
-            error: `Stripe price not configured for plan ${plan.id}. Set STRIPE_PRICE_${plan.id}_ID.`,
+            error: `Stripe price not configured for plan ${plan.id}. Set STRIPE_PRICE_${plan.id}_ID or STRIPE_PAYMENT_LINK_URL.`,
           },
           { status: 500 }
         ),
@@ -110,8 +115,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const stripe = getStripe();
-
     const subscription = await prisma.subscription.create({
       data: {
         userId: user.id,
@@ -126,6 +129,20 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_APP_URL ||
       process.env.NEXT_PUBLIC_SITE_URL ||
       'http://localhost:3000';
+
+    if (paymentLinkBase) {
+      const url = buildStripePaymentLinkUrl({
+        clientReferenceId: subscription.id,
+        email: user.email,
+      });
+      return addResponseObservability(
+        NextResponse.json({ url, paymentLink: true }),
+        startTime,
+        '/api/subscriptions/stripe/checkout'
+      );
+    }
+
+    const stripe = getStripe();
 
     const withTrial = await canUserStartFreeTrial(user.id);
     const trialPeriodDays = Math.max(1, Math.ceil(TRIAL_HOURS / 24));

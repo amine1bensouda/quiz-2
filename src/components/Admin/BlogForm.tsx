@@ -157,7 +157,7 @@ export default function BlogForm({ initialData }: BlogFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Informations principales */}
+      {/* Main information */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
         <h2 className="text-2xl font-bold text-gray-900">Blog Information</h2>
 
@@ -260,7 +260,7 @@ export default function BlogForm({ initialData }: BlogFormProps) {
         </div>
       </div>
 
-      {/* Contenu */}
+      {/* Content */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900">Blog source</h2>
@@ -321,7 +321,7 @@ export default function BlogForm({ initialData }: BlogFormProps) {
         )}
       </div>
 
-      {/* CTA (optionnel) */}
+      {/* CTA (optional) */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6">
         <h2 className="text-2xl font-bold text-gray-900">
           Call-to-Action <span className="text-sm font-normal text-gray-500">(optional)</span>
@@ -336,7 +336,7 @@ export default function BlogForm({ initialData }: BlogFormProps) {
               value={formData.ctaLink}
               onChange={(e) => setFormData((prev) => ({ ...prev, ctaLink: e.target.value }))}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              placeholder="Ex: /quiz ou /quiz/course/act-math"
+              placeholder="Ex: /quiz or /quiz/course/act-math"
             />
           </div>
           <div>

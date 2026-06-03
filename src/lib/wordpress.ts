@@ -83,13 +83,13 @@ function normalizeTutorQuestion(tutorQuestion: any): Question {
     const value = tutorQuestion[field];
     if (isValidText(value)) {
       questionText = value;
-      log(`  ✅ Texte trouvé dans: ${field}`);
+      log(`  ✅ Text found in: ${field}`);
       break;
     }
     // Si c'est un objet avec rendered
     if (value && typeof value === 'object' && value.rendered && isValidText(value.rendered)) {
       questionText = value.rendered;
-      log(`  ✅ Texte trouvé dans: ${field}.rendered`);
+      log(`  ✅ Text found in: ${field}.rendered`);
       break;
     }
   }
@@ -102,7 +102,7 @@ function normalizeTutorQuestion(tutorQuestion: any): Question {
     for (const field of debugFields) {
       if (isValidText(debug[field])) {
         questionText = debug[field];
-        log(`  ✅ Texte trouvé dans _debug.${field}`);
+        log(`  ✅ Text found in _debug.${field}`);
         break;
       }
     }
@@ -113,7 +113,7 @@ function normalizeTutorQuestion(tutorQuestion: any): Question {
       for (const field of possibleFields) {
         if (isValidText(allFields[field])) {
           questionText = allFields[field];
-          log(`  ✅ Texte trouvé dans _debug.all_fields.${field}`);
+          log(`  ✅ Text found in _debug.all_fields.${field}`);
           break;
         }
       }
@@ -130,7 +130,7 @@ function normalizeTutorQuestion(tutorQuestion: any): Question {
         if (obj.hasOwnProperty(key)) {
           const value = obj[key];
           if (isValidText(value)) {
-            log(`  ✅ Texte trouvé récursivement dans: ${key}`);
+            log(`  ✅ Text found recursively in: ${key}`);
             return value;
           }
           if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
@@ -168,7 +168,7 @@ function normalizeTutorQuestion(tutorQuestion: any): Question {
   if (!questionText || questionText.trim() === '') {
     const questionId = tutorQuestion.question_id || tutorQuestion.id || 'unknown';
     questionText = `Question ${questionId}`;
-    logWarn(`  ⚠️ Aucun texte valide trouvé pour la question ${questionId}, utilisation du message par défaut`);
+    logWarn(`  ⚠️ No valid text found for question ${questionId}, using default message`);
     logWarn('  📋 Clés disponibles:', Object.keys(tutorQuestion));
   }
   
@@ -232,7 +232,7 @@ function normalizeTutorQuestion(tutorQuestion: any): Question {
   return {
     id: tutorQuestion.question_id || tutorQuestion.id,
     // On garde le HTML et les formules, le composant d'affichage fera le rendu propre
-    texte_question: keepHtml(questionText) || 'Question sans titre',
+    texte_question: keepHtml(questionText) || 'Untitled question',
     type_question: questionType === 'true_false' ? 'VraiFaux' : 'QCM',
     explication: keepHtml(generalExplanation),
     points: tutorQuestion.points || tutorQuestion.question_mark || 1,
@@ -307,7 +307,7 @@ async function _getAllQuizUncached(): Promise<Quiz[]> {
     });
 
     // Debug: Afficher la structure de la réponse
-    log('🔍 Structure de la réponse API:', {
+  log('🔍 API response structure:', {
       hasData: !!response.data,
       hasDataData: !!response.data?.data,
       isArray: Array.isArray(response.data),
@@ -335,7 +335,7 @@ async function _getAllQuizUncached(): Promise<Quiz[]> {
     }
     
     if (!Array.isArray(quizzesData) || quizzesData.length === 0) {
-      logError('❌ Format de réponse inattendu ou aucun quiz:', {
+      logError('❌ Unexpected response format or no quizzes:', {
         type: typeof response.data,
         isArray: Array.isArray(response.data),
         hasData: !!response.data?.data,
@@ -345,25 +345,25 @@ async function _getAllQuizUncached(): Promise<Quiz[]> {
       return [];
     }
 
-    log(`✅ ${quizzesData.length} quiz récupérés depuis l'API`);
+    log(`✅ ${quizzesData.length} quizzes fetched from API`);
 
     // Pour chaque quiz, normaliser sans récupérer les questions immédiatement
     // Les questions seront récupérées à la demande lors de l'affichage du quiz
     const quizs = quizzesData.map((tutorQuiz: any) => {
       const quizId = tutorQuiz.ID || tutorQuiz.id;
-      log(`📝 Traitement du quiz ID: ${quizId}, titre: ${tutorQuiz.post_title || tutorQuiz.title}`);
+      log(`📝 Processing quiz ID: ${quizId}, title: ${tutorQuiz.post_title || tutorQuiz.title}`);
       
       // Normaliser le quiz sans questions pour l'instant
       // Les questions seront récupérées dans getQuizBySlug
       const normalizedQuiz = normalizeTutorQuiz(tutorQuiz, []);
-      log(`  ✅ Quiz normalisé: ${normalizedQuiz.title.rendered}`);
+      log(`  ✅ Normalized quiz: ${normalizedQuiz.title.rendered}`);
       return normalizedQuiz;
     });
 
-    log(`🎉 Total: ${quizs.length} quiz normalisés retournés`);
+    log(`🎉 Total: ${quizs.length} normalized quizzes returned`);
     return quizs;
   } catch (error) {
-    logError('Erreur récupération quiz Tutor LMS:', error);
+    logError('Tutor LMS quiz fetch error:', error);
     return [];
   }
 }
@@ -380,13 +380,13 @@ export async function getAllQuiz(): Promise<Quiz[]> {
       // Toujours retourner les quiz de Prisma s'ils existent, même si le tableau est vide
       // (cela signifie qu'il n'y a vraiment pas de quiz, pas un problème de connexion)
       if (quizzes) {
-        log(`✅ ${quizzes.length} quiz récupérés depuis Prisma (nouveau backend)`);
+        log(`✅ ${quizzes.length} quizzes fetched from Prisma (new backend)`);
         return quizzes;
       }
       log('⚠️ Prisma retourne null, fallback vers WordPress');
     } catch (prismaError: any) {
-      log('⚠️ Prisma non disponible, utilisation WordPress (fallback)');
-      log('   Erreur:', prismaError?.message || prismaError);
+      log('⚠️ Prisma unavailable, using WordPress (fallback)');
+      log('   Error:', prismaError?.message || prismaError);
     }
 
     // ⚠️ IMPORTANT: Ne pas utiliser WordPress pendant le build
@@ -397,7 +397,7 @@ export async function getAllQuiz(): Promise<Quiz[]> {
                         process.env.NODE_ENV === 'production' && !process.env.VERCEL && !process.env.NETLIFY;
     
     if (isBuildTime) {
-      log('⚠️ Build détecté: retour d\'un tableau vide (pas de fallback WordPress)');
+      log('⚠️ Build detected: returning empty array (no WordPress fallback)');
       return [];
     }
 
@@ -411,10 +411,10 @@ export async function getAllQuiz(): Promise<Quiz[]> {
     // Pour la production, vous pouvez réactiver le cache si nécessaire.
     log('🔄 Fallback vers WordPress...');
     const wordpressQuizzes = await _getAllQuizUncached();
-    log(`📊 ${wordpressQuizzes.length} quiz récupérés depuis WordPress`);
+    log(`📊 ${wordpressQuizzes.length} quizzes fetched from WordPress`);
     return wordpressQuizzes;
   } catch (error) {
-    logError('Erreur getAllQuiz:', error);
+    logError('getAllQuiz error:', error);
     return [];
   }
 }
@@ -434,7 +434,7 @@ async function _getQuizBySlugUncached(slug: string): Promise<Quiz | null> {
       }
     } catch (directError: any) {
       // Si la route directe n'existe pas, récupérer tous les quiz
-      log('Route directe non disponible, récupération de tous les quiz...');
+      log('Direct route unavailable, fetching all quizzes...');
       const allQuizsResponse = await tutorApiClient.get('/quizzes', {
         params: {
           per_page: 100,
@@ -462,12 +462,12 @@ async function _getQuizBySlugUncached(slug: string): Promise<Quiz | null> {
     const quizId = tutorQuiz.ID || tutorQuiz.id;
     let questions: Question[] = [];
     try {
-      log(`🔍 Récupération des questions pour le quiz ID: ${quizId}`);
+      log(`🔍 Fetching questions for quiz ID: ${quizId}`);
       
       // Essayer d'abord la route simple /questions?quiz_id={id} (la plus fiable)
       let questionsResponse;
       try {
-        log(`📡 Tentative avec route simple /questions?quiz_id=${quizId}`);
+        log(`📡 Trying simple route /questions?quiz_id=${quizId}`);
         questionsResponse = await tutorApiClient.get('/questions', {
           params: { quiz_id: quizId }
         });
@@ -475,7 +475,7 @@ async function _getQuizBySlugUncached(slug: string): Promise<Quiz | null> {
       } catch (error: any) {
         // Si la route simple échoue, essayer les autres routes
         if (error.response?.status === 404) {
-          log(`⚠️ Route simple non trouvée (404), tentative avec autres routes...`);
+          log(`⚠️ Simple route not found (404), trying other routes...`);
           try {
             // Essayer de récupérer le quiz avec les questions incluses
             const quizWithQuestions = await tutorApiClient.get(`/quiz/${quizId}`, {
@@ -484,10 +484,10 @@ async function _getQuizBySlugUncached(slug: string): Promise<Quiz | null> {
             
             // Si le quiz contient les questions
             if (quizWithQuestions.data?.questions && Array.isArray(quizWithQuestions.data.questions)) {
-              log(`✅ Questions récupérées via quiz avec include_questions`);
+              log(`✅ Questions fetched via quiz with include_questions`);
               questionsResponse = { data: { data: quizWithQuestions.data.questions } };
             } else {
-              throw new Error('Questions non incluses dans la réponse');
+              throw new Error('Questions are not included in the response');
             }
           } catch (error2: any) {
             // Essayer les autres routes
@@ -553,20 +553,20 @@ async function _getQuizBySlugUncached(slug: string): Promise<Quiz | null> {
       log(`✅ ${questionsData.length} questions brutes récupérées`);
       if (questionsData.length > 0) {
         log('  📋 Première question brute (complète):', JSON.stringify(questionsData[0], null, 2));
-        log('  📋 Clés de la première question:', Object.keys(questionsData[0]));
+        log('  📋 First question keys:', Object.keys(questionsData[0]));
       }
       questions = questionsData.map(normalizeTutorQuestion);
       log(`✅ ${questions.length} questions normalisées`);
       
       // Vérifier si les questions ont un texte
       const questionsWithText = questions.filter(q => q.texte_question && q.texte_question.trim() !== '');
-      log(`  📊 Questions avec texte: ${questionsWithText.length} / ${questions.length}`);
+      log(`  📊 Questions with text: ${questionsWithText.length} / ${questions.length}`);
       
       if (questions.length === 0) {
-        logWarn(`⚠️ Aucune question trouvée pour le quiz ${quizId}`);
+        logWarn(`⚠️ No questions found for quiz ${quizId}`);
       }
     } catch (error: any) {
-      logError(`❌ Erreur récupération questions pour quiz ${quizId}:`, error.message || error);
+      logError(`❌ Error fetching questions for quiz ${quizId}:`, error.message || error);
       if (error.response) {
         logError('   Status:', error.response.status);
         logError('   Data:', error.response.data);
@@ -583,7 +583,7 @@ async function _getQuizBySlugUncached(slug: string): Promise<Quiz | null> {
         );
         featuredMediaUrl = mediaResponse.data.source_url;
       } catch (error) {
-        logError(`Erreur récupération média:`, error);
+        logError('Media fetch error:', error);
       }
     }
 
@@ -594,7 +594,7 @@ async function _getQuizBySlugUncached(slug: string): Promise<Quiz | null> {
 
     return normalizedQuiz;
   } catch (error) {
-    logError(`Erreur récupération quiz ${slug}:`, error);
+    logError(`Error fetching quiz ${slug}:`, error);
     return null;
   }
 }
@@ -609,11 +609,11 @@ export async function getQuizBySlug(slug: string): Promise<Quiz | null> {
       const { getQuizBySlug: getQuizBySlugFromService } = await import('./quiz-service');
       const quiz = await getQuizBySlugFromService(slug);
       if (quiz) {
-        log(`✅ Quiz ${slug} récupéré depuis Prisma (nouveau backend)`);
+        log(`✅ Quiz ${slug} fetched from Prisma (new backend)`);
         return quiz;
       }
     } catch (prismaError) {
-      log('⚠️ Prisma non disponible, utilisation WordPress (fallback)');
+      log('⚠️ Prisma unavailable, using WordPress (fallback)');
     }
 
     // Fallback vers WordPress si Prisma n'est pas configuré
@@ -630,7 +630,7 @@ export async function getQuizBySlug(slug: string): Promise<Quiz | null> {
     )();
   } catch (error) {
     // Si unstable_cache échoue (composant client), utiliser la version non cachée
-    logError('Erreur avec unstable_cache, utilisation version non cachée:', error);
+    logError('unstable_cache error, using non-cached version:', error);
     return _getQuizBySlugUncached(slug);
   }
 }
@@ -689,7 +689,7 @@ export async function getQuizByCategory(categorySlug: string): Promise<Quiz[]> {
           const questionsData = questionsResponse.data?.data || questionsResponse.data || [];
           questions = Array.isArray(questionsData) ? questionsData.map(normalizeTutorQuestion) : [];
         } catch (error) {
-          logError(`Erreur récupération questions:`, error);
+          logError('Error fetching questions:', error);
         }
 
         return normalizeTutorQuiz(tutorQuiz, questions);
@@ -698,7 +698,7 @@ export async function getQuizByCategory(categorySlug: string): Promise<Quiz[]> {
 
     return quizs;
   } catch (error) {
-    logError(`Erreur récupération quiz catégorie ${categorySlug}:`, error);
+    logError(`Error fetching category quiz ${categorySlug}:`, error);
     return [];
   }
 }
@@ -724,7 +724,7 @@ export async function _getAllCategoriesUncached(): Promise<Category[]> {
       count: cat.count || 0,
     }));
   } catch (error) {
-    logError('Erreur récupération catégories:', error);
+    logError('Error fetching categories:', error);
     return [];
   }
 }
@@ -743,7 +743,7 @@ export async function getAllCategories(): Promise<Category[]> {
     )();
   } catch (error) {
     // Si unstable_cache échoue (composant client), utiliser la version non cachée
-    logError('Erreur avec unstable_cache, utilisation version non cachée:', error);
+    logError('unstable_cache error, using non-cached version:', error);
     return _getAllCategoriesUncached();
   }
 }
@@ -774,7 +774,7 @@ async function _getStatsUncached(): Promise<Stats> {
       ]);
 
       log(
-        `✅ Stats depuis Prisma: ${totalQuiz} quiz publiés, ${totalQuestions} questions, ${moduleCount} modules`
+        `✅ Stats from Prisma: ${totalQuiz} published quizzes, ${totalQuestions} questions, ${moduleCount} modules`
       );
 
       return {
@@ -784,7 +784,7 @@ async function _getStatsUncached(): Promise<Stats> {
         quiz_par_categorie: {},
       };
     } catch (prismaError) {
-      log('⚠️ Prisma non disponible pour stats, utilisation WordPress');
+      log('⚠️ Prisma unavailable for stats, using WordPress');
     }
 
     // Fallback vers WordPress
@@ -809,7 +809,7 @@ async function _getStatsUncached(): Promise<Stats> {
       quiz_par_categorie: quizParCategorie,
     };
   } catch (error) {
-    logError('Erreur récupération statistiques:', error);
+    logError('Error fetching statistics:', error);
     return {
       total_quiz: 0,
       total_questions: 0,
@@ -832,7 +832,7 @@ export async function getStats(): Promise<Stats> {
     )();
   } catch (error) {
     // Si unstable_cache échoue (composant client), utiliser la version non cachée
-    logError('Erreur avec unstable_cache, utilisation version non cachée:', error);
+    logError('unstable_cache error, using non-cached version:', error);
     return _getStatsUncached();
   }
 }
@@ -843,7 +843,7 @@ export async function getStats(): Promise<Stats> {
 export async function getQuestionById(id: number): Promise<Question | null> {
   // Avec Tutor LMS, les questions sont récupérées avec le quiz
   // Cette fonction est conservée pour compatibilité
-  logWarn('getQuestionById: Les questions sont incluses dans le quiz avec Tutor LMS');
+  logWarn('getQuestionById: Questions are included in quiz data with Tutor LMS');
   return null;
 }
 
@@ -858,11 +858,11 @@ export async function getAllQuizSlugs(): Promise<string[]> {
       const { getAllQuizSlugs: getAllQuizSlugsFromService } = await import('./quiz-service');
       const slugs = await getAllQuizSlugsFromService();
       if (slugs.length > 0) {
-        log(`✅ getAllQuizSlugs: ${slugs.length} slugs récupérés depuis Prisma`);
+        log(`✅ getAllQuizSlugs: ${slugs.length} slugs fetched from Prisma`);
         return slugs;
       }
     } catch (prismaError) {
-      log('⚠️ Prisma non disponible, utilisation WordPress (fallback)');
+      log('⚠️ Prisma unavailable, using WordPress (fallback)');
     }
 
     if (!WORDPRESS_API_URL) return [];
@@ -874,7 +874,7 @@ export async function getAllQuizSlugs(): Promise<string[]> {
 
     const quizzesData = response.data?.data || response.data || [];
     if (!Array.isArray(quizzesData)) {
-      logError('❌ getAllQuizSlugs: Format de réponse inattendu');
+      logError('❌ getAllQuizSlugs: Unexpected response format');
       return [];
     }
     
@@ -882,14 +882,14 @@ export async function getAllQuizSlugs(): Promise<string[]> {
       .map((quiz: any) => quiz.post_name || quiz.slug || '')
       .filter((slug: string) => slug !== ''); // Filtrer les slugs vides
     
-    log(`✅ getAllQuizSlugs: ${slugs.length} slugs récupérés depuis WordPress`);
+    log(`✅ getAllQuizSlugs: ${slugs.length} slugs fetched from WordPress`);
     if (slugs.length > 0) {
-      log(`  Premiers slugs: ${slugs.slice(0, 5).join(', ')}...`);
+      log(`  First slugs: ${slugs.slice(0, 5).join(', ')}...`);
     }
     
     return slugs;
   } catch (error) {
-    logError('Erreur récupération slugs:', error);
+    logError('Error fetching slugs:', error);
     return [];
   }
 }

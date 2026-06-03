@@ -359,7 +359,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
   }, [questions, selectedAnswers, startTime, quiz, quizTimeRemaining, totalQuestions]);
   // Note: correctAnswer est une variable locale dans le forEach, pas besoin dans les dépendances
 
-  // Gérer le timer global du quiz
+  // Handle global quiz timer
   useEffect(() => {
     if (quizTimeRemaining === null || quizCompleted) return;
 
@@ -367,10 +367,10 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
       setQuizTimeRemaining((prev) => {
         if (prev === null || prev <= 0) {
           clearInterval(interval);
-          // Le temps est écoulé, fermer automatiquement le quiz
+          // Time is up, close quiz automatically
           if (!quizCompleted) {
-            console.log('⏱️ Temps écoulé ! Fermeture automatique du quiz...');
-            // Nettoyer le timer sauvegardé
+            console.log('⏱️ Time is up! Closing quiz automatically...');
+            // Clear persisted timer
             if (typeof window !== 'undefined') {
               localStorage.removeItem(`quiz-timer-${quiz.id}`);
               localStorage.removeItem(`quiz-start-time-${quiz.id}`);

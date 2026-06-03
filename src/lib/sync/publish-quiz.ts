@@ -16,7 +16,7 @@ export async function publishQuizToFreeSite(
 ): Promise<PublishQuizResult> {
   const payload = await buildQuizSyncPayload(quizId);
   if (!payload) {
-    throw new Error('Quiz introuvable');
+    throw new Error('Quiz not found');
   }
 
   const existing = await prisma.quiz.findUnique({

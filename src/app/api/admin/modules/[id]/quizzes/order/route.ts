@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 /**
  * PATCH /api/admin/modules/[id]/quizzes/order
- * Body: { quizIds: string[] } — IDs des quiz du module, dans le nouvel ordre d’affichage.
+ * Body: { quizIds: string[] } - module quiz IDs in their new display order.
  */
 export async function PATCH(
   request: NextRequest,
@@ -62,7 +62,7 @@ export async function PATCH(
     return NextResponse.json({ ok: true });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Erreur reorder quizzes module:', error);
+    console.error('Error reordering module quizzes:', error);
     return NextResponse.json(
       { error: 'Failed to reorder quizzes', details: message },
       { status: 500 }

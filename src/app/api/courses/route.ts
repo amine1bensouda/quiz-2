@@ -11,7 +11,7 @@ import {
 
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 3600; // Revalider toutes les heures
+export const revalidate = 3600; // Revalidate every hour
 
 export async function GET(request: Request) {
   const startTime = Date.now();
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
         '/api/courses'
       );
     }
-    // Léger par défaut pour réduire l'egress DB.
+    // Lightweight by default to reduce DB egress.
     const courses = full
       ? await getAllPublishedCourses()
       : await getPublishedCoursesSummary();
@@ -44,9 +44,9 @@ export async function GET(request: Request) {
     response.headers.set('X-RateLimit-Remaining', String(rate.remaining));
     return addResponseObservability(response, startTime, '/api/courses');
   } catch (error) {
-    console.error('Erreur API courses:', error);
+    console.error('Courses API error:', error);
     
-    // Vérifier si c'est une erreur de connexion à la base de données
+    // Check if this is a database connection error
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     if (errorMessage.includes('Database connection error')) {
       return addResponseObservability(

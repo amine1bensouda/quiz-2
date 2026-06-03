@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import ThemeToggle from '@/components/Layout/ThemeToggle';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -39,9 +38,6 @@ export default function AdminLoginPage() {
 
   return (
     <div className="admin-app relative min-h-screen flex items-center justify-center overflow-hidden bg-[#080810] py-12 px-4">
-      <div className="absolute right-4 top-4 z-20 sm:right-6 sm:top-6">
-        <ThemeToggle />
-      </div>
       <div className="pointer-events-none absolute -left-24 top-0 h-72 w-72 rounded-full bg-[#f5c14a]/12 blur-[100px]" aria-hidden />
       <div className="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-[#2be4c8]/10 blur-[100px]" aria-hidden />
 
