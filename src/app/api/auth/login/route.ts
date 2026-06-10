@@ -32,13 +32,23 @@ export async function POST(request: NextRequest) {
     }
 
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: email.trim().toLowerCase() },
     });
 
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
+      );
+    }
+
+    if (user.emailVerified === false) {
+      return NextResponse.json(
+        {
+          error:
+            'Please verify your email before signing in. Request a new code from the registration page.',
+        },
+        { status: 403 }
       );
     }
 

@@ -68,46 +68,69 @@ export function clearUserCache(): void {
 }
 
 /**
- * Enregistre un nouvel utilisateur
+ * Send email verification code (registration step 1)
  */
-export async function register(email: string, password: string, name: string): Promise<User> {
-  const response = await fetch('/api/auth/register', {
+export async function sendRegistrationCode(
+  email: string,
+  password: string,
+  name: string
+): Promise<{ email: string; devHint?: string }> {
+  const response = await fetch('/api/auth/register/send-code', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password, name }),
   });
 
   if (!response.ok) {
-    let errorMessage = 'Registration failed';
-    try {
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        const error = await response.json();
-        errorMessage = error.error || errorMessage;
-        
-        // Messages d'erreur plus clairs pour l'utilisateur
-        if (errorMessage.includes('Database connection')) {
-          errorMessage = 'Service temporarily unavailable. Please try again in a few moments.';
-        } else if (errorMessage.includes('already registered')) {
-          errorMessage = 'This email is already registered. Sign in or use another email.';
-        }
-      } else {
-        const text = await response.text();
-        errorMessage = text || errorMessage;
-      }
-    } catch (e) {
-      // Si la réponse n'est pas du JSON valide, utiliser le message par défaut
-      errorMessage = `Registration failed (${response.status} ${response.statusText})`;
-    }
-    throw new Error(errorMessage);
+    const error = await response.json().catch(() => ({}));
+    throw new Error(parseAuthError(error.error, 'Failed to send verification code'));
+  }
+
+  return response.json();
+}
+
+/**
+ * Verify code and create account (registration step 2)
+ */
+export async function verifyRegistrationCode(
+  email: string,
+  code: string
+): Promise<User> {
+  const response = await fetch('/api/auth/register/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email, code }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(parseAuthError(error.error, 'Verification failed'));
   }
 
   const data = await response.json();
   currentUserCache = data.user;
   return data.user;
+}
+
+/** @deprecated Use sendRegistrationCode + verifyRegistrationCode */
+export async function register(email: string, password: string, name: string): Promise<User> {
+  await sendRegistrationCode(email, password, name);
+  throw new Error('Enter the verification code sent to your email.');
+}
+
+function parseAuthError(message: string | undefined, fallback: string): string {
+  if (!message) return fallback;
+  if (message.includes('Database connection')) {
+    return 'Service temporarily unavailable. Please try again in a few moments.';
+  }
+  if (message.includes('already registered')) {
+    return 'This email is already registered. Sign in or use another email.';
+  }
+  if (/timeout|email server|RESEND|SMTP/i.test(message)) {
+    return message;
+  }
+  return message;
 }
 
 /**

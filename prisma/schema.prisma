@@ -157,6 +157,7 @@ model User {
   email         String         @unique
   name          String
   password      String
+  emailVerified Boolean        @default(true)
   quizAttempts  QuizAttempt[]
   subscriptions Subscription[]
   createdAt     DateTime       @default(now())
@@ -164,6 +165,22 @@ model User {
 
   @@map("users")
   @@index([email])
+}
+
+model RegistrationVerification {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  codeHash     String
+  expiresAt    DateTime
+  attempts     Int      @default(0)
+  lastSentAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("registration_verifications")
+  @@index([expiresAt])
 }
 
 model BlogPost {
