@@ -5,25 +5,27 @@ import LoadingSpinner from '@/components/Layout/LoadingSpinner';
 
 export default function CourseLoading() {
   return (
-    <div className="relative bg-gradient-to-br from-slate-50 via-indigo-50/30 to-violet-50 min-h-screen">
+    <div className="quiz-page relative min-h-screen overflow-hidden bg-[#080810] text-[#eeeaf4]">
       <AnimatedShapes variant="hero" count={6} intensity="medium" />
-      <BackgroundPattern variant="luxury" opacity={0.08} />
+      <BackgroundPattern variant="luxury" opacity={0.06} />
+      <div className="pointer-events-none absolute -left-24 top-24 h-72 w-72 rounded-full bg-[#f5c14a]/15 blur-3xl" />
+      <div className="pointer-events-none absolute right-[-3rem] top-40 h-80 w-80 rounded-full bg-[#b388ff]/15 blur-3xl" />
       <Navigation />
 
-      <div className="container mx-auto px-4 sm:px-5 md:px-6 py-8 sm:py-10 md:py-12 relative z-10 max-w-[100vw]">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-6 h-4 w-56 bg-gray-200 rounded-full animate-pulse" />
+      <div className="container relative z-10 mx-auto max-w-[100vw] px-4 py-8 sm:px-5 sm:py-10 md:px-6 md:py-12">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-6 h-4 w-56 animate-pulse rounded-full bg-white/10" />
 
-          <div className="rounded-2xl sm:rounded-3xl bg-white/90 backdrop-blur-md border border-white/60 shadow-xl shadow-indigo-900/5 p-6 sm:p-8 md:p-10 mb-8">
-            <div className="flex flex-wrap gap-2 mb-4">
-              <div className="h-6 w-24 rounded-full bg-indigo-100 animate-pulse" />
-              <div className="h-6 w-24 rounded-full bg-violet-100 animate-pulse" />
-              <div className="h-6 w-24 rounded-full bg-emerald-100 animate-pulse" />
+          <div className="course-hero mb-8 rounded-2xl border border-white/10 bg-[#111121]/85 p-6 sm:rounded-3xl sm:p-8 md:p-10">
+            <div className="mb-4 flex flex-wrap gap-2">
+              <div className="h-6 w-24 animate-pulse rounded-full bg-white/10" />
+              <div className="h-6 w-24 animate-pulse rounded-full bg-white/10" />
+              <div className="h-6 w-24 animate-pulse rounded-full bg-white/10" />
             </div>
-            <div className="h-9 sm:h-11 w-3/4 bg-gray-200 rounded-xl animate-pulse mb-4" />
+            <div className="mb-4 h-9 w-3/4 animate-pulse rounded-xl bg-white/10 sm:h-11" />
             <div className="space-y-2">
-              <div className="h-4 w-full bg-gray-100 rounded animate-pulse" />
-              <div className="h-4 w-11/12 bg-gray-100 rounded animate-pulse" />
+              <div className="h-4 w-full animate-pulse rounded bg-white/5" />
+              <div className="h-4 w-11/12 animate-pulse rounded bg-white/5" />
             </div>
           </div>
 
@@ -31,14 +33,14 @@ export default function CourseLoading() {
             {Array.from({ length: 3 }).map((_, idx) => (
               <div
                 key={idx}
-                className="rounded-2xl bg-white/90 border border-gray-200/80 shadow-md p-5"
+                className="course-accordion rounded-2xl border border-white/10 bg-[#111121]/85 p-5 shadow-md"
               >
-                <div className="h-6 w-1/2 bg-gray-200 rounded animate-pulse mb-4" />
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="mb-4 h-6 w-1/2 animate-pulse rounded bg-white/10" />
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {Array.from({ length: 3 }).map((__, cardIdx) => (
                     <div
                       key={cardIdx}
-                      className="h-24 rounded-xl border border-gray-200 bg-gray-50 animate-pulse"
+                      className="h-24 animate-pulse rounded-xl border border-white/10 bg-[#141424]"
                     />
                   ))}
                 </div>

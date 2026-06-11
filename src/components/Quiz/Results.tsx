@@ -33,6 +33,9 @@ export default function Results({
   const minutes = Math.floor(results.timeSpent / 60);
   const seconds = results.timeSpent % 60;
 
+  const secondaryActionClass =
+    'flex-1 rounded-xl border-2 border-indigo-600 bg-white py-4 text-center text-lg font-semibold text-indigo-700 shadow-md transition-all transform hover:scale-105 hover:border-indigo-700 hover:bg-indigo-50 active:scale-95';
+
   useEffect(() => {
     setUser(getCurrentUser());
   }, []);
@@ -235,17 +238,11 @@ export default function Results({
               🔄 Retake Quiz
             </Link>
             {user && (
-              <Link
-                href="/dashboard"
-                className="flex-1 btn-secondary text-center py-4 text-lg"
-              >
+              <Link href="/dashboard" className={secondaryActionClass}>
                 📊 View Dashboard
               </Link>
             )}
-            <Link
-              href="/quiz"
-              className="flex-1 btn-secondary text-center py-4 text-lg"
-            >
+            <Link href="/quiz" className={secondaryActionClass}>
               📚 View Other Quizzes
             </Link>
           </div>

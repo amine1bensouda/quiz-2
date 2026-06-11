@@ -140,6 +140,23 @@ export function latexInDoubleDollarsShouldUseBlockDisplay(formula: string): bool
   return false;
 }
 
+/**
+ * Formules inline `$...$` trop longues ou des équations : passer en bloc
+ * pour éviter une coupure au milieu de l'expression sur deux lignes.
+ */
+export function inlineLatexShouldUseBlockDisplay(formula: string): boolean {
+  const f = formula.trim();
+  if (!f) return false;
+  if (/[\n\r]/.test(f)) return true;
+  if (/\\begin\s*\{|\\end\s*\{/i.test(f)) return true;
+  if (/\\(frac|sqrt|sum|int|lim|displaystyle)/i.test(f)) return true;
+  if (f.length > 40) return true;
+  if (/=/.test(f) && f.length > 18) return true;
+  const scriptMarkers = (f.match(/[\^_]/g) || []).length;
+  if (scriptMarkers >= 2 && f.length > 14) return true;
+  return false;
+}
+
 /** Plain text from HTML */
 export function stripHtml(html: string): string {
   if (!html || typeof html !== 'string') return '';

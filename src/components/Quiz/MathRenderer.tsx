@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { InlineMath, BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
-import { latexInDoubleDollarsShouldUseBlockDisplay } from '@/lib/utils';
+import { latexInDoubleDollarsShouldUseBlockDisplay, inlineLatexShouldUseBlockDisplay } from '@/lib/utils';
+import AdaptiveMathFormula from './AdaptiveMathFormula';
 
 interface MathRendererProps {
   text: string;
@@ -308,7 +308,7 @@ export default function MathRenderer({ text, className = '', useMathJax = false 
         start: match.index,
         end: match.index + match[0].length,
         formula: formula,
-        isBlock: false,
+        isBlock: inlineLatexShouldUseBlockDisplay(formula),
       });
     }
   }
@@ -369,23 +369,13 @@ export default function MathRenderer({ text, className = '', useMathJax = false 
           }
           return <span key={index}>{part}</span>;
         }
-        try {
-          // Utiliser BlockMath pour les formules en bloc ($$...$$) et InlineMath pour les autres
-          if (part.isBlock) {
-            return <BlockMath key={index} math={part.formula} />;
-          }
-          return <InlineMath key={index} math={part.formula} />;
-        } catch (error) {
-          // En cas d'erreur de parsing, afficher la formule brute
-          console.warn('Erreur de rendu mathématique:', part.formula, error);
-          return (
-            <span key={index}>
-              {part.isBlock ? '$$' : '$'}
-              {part.formula}
-              {part.isBlock ? '$$' : '$'}
-            </span>
-          );
-        }
+        return (
+          <AdaptiveMathFormula
+            key={index}
+            formula={part.formula}
+            preferBlock={part.isBlock}
+          />
+        );
       })}
     </span>
   );

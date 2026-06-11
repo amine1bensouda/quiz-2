@@ -660,6 +660,27 @@ html.light .admin-app .admin-theme-toggle:hover {
   white-space: pre;
 }
 
+/* Formules inline : ne pas couper l'expression au milieu ; passer à la ligne entière si besoin */
+.math-inline-atomic {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.math-inline-atomic .katex {
+  white-space: nowrap;
+}
+
+.math-block-wrap {
+  margin: 0.15rem 0;
+}
+
+.math-block-wrap .katex-display {
+  margin: 0;
+  text-align: left;
+}
+
 /* Home page design: Crack the Curve */
 .ctc-home,
 .ctc-home * {
@@ -1145,6 +1166,44 @@ html.light .course-card .border-white\/10 {
 
 html.light .course-card .bg-white\/5 {
   background: rgba(15, 23, 42, 0.04) !important;
+}
+
+/* Course detail page light mode */
+html.light .course-hero,
+html.light .course-accordion,
+html.light .course-unlock-banner,
+html.light .course-quiz-card,
+html.light .course-lesson-link,
+html.light .course-empty {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.light .course-accordion-trigger {
+  background: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+html.light .course-accordion-trigger:hover {
+  background: #f1f5f9 !important;
+}
+
+html.light .course-hero h1,
+html.light .course-accordion h2,
+html.light .course-quiz-card h3,
+html.light .course-lesson-link span:first-child,
+html.light .course-unlock-banner h2 {
+  color: #0f172a !important;
+}
+
+html.light .course-quiz-card .group-hover\:text-\[\#f5c14a\]:hover {
+  color: #b45309 !important;
+}
+
+html.light .course-unlock-banner p,
+html.light .course-empty p {
+  color: rgba(15, 23, 42, 0.65) !important;
 }
 
 /* Blog page dark mode */

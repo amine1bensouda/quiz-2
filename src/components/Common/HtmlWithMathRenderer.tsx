@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import MathRenderer from '@/components/Quiz/MathRenderer';
-import { latexInDoubleDollarsShouldUseBlockDisplay } from '@/lib/utils';
+import { latexInDoubleDollarsShouldUseBlockDisplay, inlineLatexShouldUseBlockDisplay } from '@/lib/utils';
+import AdaptiveMathFormula from '@/components/Quiz/AdaptiveMathFormula';
 
 interface HtmlWithMathRendererProps {
   html: string;
@@ -116,12 +116,12 @@ export default function HtmlWithMathRenderer({ html, className = '' }: HtmlWithM
         }
       }
       
-      // Ajouter la formule ($$ courts → inline pour ne pas couper la phrase)
       newParts.push({
         type: 'math',
         content: mathMatch.formula,
-        isBlock:
-          mathMatch.isBlock && latexInDoubleDollarsShouldUseBlockDisplay(mathMatch.formula),
+        isBlock: mathMatch.isBlock
+          ? latexInDoubleDollarsShouldUseBlockDisplay(mathMatch.formula)
+          : inlineLatexShouldUseBlockDisplay(mathMatch.formula),
       });
       
       processedIndex = mathMatch.end;
@@ -198,12 +198,11 @@ export default function HtmlWithMathRenderer({ html, className = '' }: HtmlWithM
     >
       {parts.map((part, index) => {
         if (part.type === 'math') {
-          const formulaText = part.isBlock ? `$$${part.content}$$` : `$${part.content}$`;
           return (
-            <MathRenderer
+            <AdaptiveMathFormula
               key={`math-${index}`}
-              text={formulaText}
-              className=""
+              formula={part.content}
+              preferBlock={part.isBlock ?? false}
             />
           );
         }

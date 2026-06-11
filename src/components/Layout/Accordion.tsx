@@ -25,26 +25,26 @@ export default function Accordion({
   const countLabel = [hasQuizzes && `${quizCount} quiz${quizCount !== 1 ? 'zes' : ''}`, hasLessons && `${lessonCount} lesson${lessonCount !== 1 ? 's' : ''}`].filter(Boolean).join(' · ');
 
   return (
-    <div className="backdrop-blur-xl bg-white/80 rounded-2xl sm:rounded-3xl shadow-2xl border border-white/40 overflow-hidden transition-all duration-300 md:hover:shadow-3xl">
+    <div className="course-accordion overflow-hidden rounded-2xl border border-white/10 bg-[#111121]/85 shadow-lg shadow-black/20 transition-all duration-300 sm:rounded-3xl md:hover:shadow-2xl md:hover:shadow-black/40">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-4 sm:px-5 sm:py-4 md:px-6 md:py-5 border-b border-gray-200 flex items-center justify-between gap-3 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 hover:from-indigo-100 hover:via-purple-100 hover:to-pink-100 transition-all duration-300 group text-left min-h-[52px] sm:min-h-0"
+        className="course-accordion-trigger group flex min-h-[52px] w-full items-center justify-between gap-3 border-b border-white/10 bg-[#141424] px-4 py-4 text-left transition-all duration-300 hover:bg-[#18182e] sm:min-h-0 sm:px-5 sm:py-4 md:px-6 md:py-5"
       >
-        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 min-w-0 flex-1">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 md:gap-4">
           {icon && <div className="flex-shrink-0 text-lg sm:text-xl md:text-2xl">{icon}</div>}
-          <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 break-words min-w-0">
+          <h2 className="min-w-0 break-words text-base font-bold text-[#f5f2ff] sm:text-lg md:text-xl">
             {title}
           </h2>
           {countLabel && (
-            <span className="flex-shrink-0 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs sm:text-sm font-semibold">
+            <span className="flex-shrink-0 rounded-full border border-[#b388ff]/30 bg-[#b388ff]/10 px-2 py-0.5 text-xs font-semibold text-[#b388ff] sm:px-3 sm:py-1 sm:text-sm">
               {countLabel}
             </span>
           )}
         </div>
         <div className="flex-shrink-0">
           <svg
-            className={`w-5 h-5 sm:w-6 sm:h-6 text-gray-700 transition-transform duration-300 ${
-              isOpen ? 'transform rotate-180' : ''
+            className={`h-5 w-5 text-[#9d98ab] transition-transform duration-300 sm:h-6 sm:w-6 ${
+              isOpen ? 'rotate-180' : ''
             }`}
             fill="none"
             stroke="currentColor"
