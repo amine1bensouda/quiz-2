@@ -1206,6 +1206,33 @@ html.light .course-empty p {
   color: rgba(15, 23, 42, 0.65) !important;
 }
 
+/* Quiz correction page light mode */
+html.light .quiz-correction-page {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.light .correction-card,
+html.light .correction-sidebar {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.light .quiz-correction-page h1,
+html.light .quiz-correction-page h2,
+html.light .quiz-correction-page h3,
+html.light .correction-card .text-\[\#f5f2ff\],
+html.light .correction-sidebar .text-\[\#f5f2ff\] {
+  color: #0f172a !important;
+}
+
+html.light .quiz-correction-page .text-\[\#a29cb0\],
+html.light .quiz-correction-page .text-\[\#9d98ab\],
+html.light .quiz-correction-page .text-\[\#d4d0dc\] {
+  color: rgba(15, 23, 42, 0.65) !important;
+}
+
 /* Blog page dark mode */
 html.dark .blog-page {
   background: linear-gradient(135deg, #080810 0%, #0e0e1a 45%, #101126 100%) !important;

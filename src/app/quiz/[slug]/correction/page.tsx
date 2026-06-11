@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getQuizBySlug } from '@/lib/wordpress';
 import QuizCorrection from '@/components/Quiz/QuizCorrection';
-import { SITE_NAME, SITE_URL } from '@/lib/constants';
+import { SITE_URL } from '@/lib/constants';
 import { stripHtml } from '@/lib/utils';
 
 export const revalidate = 3600;
@@ -45,13 +45,13 @@ export default async function QuizCorrectionPage({ params }: PageProps) {
   }
 
   return (
-    <div className="bg-gradient-to-b from-white via-gray-50 to-white min-h-screen">
-      <div className="container mx-auto px-4 py-8 md:py-12">
+    <div className="quiz-page quiz-correction-page min-h-screen bg-[#080810] text-[#eeeaf4]">
+      <div className="container relative z-10 mx-auto px-4 py-8 md:py-12">
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+          <h1 className="mb-2 font-['Instrument_Serif',serif] text-3xl font-bold text-[#f5f2ff] md:text-4xl">
             Answer key
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-[#a29cb0]">
             {stripHtml(quiz.title.rendered)}
           </p>
         </div>
