@@ -124,7 +124,7 @@ export function questionStemNeedsHtmlRenderer(html: string | undefined | null): 
   return /<\/?[a-z][a-z0-9]*\b/i.test(html);
 }
 
-/** Retire les fonds inline Quill/Word (ex. background blanc) qui cassent le thème sombre. */
+/** Retire styles inline Quill/Word (fond clair, texte sombre) qui cassent le thème sombre. */
 export function stripInlineBackgroundStyles(html: string): string {
   if (!html) return html;
 
@@ -133,6 +133,7 @@ export function stripInlineBackgroundStyles(html: string): string {
       const cleaned = styles
         .replace(/\bbackground-color\s*:\s*[^;]+;?/gi, '')
         .replace(/\bbackground\s*:\s*[^;]+;?/gi, '')
+        .replace(/\bcolor\s*:\s*[^;]+;?/gi, '')
         .replace(/;+/g, ';')
         .replace(/^;|;$/g, '')
         .trim();
@@ -141,11 +142,12 @@ export function stripInlineBackgroundStyles(html: string): string {
     .replace(/\sclass=(["'])([^"']*)\1/gi, (_match, quote: string, classes: string) => {
       const cleaned = classes
         .split(/\s+/)
-        .filter((c) => c && !c.startsWith('ql-background-'))
+        .filter((c) => c && !c.startsWith('ql-background-') && !c.startsWith('ql-color-'))
         .join(' ')
         .trim();
       return cleaned ? ` class=${quote}${cleaned}${quote}` : '';
-    });
+    })
+    .replace(/<font\b([^>]*)\bcolor=(["'])[^"']*\2([^>]*)>/gi, '<font$1$3>');
 }
 
 /**
