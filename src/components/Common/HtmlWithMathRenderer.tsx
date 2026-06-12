@@ -1,7 +1,11 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { latexInDoubleDollarsShouldUseBlockDisplay, inlineLatexShouldUseBlockDisplay } from '@/lib/utils';
+import {
+  latexInDoubleDollarsShouldUseBlockDisplay,
+  inlineLatexShouldUseBlockDisplay,
+  stripInlineBackgroundStyles,
+} from '@/lib/utils';
 import AdaptiveMathFormula from '@/components/Quiz/AdaptiveMathFormula';
 
 interface HtmlWithMathRendererProps {
@@ -24,7 +28,7 @@ export default function HtmlWithMathRenderer({ html, className = '' }: HtmlWithM
     }
 
     const newParts: Array<{ type: 'html' | 'math'; content: string; isBlock?: boolean }> = [];
-    let remainingHtml = html;
+    let remainingHtml = stripInlineBackgroundStyles(html);
 
     // PROTÉGER les images base64 avant de traiter les formules
     const imagePlaceholders: string[] = [];

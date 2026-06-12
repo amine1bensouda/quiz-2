@@ -649,6 +649,15 @@ html.light .admin-app .admin-theme-toggle:hover {
   text-decoration: underline;
 }
 
+/* Fonds clairs collés depuis Quill / Word (style inline) */
+.quiz-rich-html [style*='background'],
+.html-with-math-renderer [style*='background'],
+.quiz-rich-html mark,
+.html-with-math-renderer mark {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
 /* Secours si du <p> subsiste dans un fragment (voir HtmlWithMathRenderer) */
 .html-with-math-renderer p {
   display: inline;

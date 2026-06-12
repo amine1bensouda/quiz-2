@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import type { Question as QuestionType } from '@/lib/types';
-import { questionStemNeedsHtmlRenderer } from '@/lib/utils';
+import { questionStemNeedsHtmlRenderer, stripInlineBackgroundStyles } from '@/lib/utils';
 import MathRenderer from './MathRenderer';
 import HtmlWithMathRenderer from '@/components/Common/HtmlWithMathRenderer';
 
@@ -168,9 +168,9 @@ export default function Question({
         <div className="mb-8">
           {needsHtmlStemRenderer ? (
             <div className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-[#f5f2ff] leading-relaxed">
-              <HtmlWithMathRenderer 
+              <HtmlWithMathRenderer
                 html={questionText || ''}
-                className="prose prose-lg max-w-none"
+                className="prose prose-lg prose-invert max-w-none dark:prose-invert"
               />
             </div>
           ) : (
@@ -183,8 +183,8 @@ export default function Question({
         {/* Description si présente */}
         {questionContent && (
           <div
-            className="prose prose-sm max-w-none mb-8 text-gray-700 dark:text-[#d4d0dc] dark:prose-invert leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: questionContent }}
+            className="quiz-rich-html prose prose-sm prose-invert mb-8 max-w-none leading-relaxed text-gray-700 dark:text-[#d4d0dc] dark:prose-invert"
+            dangerouslySetInnerHTML={{ __html: stripInlineBackgroundStyles(questionContent) }}
           />
         )}
 

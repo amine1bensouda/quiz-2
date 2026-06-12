@@ -48,13 +48,11 @@ const DIFFICULTY_EN: Record<string, string> = {
   Hard: 'Advanced',
 };
 
-/** True when difficulty is meaningful (hide empty / generic placeholders) */
+/** True when a difficulty level is set (Fundamental, Intermediate, Advanced, etc.) */
 export function shouldDisplayDifficulty(value: unknown): boolean {
   if (value == null) return false;
   const t = String(value).trim();
-  if (!t) return false;
-  const generic = new Set(['Moyen', 'Medium', 'Intermediate']);
-  return !generic.has(t);
+  return t.length > 0;
 }
 
 /** Normalize difficulty labels to English for UI */
@@ -124,6 +122,30 @@ export function questionStemNeedsHtmlRenderer(html: string | undefined | null): 
   if (!html || typeof html !== 'string') return false;
   if (html.includes('<img') || html.includes('data:image/')) return true;
   return /<\/?[a-z][a-z0-9]*\b/i.test(html);
+}
+
+/** Retire les fonds inline Quill/Word (ex. background blanc) qui cassent le thème sombre. */
+export function stripInlineBackgroundStyles(html: string): string {
+  if (!html) return html;
+
+  return html
+    .replace(/\sstyle=(["'])([^"']*)\1/gi, (_match, quote: string, styles: string) => {
+      const cleaned = styles
+        .replace(/\bbackground-color\s*:\s*[^;]+;?/gi, '')
+        .replace(/\bbackground\s*:\s*[^;]+;?/gi, '')
+        .replace(/;+/g, ';')
+        .replace(/^;|;$/g, '')
+        .trim();
+      return cleaned ? ` style=${quote}${cleaned}${quote}` : '';
+    })
+    .replace(/\sclass=(["'])([^"']*)\1/gi, (_match, quote: string, classes: string) => {
+      const cleaned = classes
+        .split(/\s+/)
+        .filter((c) => c && !c.startsWith('ql-background-'))
+        .join(' ')
+        .trim();
+      return cleaned ? ` class=${quote}${cleaned}${quote}` : '';
+    });
 }
 
 /**

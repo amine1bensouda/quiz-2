@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import { stripInlineBackgroundStyles } from '@/lib/utils';
 
 interface SafeHtmlRendererProps {
   html: string;
@@ -23,8 +24,7 @@ export default function SafeHtmlRenderer({ html, className = '', renderMath = fa
       return;
     }
 
-    // Traiter le HTML pour s'assurer que les images base64 sont correctement préservées
-    let processed = html;
+    let processed = stripInlineBackgroundStyles(html);
 
     // PROTÉGER les formules mathématiques si renderMath est activé
     const mathPlaceholders: string[] = [];
