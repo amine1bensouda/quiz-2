@@ -6,6 +6,7 @@ import type { QuizResults, Quiz, Question } from '@/lib/types';
 import { getAllQuiz } from '@/lib/wordpress';
 import { trackSimilarQuizClick } from '@/lib/analytics';
 import { getCurrentUser } from '@/lib/auth';
+import { clearQuizProgress } from '@/lib/utils';
 
 interface ResultsProps {
   results: QuizResults;
@@ -13,6 +14,7 @@ interface ResultsProps {
   quizSlug: string;
   minimumScore?: number;
   quizId?: number;
+  progressStorageKey?: string;
   category?: string;
   questions?: Question[];
 }
@@ -23,6 +25,7 @@ export default function Results({
   quizSlug,
   minimumScore = 70,
   quizId,
+  progressStorageKey,
   category,
   questions = [],
 }: ResultsProps) {
@@ -228,9 +231,11 @@ export default function Results({
             <Link
               href={`/quiz/${quizSlug}?reset=true`}
               onClick={(e) => {
-                // Nettoyer la progression sauvegardée avant de refaire le quiz
-                if (quizId) {
-                  localStorage.removeItem(`quiz-progress-${quizId}`);
+                if (quizId != null || progressStorageKey) {
+                  clearQuizProgress(
+                    progressStorageKey ?? String(quizId),
+                    quizId
+                  );
                 }
               }}
               className="flex-1 btn-primary text-center py-4 text-lg"

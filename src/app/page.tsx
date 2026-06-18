@@ -64,7 +64,7 @@ export default async function HomePage() {
           <div className="orb orb-amber" />
           <div className="orb orb-rose" />
           <div className="orb orb-teal" />
-          <div className="hero-badge">48-hour free trial · No credit card required</div>
+          <div className="hero-badge">48-hour free trial</div>
           <h1 className="hero-h1">Every student deserves to <em>crack</em> their exam.</h1>
           <p className="hero-sub"><strong>$7/month</strong> per exam bank. 48h free trial — no charge before billing.</p>
           <div className="actions">

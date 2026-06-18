@@ -65,6 +65,73 @@ export function difficultyToEnglish(value: string | undefined): string {
 /** @deprecated Use difficultyToEnglish — kept for imports */
 export const translateDifficulty = difficultyToEnglish;
 
+export interface QuizProgressSnapshot {
+  currentQuestionIndex: number;
+  selectedAnswers: Record<number, string>;
+  questionIds?: Array<number | string>;
+  timestamp: number;
+}
+
+export function getQuizProgressStorageKey(quiz: {
+  id: number;
+  prismaId?: string;
+  slug: string;
+}): string {
+  return quiz.prismaId ?? quiz.slug ?? String(quiz.id);
+}
+
+export function loadQuizProgress(
+  storageKey: string,
+  legacyNumericId?: number
+): QuizProgressSnapshot | null {
+  if (typeof window === 'undefined') return null;
+
+  const read = (key: string): QuizProgressSnapshot | null => {
+    try {
+      const raw = localStorage.getItem(`quiz-progress-${key}`);
+      if (!raw) return null;
+      return JSON.parse(raw) as QuizProgressSnapshot;
+    } catch {
+      return null;
+    }
+  };
+
+  return read(storageKey) ?? (legacyNumericId != null ? read(String(legacyNumericId)) : null);
+}
+
+export function saveQuizProgress(
+  storageKey: string,
+  progress: Omit<QuizProgressSnapshot, 'timestamp'>
+): void {
+  if (typeof window === 'undefined') return;
+  const payload: QuizProgressSnapshot = { ...progress, timestamp: Date.now() };
+  localStorage.setItem(`quiz-progress-${storageKey}`, JSON.stringify(payload));
+}
+
+export function clearQuizProgress(storageKey: string, legacyNumericId?: number): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(`quiz-progress-${storageKey}`);
+  if (legacyNumericId != null) {
+    localStorage.removeItem(`quiz-progress-${legacyNumericId}`);
+  }
+  localStorage.removeItem(`quiz-flags-${storageKey}`);
+  if (legacyNumericId != null) {
+    localStorage.removeItem(`quiz-flags-${legacyNumericId}`);
+  }
+}
+
+export function orderQuestionsBySavedIds<T extends { id?: number | string }>(
+  questions: T[],
+  ids?: Array<number | string>
+): T[] {
+  if (!ids?.length) return questions;
+  const byId = new Map(questions.map((q) => [String(q.id), q]));
+  const ordered = ids.map((id) => byId.get(String(id))).filter(Boolean) as T[];
+  const used = new Set(ordered.map((q) => String(q.id)));
+  const rest = questions.filter((q) => !used.has(String(q.id)));
+  return [...ordered, ...rest];
+}
+
 const CATEGORY_EN: Record<string, string> = {
   'Examens mini chronométrés': 'Timed Mini Exams',
   'Examens mini': 'Mini Exams',

@@ -6,7 +6,7 @@ import type { QuizResults } from '@/lib/types';
 import QuestionComponent from './Question';
 import Results from './Results';
 import QuizSidebar from './QuizSidebar';
-import { shuffleArray } from '@/lib/utils';
+import { shuffleArray, getQuizProgressStorageKey, loadQuizProgress, saveQuizProgress, clearQuizProgress, orderQuestionsBySavedIds } from '@/lib/utils';
 import { trackQuizStart, trackAnswerSelect, trackQuizComplete } from '@/lib/analytics';
 import { saveQuizAttempt } from '@/lib/auth-client';
 
@@ -29,9 +29,12 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
   const [questionStartTime, setQuestionStartTime] = useState(Date.now());
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
+  const [progressHydrated, setProgressHydrated] = useState(false);
+  const progressStorageKey = getQuizProgressStorageKey(quiz);
 
     // Initialiser les questions et charger la progression sauvegardée
   useEffect(() => {
+    setProgressHydrated(false);
     const quizQuestions = quiz.acf?.questions || [];
 
     // En production on évite les logs lourds qui ralentissent le rendu
@@ -69,60 +72,53 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
       });
     }
     
-    // Mélanger les questions si l'ordre est aléatoire
-    if (quiz.acf?.ordre_questions === 'Aleatoire') {
-      setQuestions(shuffleArray(quizQuestions));
-    } else {
-      setQuestions(quizQuestions);
-    }
-
-    // Vérifier si on doit réinitialiser (paramètre URL ?reset=true)
-    // Vérifier que window existe (côté client uniquement)
+    const isRandomOrder = quiz.acf?.ordre_questions === 'Aleatoire';
     let shouldReset = false;
+    let savedProgress = null;
+
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       shouldReset = urlParams.get('reset') === 'true';
-      
+
       if (shouldReset) {
-        // Nettoyer la progression sauvegardée
-        localStorage.removeItem(`quiz-progress-${quiz.id}`);
-        localStorage.removeItem(`quiz-timer-${quiz.id}`);
-        localStorage.removeItem(`quiz-start-time-${quiz.id}`);
-        localStorage.removeItem(`quiz-flags-${quiz.id}`);
-        // Réinitialiser l'état
+        clearQuizProgress(progressStorageKey, quiz.id);
+        localStorage.removeItem(`quiz-timer-${progressStorageKey}`);
+        localStorage.removeItem(`quiz-start-time-${progressStorageKey}`);
         setCurrentQuestionIndex(0);
         setSelectedAnswers({});
         setQuizCompleted(false);
         setResults(null);
         setShowResults(false);
         setFlaggedQuestions(new Set());
-        // Nettoyer l'URL
         window.history.replaceState({}, '', window.location.pathname);
       } else {
-        // Charger la progression sauvegardée seulement si on ne reset pas
-        const savedProgress = localStorage.getItem(`quiz-progress-${quiz.id}`);
+        savedProgress = loadQuizProgress(progressStorageKey, quiz.id);
         if (savedProgress) {
-          try {
-            const progress = JSON.parse(savedProgress);
-            setCurrentQuestionIndex(progress.currentQuestionIndex || 0);
-            setSelectedAnswers(progress.selectedAnswers || {});
-          } catch (error) {
-            console.error('Error loading progress:', error);
-          }
+          setCurrentQuestionIndex(savedProgress.currentQuestionIndex || 0);
+          setSelectedAnswers(savedProgress.selectedAnswers || {});
         }
-        
-        // Charger les questions marquées
-        const savedFlags = localStorage.getItem(`quiz-flags-${quiz.id}`);
+
+        const savedFlags = localStorage.getItem(`quiz-flags-${progressStorageKey}`)
+          ?? (quiz.id != null ? localStorage.getItem(`quiz-flags-${quiz.id}`) : null);
         if (savedFlags) {
           try {
-            const flags = JSON.parse(savedFlags);
-            setFlaggedQuestions(new Set(flags));
+            setFlaggedQuestions(new Set(JSON.parse(savedFlags)));
           } catch (error) {
             console.error('Error loading flags:', error);
           }
         }
       }
     }
+
+    let orderedQuestions = quizQuestions;
+    if (isRandomOrder) {
+      if (savedProgress?.questionIds?.length) {
+        orderedQuestions = orderQuestionsBySavedIds(quizQuestions, savedProgress.questionIds);
+      } else {
+        orderedQuestions = shuffleArray(quizQuestions);
+      }
+    }
+    setQuestions(orderedQuestions);
 
     // Initialiser le timer global du quiz (en secondes)
     // Si duree_estimee est vide, null, 0 ou non défini, le quiz fonctionne sans limite de temps
@@ -132,8 +128,8 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
       const quizDurationSeconds = dureeEstimee * 60;
       // Minuteur non persistant : chaque actualisation ou retour sur la page repart de la durée complète
       if (typeof window !== 'undefined') {
-        localStorage.removeItem(`quiz-timer-${quiz.id}`);
-        localStorage.removeItem(`quiz-start-time-${quiz.id}`);
+        localStorage.removeItem(`quiz-timer-${progressStorageKey}`);
+        localStorage.removeItem(`quiz-start-time-${progressStorageKey}`);
       }
       setQuizTimeRemaining(quizDurationSeconds);
     } else {
@@ -142,7 +138,8 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
 
     // Track le début du quiz
     trackQuizStart(quiz.id, quiz.title.rendered.replace(/<[^>]*>/g, ''));
-  }, [quiz]);
+    setProgressHydrated(true);
+  }, [quiz, progressStorageKey]);
 
   // Calculer la question actuelle et les valeurs dérivées
   const currentQuestion = questions[currentQuestionIndex];
@@ -372,8 +369,8 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
             console.log('⏱️ Time is up! Closing quiz automatically...');
             // Clear persisted timer
             if (typeof window !== 'undefined') {
-              localStorage.removeItem(`quiz-timer-${quiz.id}`);
-              localStorage.removeItem(`quiz-start-time-${quiz.id}`);
+              localStorage.removeItem(`quiz-timer-${progressStorageKey}`);
+              localStorage.removeItem(`quiz-start-time-${progressStorageKey}`);
             }
             calculateResults();
           }
@@ -413,17 +410,15 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
     }
   }, [currentQuestion, currentQuestionIndex]);
 
-  // Sauvegarder la progression dans localStorage
+  // Sauvegarder la progression dans localStorage (après hydratation pour ne pas écraser au refresh)
   useEffect(() => {
-    if (questions.length > 0) {
-      const progress = {
-        currentQuestionIndex,
-        selectedAnswers,
-        timestamp: Date.now(),
-      };
-      localStorage.setItem(`quiz-progress-${quiz.id}`, JSON.stringify(progress));
-    }
-  }, [currentQuestionIndex, selectedAnswers, quiz.id, questions.length]);
+    if (!progressHydrated || questions.length === 0) return;
+    saveQuizProgress(progressStorageKey, {
+      currentQuestionIndex,
+      selectedAnswers,
+      questionIds: questions.map((q) => q.id ?? ''),
+    });
+  }, [progressHydrated, currentQuestionIndex, selectedAnswers, progressStorageKey, questions]);
 
   const handleAnswerSelect = (answerKey: string) => {
     setSelectedAnswers({
@@ -466,7 +461,10 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
       }
       // Sauvegarder dans localStorage
       if (typeof window !== 'undefined') {
-        localStorage.setItem(`quiz-flags-${quiz.id}`, JSON.stringify(Array.from(newFlags)));
+        localStorage.setItem(
+          `quiz-flags-${progressStorageKey}`,
+          JSON.stringify(Array.from(newFlags))
+        );
       }
       return newFlags;
     });
@@ -487,6 +485,7 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
         quizSlug={quiz.slug} 
         minimumScore={quiz.acf?.score_minimum}
         quizId={quiz.id}
+        progressStorageKey={progressStorageKey}
         category={quiz.acf?.categorie}
         questions={questions}
       />
