@@ -1,17 +1,25 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { login } from '@/lib/auth-client';
 import { SITE_NAME } from '@/lib/constants';
+import { sanitizeRedirectPath } from '@/lib/subscription-checkout-url';
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = sanitizeRedirectPath(searchParams.get('redirect')) || '/dashboard';
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const registerHref = redirectTo
+    ? `/register?redirect=${encodeURIComponent(redirectTo)}`
+    : '/register';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,10 +28,10 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      router.push('/dashboard');
+      router.push(redirectTo);
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || 'Login failed. Please try again.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -93,8 +101,8 @@ export default function LoginPage() {
 
           <div className="mt-6 text-center">
             <p className="text-[rgba(238,234,244,0.65)]">
-              Don't have an account?{' '}
-              <Link href="/register" className="text-[#f5c14a] font-semibold hover:underline">
+              Don&apos;t have an account?{' '}
+              <Link href={registerHref} className="text-[#f5c14a] font-semibold hover:underline">
                 Sign up
               </Link>
             </p>
@@ -111,4 +119,16 @@ export default function LoginPage() {
   );
 }
 
-
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#080810] flex items-center justify-center text-[#eeeaf4]">
+          Loading...
+        </div>
+      }
+    >
+      <LoginPageContent />
+    </Suspense>
+  );
+}

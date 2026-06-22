@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
 import { getUserActiveSubscription } from '@/lib/subscription-access';
+import { parseCheckoutIntent } from '@/lib/subscription-checkout-url';
 import SubscriptionPaywall from '@/components/Subscription/SubscriptionPaywall';
 
 export const dynamic = 'force-dynamic';
@@ -13,11 +14,17 @@ export const metadata = {
 };
 
 interface SubscribePageProps {
-  searchParams?: Promise<{ courseId?: string; canceled?: string; error?: string }>;
+  searchParams?: Promise<{
+    courseId?: string;
+    canceled?: string;
+    error?: string;
+    startCheckout?: string;
+  }>;
 }
 
 export default async function SubscribePage({ searchParams }: SubscribePageProps) {
   const params = (await searchParams) ?? {};
+  const autoStartCheckout = parseCheckoutIntent(params.startCheckout);
   const user = await getCurrentUserFromSession();
 
   if (user && params.canceled) {
@@ -69,6 +76,7 @@ export default async function SubscribePage({ searchParams }: SubscribePageProps
         defaultCourseId={params.courseId ?? null}
         isAuthenticated={!!user}
         returnUrl="/subscribe"
+        autoStartCheckout={autoStartCheckout}
       />
       </div>
     </main>

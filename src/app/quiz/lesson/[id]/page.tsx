@@ -9,6 +9,7 @@ import { getLessonByIdOrSlug } from '@/lib/lesson-service';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { canUserAccessLesson } from '@/lib/subscription-access';
+import { parseCheckoutIntent } from '@/lib/subscription-checkout-url';
 import { prisma } from '@/lib/db';
 
 interface Lesson {
@@ -39,9 +40,12 @@ export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ id: string }> | { id: string };
+  searchParams?: Promise<{ startCheckout?: string; courseId?: string }>;
 }
 
-export default async function LessonPage({ params }: PageProps) {
+export default async function LessonPage({ params, searchParams }: PageProps) {
+  const sp = (await searchParams) ?? {};
+  const autoStartCheckout = parseCheckoutIntent(sp.startCheckout);
   const { id: slugOrId } = await Promise.resolve(params);
   const lesson = await getLessonByIdOrSlug(slugOrId);
 
@@ -94,11 +98,12 @@ export default async function LessonPage({ params }: PageProps) {
         {!hasAccess ? (
           <SubscriptionPaywall
             courses={coursesForPaywall}
-            defaultCourseId={lesson.module?.course.id ?? null}
+            defaultCourseId={sp.courseId ?? lesson.module?.course.id ?? null}
             isAuthenticated={!!currentUser}
             title="Unlock this lesson"
             subtitle="This lesson is included in your subscription. 48h free trial, no commitment."
             returnUrl={`/quiz/lesson/${lesson.slug}`}
+            autoStartCheckout={autoStartCheckout}
           />
         ) : (
         <article className="rounded-2xl bg-white/90 backdrop-blur-md border border-white/60 shadow-xl overflow-hidden">

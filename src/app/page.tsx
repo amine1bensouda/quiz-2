@@ -1,9 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_DESCRIPTION } from '@/lib/constants';
-import { getStats } from '@/lib/wordpress';
 import { getAllPublishedCourses } from '@/lib/course-service';
-import { getFeaturedQuiz } from '@/lib/quiz-service';
 import { formatNumber } from '@/lib/utils';
 export const metadata: Metadata = {
   title: 'Home',
@@ -21,15 +19,7 @@ const CARD_THEMES = [
 ];
 
 export default async function HomePage() {
-  const defaultStats = {
-    total_quiz: 0,
-    total_questions: 0,
-    total_categories: 0,
-    quiz_par_categorie: {},
-  };
-
   const withTimeout = async <T,>(promise: Promise<T>, fallback: T, ms = 2500): Promise<T> => {
-    // Keep the homepage resilient if APIs/DB fail or respond slowly.
     const safePromise = promise.catch(() => fallback);
     return Promise.race([
       safePromise,
@@ -37,18 +27,8 @@ export default async function HomePage() {
     ]);
   };
 
-  const [stats, publishedCourses, featuredQuiz] = await Promise.all([
-    withTimeout(getStats(), defaultStats),
-    withTimeout(getAllPublishedCourses(), []),
-    withTimeout(getFeaturedQuiz(), []),
-  ]);
+  const publishedCourses = await withTimeout(getAllPublishedCourses(), []);
 
-  const questionsFromFeatured = featuredQuiz.reduce(
-    (sum, quiz) => sum + (quiz.acf?.nombre_questions ?? 0),
-    0
-  );
-  const totalQuestions = stats.total_questions > 0 ? stats.total_questions : questionsFromFeatured;
-  const examBanks = publishedCourses.length;
   const monthlyPrice = 7;
 
   const marqueeItems = [
@@ -66,19 +46,37 @@ export default async function HomePage() {
           <div className="orb orb-teal" />
           <div className="hero-badge">48-hour free trial</div>
           <h1 className="hero-h1">Every student deserves to <em>crack</em> their exam.</h1>
-          <p className="hero-sub"><strong>$7/month</strong> per exam bank. 48h free trial — no charge before billing.</p>
+
+          <div className="hero-highlights" aria-label="Pricing highlights">
+            <div className="hero-highlight hero-highlight--price">
+              <span className="hero-highlight-icon" aria-hidden="true">$</span>
+              <div className="hero-highlight-body">
+                <div className="hero-highlight-val">
+                  <span className="hero-highlight-number">{monthlyPrice}</span>
+                  <span className="hero-highlight-unit">/mo</span>
+                </div>
+                <p className="hero-highlight-label">Per QBank</p>
+                <p className="hero-highlight-note">Cancel anytime</p>
+              </div>
+            </div>
+            <div className="hero-highlight hero-highlight--trial">
+              <span className="hero-highlight-icon" aria-hidden="true">⏱</span>
+              <div className="hero-highlight-body">
+                <div className="hero-highlight-val">
+                  <span className="hero-highlight-number">48</span>
+                  <span className="hero-highlight-unit">h</span>
+                </div>
+                <p className="hero-highlight-label">Free trial</p>
+                <p className="hero-highlight-note">No charge before billing</p>
+              </div>
+            </div>
+          </div>
+
           <div className="actions">
             <Link href="/quiz" className="btn-hero">
               Browse QBanks
               <span className="btn-hero-arrow" aria-hidden="true">→</span>
             </Link>
-          </div>
-
-          <div className="hero-stats">
-            <div className="hero-stat"><div className="hstat-val" style={{ color: 'var(--amber)' }}>{formatNumber(examBanks)}</div><div className="hstat-label">Exam banks</div></div>
-            <div className="hero-stat"><div className="hstat-val" style={{ color: 'var(--teal)' }}>${monthlyPrice}</div><div className="hstat-label">Per QBank / month</div></div>
-            <div className="hero-stat"><div className="hstat-val" style={{ color: 'var(--rose)' }}>48h</div><div className="hstat-label">Free trial</div></div>
-            <div className="hero-stat"><div className="hstat-val">{formatNumber(totalQuestions)}</div><div className="hstat-label">Practice questions</div></div>
           </div>
         </section>
 

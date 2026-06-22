@@ -1,13 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   PLANS,
   PURCHASABLE_PLAN_IDS,
   planHighlightsForTrial,
   type PlanId,
 } from '@/lib/plans';
+import {
+  buildAuthUrl,
+  type CheckoutProvider,
+} from '@/lib/subscription-checkout-url';
 
 interface CourseOption {
   id: string;
@@ -22,6 +26,7 @@ interface SubscriptionPaywallProps {
   title?: string;
   subtitle?: string;
   returnUrl?: string;
+  autoStartCheckout?: CheckoutProvider | null;
 }
 
 export default function SubscriptionPaywall({
@@ -31,7 +36,9 @@ export default function SubscriptionPaywall({
   title = 'Unlock access to this content',
   subtitle = '$7/month per course — 48-hour free trial, you only get charged if you continue.',
   returnUrl,
+  autoStartCheckout = null,
 }: SubscriptionPaywallProps) {
+  const autoCheckoutStarted = useRef(false);
   const [selectedPlan, setSelectedPlan] = useState<PlanId>('SINGLE_COURSE');
   const [selectedCourseId, setSelectedCourseId] = useState<string>(
     defaultCourseId ?? (courses[0]?.id ?? '')
@@ -99,67 +106,107 @@ export default function SubscriptionPaywall({
     return popup;
   }
 
-  async function startCheckout(provider: 'stripe' | 'paypal') {
-    setError(null);
-    if (!isAuthenticated) {
-      const login = returnUrl
-        ? `/login?redirect=${encodeURIComponent(returnUrl)}`
-        : '/login';
-      window.location.href = login;
-      return;
-    }
+  const startCheckout = useCallback(
+    async (provider: CheckoutProvider, options?: { fullPage?: boolean }) => {
+      setError(null);
+      const authReturnUrl = returnUrl || '/subscribe';
+      const courseForCheckout =
+        PLANS[selectedPlan].requiresCourseId ? selectedCourseId : undefined;
 
-    const plan = PLANS[selectedPlan];
-    if (plan.requiresCourseId && !selectedCourseId) {
-      setError('Please pick a course for the Single Course plan.');
-      return;
-    }
-
-    setLoadingProvider(provider);
-    const pendingPopup = openPendingPopup(provider);
-    try {
-      const endpoint =
-        provider === 'stripe'
-          ? '/api/subscriptions/stripe/checkout'
-          : '/api/subscriptions/paypal/subscribe';
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plan: selectedPlan,
-          courseId: plan.requiresCourseId ? selectedCourseId : undefined,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(data?.error || `Error ${res.status}`);
-      }
-      const url = provider === 'stripe' ? data.url : data.approveUrl;
-      if (!url) throw new Error('Payment provider returned no URL.');
-
-      if (provider === 'stripe' && data.paymentLink) {
-        if (pendingPopup && !pendingPopup.closed) {
-          pendingPopup.close();
-        }
-        window.location.href = url;
+      if (!isAuthenticated) {
+        window.location.href = buildAuthUrl('login', authReturnUrl, {
+          courseId: courseForCheckout,
+          provider,
+        });
         return;
       }
 
-      if (pendingPopup && !pendingPopup.closed) {
-        pendingPopup.location.href = url;
-        pendingPopup.focus();
-      } else {
-        openPaymentPopup(url, provider);
+      const plan = PLANS[selectedPlan];
+      if (plan.requiresCourseId && !selectedCourseId) {
+        setError('Please pick a course for the Single Course plan.');
+        return;
       }
-      setLoadingProvider(null);
-    } catch (err: any) {
-      if (pendingPopup && !pendingPopup.closed) {
-        pendingPopup.close();
+
+      const useFullPage = options?.fullPage ?? provider === 'stripe';
+
+      setLoadingProvider(provider);
+      const pendingPopup = useFullPage ? null : openPendingPopup(provider);
+      try {
+        const endpoint =
+          provider === 'stripe'
+            ? '/api/subscriptions/stripe/checkout'
+            : '/api/subscriptions/paypal/subscribe';
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            plan: selectedPlan,
+            courseId: plan.requiresCourseId ? selectedCourseId : undefined,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data?.error || `Error ${res.status}`);
+        }
+        const url = provider === 'stripe' ? data.url : data.approveUrl;
+        if (!url) throw new Error('Payment provider returned no URL.');
+
+        if (useFullPage || provider === 'stripe') {
+          if (pendingPopup && !pendingPopup.closed) {
+            pendingPopup.close();
+          }
+          window.location.href = url;
+          return;
+        }
+
+        if (pendingPopup && !pendingPopup.closed) {
+          pendingPopup.location.href = url;
+          pendingPopup.focus();
+        } else {
+          openPaymentPopup(url, provider);
+        }
+        setLoadingProvider(null);
+      } catch (err: unknown) {
+        if (pendingPopup && !pendingPopup.closed) {
+          pendingPopup.close();
+        }
+        setError(err instanceof Error ? err.message : 'Unable to start checkout.');
+        setLoadingProvider(null);
       }
-      setError(err?.message || 'Unable to start checkout.');
-      setLoadingProvider(null);
+    },
+    [isAuthenticated, returnUrl, selectedCourseId, selectedPlan]
+  );
+
+  useEffect(() => {
+    if (defaultCourseId) {
+      setSelectedCourseId(defaultCourseId);
     }
-  }
+  }, [defaultCourseId]);
+
+  useEffect(() => {
+    if (
+      !autoStartCheckout ||
+      !isAuthenticated ||
+      !trialChecked ||
+      autoCheckoutStarted.current
+    ) {
+      return;
+    }
+
+    autoCheckoutStarted.current = true;
+
+    if (returnUrl && typeof window !== 'undefined') {
+      window.history.replaceState(null, '', returnUrl);
+    }
+
+    void startCheckout(autoStartCheckout, { fullPage: true });
+  }, [autoStartCheckout, isAuthenticated, trialChecked, returnUrl, startCheckout]);
+
+  const authReturnUrl = returnUrl || '/subscribe';
+  const courseForAuth =
+    PLANS[selectedPlan].requiresCourseId
+      ? selectedCourseId || defaultCourseId || undefined
+      : undefined;
 
   return (
     <section className="paywall-page relative max-w-5xl mx-auto my-12 px-4">
@@ -276,14 +323,20 @@ export default function SubscriptionPaywall({
         <div className="relative rounded-xl border border-amber-500/35 bg-amber-950/35 px-5 py-4 mb-6 text-sm text-amber-100">
           You need to be signed in to start the trial.{' '}
           <Link
-            href={`/login${returnUrl ? `?redirect=${encodeURIComponent(returnUrl)}` : ''}`}
+            href={buildAuthUrl('login', authReturnUrl, {
+              courseId: courseForAuth,
+              provider: 'stripe',
+            })}
             className="font-semibold underline text-[#f5c14a]"
           >
             Sign in
           </Link>{' '}
           or{' '}
           <Link
-            href={`/register${returnUrl ? `?redirect=${encodeURIComponent(returnUrl)}` : ''}`}
+            href={buildAuthUrl('register', authReturnUrl, {
+              courseId: courseForAuth,
+              provider: 'stripe',
+            })}
             className="font-semibold underline text-[#f5c14a]"
           >
             create an account

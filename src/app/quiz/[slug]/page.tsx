@@ -11,6 +11,7 @@ import { stripHtml, formatDuration, difficultyToEnglish, categoryToEnglish, shou
 import { getCurrentUserFromSession } from '@/lib/auth-server';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { canUserAccessQuiz } from '@/lib/subscription-access';
+import { parseCheckoutIntent } from '@/lib/subscription-checkout-url';
 import { prisma } from '@/lib/db';
 
 // L'affichage dépend de la session (verrouillage paywall) : dynamique.
@@ -20,6 +21,7 @@ interface PageProps {
   params: {
     slug: string;
   };
+  searchParams?: Promise<{ startCheckout?: string; courseId?: string }>;
 }
 
 // Toujours [] pour éviter des centaines de pages au build → épuisement du pool PostgreSQL (Hostinger/Supabase)
@@ -74,7 +76,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function QuizPage({ params }: PageProps) {
+export default async function QuizPage({ params, searchParams }: PageProps) {
+  const sp = (await searchParams) ?? {};
+  const autoStartCheckout = parseCheckoutIntent(sp.startCheckout);
   // Décoder le slug pour gérer les espaces encodés (%20)
   const decodedSlug = decodeURIComponent(params.slug);
   
@@ -248,11 +252,12 @@ export default async function QuizPage({ params }: PageProps) {
         {showPaywall ? (
           <SubscriptionPaywall
             courses={coursesForPaywall}
-            defaultCourseId={quiz.courseId ?? null}
+            defaultCourseId={sp.courseId ?? quiz.courseId ?? null}
             isAuthenticated={!!currentUser}
             title="Unlock this quiz"
             subtitle="This quiz is included in your subscription. 48h free trial, no commitment."
             returnUrl={`/quiz/${params.slug}`}
+            autoStartCheckout={autoStartCheckout}
           />
         ) : (
           <QuizPlayer quiz={quiz} />

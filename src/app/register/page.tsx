@@ -8,13 +8,14 @@ import {
   verifyRegistrationCode,
 } from '@/lib/auth-client';
 import { SITE_NAME } from '@/lib/constants';
+import { sanitizeRedirectPath } from '@/lib/subscription-checkout-url';
 
 type Step = 'form' | 'verify';
 
 function RegisterPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/dashboard';
+  const redirectTo = sanitizeRedirectPath(searchParams.get('redirect')) || '/dashboard';
 
   const [step, setStep] = useState<Step>('form');
   const [name, setName] = useState('');
@@ -73,7 +74,7 @@ function RegisterPageContent() {
 
     try {
       await verifyRegistrationCode(email, verificationCode);
-      router.push(redirectTo.startsWith('/') ? redirectTo : '/dashboard');
+      router.push(redirectTo);
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Verification failed.');
