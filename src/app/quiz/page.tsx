@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import Navigation from '@/components/Layout/Navigation';
 import AnimatedShapes from '@/components/Layout/AnimatedShapes';
 import BackgroundPattern from '@/components/Layout/BackgroundPattern';
 import CourseCard from '@/components/Quiz/CourseCard';
 import LoadingSpinner from '@/components/Layout/LoadingSpinner';
+import { getCurrentUser } from '@/lib/auth-client';
 
 interface Course {
   id: string;
@@ -20,17 +22,23 @@ export default function QuizListPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [totalQuizzes, setTotalQuizzes] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     async function loadData() {
       try {
-        // Charger les cours
-        const coursesResponse = await fetch('/api/courses');
+        const user = await getCurrentUser();
+        setIsAuthenticated(!!user);
+
+        const coursesResponse = await fetch(
+          user ? '/api/courses/accessible' : '/api/courses',
+          user ? { credentials: 'include' } : undefined
+        );
+
         if (coursesResponse.ok) {
           const coursesData = await coursesResponse.json();
           setCourses(coursesData);
-          
-          // Calculer le total de quiz (payload léger)
+
           const total = coursesData.reduce(
             (sum: number, course: Course) => sum + (course.totalQuizzes || 0),
             0
@@ -62,14 +70,21 @@ export default function QuizListPage() {
             Crack The Curve
           </span>
           <h1 className="mb-6 font-['Instrument_Serif',serif] text-5xl leading-tight md:text-6xl lg:text-7xl">
-            All Exams
+            {isAuthenticated ? 'Your Practice' : 'All Exams'}
           </h1>
-          {!loading && (
+          {!loading && isAuthenticated && (
+            <p className="quiz-hero-note mx-auto inline-block max-w-3xl rounded-2xl border border-white/10 bg-white/5 px-6 py-5 text-base text-[#d4d0dc] backdrop-blur-sm md:text-xl">
+              {courses.length > 0
+                ? `${courses.length} course${courses.length !== 1 ? 's' : ''} included in your subscription`
+                : 'Subscribe to unlock practice for your exam bank'}
+            </p>
+          )}
+          {!loading && !isAuthenticated && (
             <p className="quiz-hero-note mx-auto inline-block max-w-3xl rounded-2xl border border-white/10 bg-white/5 px-6 py-5 text-base text-[#d4d0dc] backdrop-blur-sm md:text-xl">
               {totalQuizzes} exam{totalQuizzes !== 1 ? 's' : ''} available to test your knowledge and improve your mathematics skills
             </p>
           )}
-          {!loading && courses.length > 0 && (
+          {!loading && !isAuthenticated && courses.length > 0 && (
             <div className="mx-auto mt-8 grid max-w-4xl grid-cols-2 gap-3 text-left md:grid-cols-4">
               <div className="quiz-stat-card rounded-xl border border-white/10 bg-[#111121]/80 p-4">
                 <p className="text-2xl font-bold text-[#f5c14a]">{courses.length}</p>
@@ -125,11 +140,23 @@ export default function QuizListPage() {
         ) : (
           <div className="text-center py-20">
             <div className="quiz-empty-card inline-block rounded-3xl border border-white/10 bg-[#111121]/90 p-12 shadow-2xl shadow-black/40 backdrop-blur-xl">
-              <div className="text-6xl mb-6">📚</div>
+              <div className="text-6xl mb-6">{isAuthenticated ? '🔒' : '📚'}</div>
               <h3 className="mb-3 text-2xl font-bold text-[#f5c14a]">
-                No Courses Available
+                {isAuthenticated ? 'No course unlocked yet' : 'No Courses Available'}
               </h3>
-              <p className="quiz-muted text-lg text-[#c8c3d2]">Check back soon for new courses!</p>
+              <p className="quiz-muted text-lg text-[#c8c3d2]">
+                {isAuthenticated
+                  ? 'Start your 48h free trial to access your QBank.'
+                  : 'Check back soon for new courses!'}
+              </p>
+              {isAuthenticated && (
+                <Link
+                  href="/subscribe"
+                  className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#f5c14a] px-6 py-3 font-semibold text-[#0c0a00] transition hover:bg-[#f9d06a]"
+                >
+                  Start 48h trial
+                </Link>
+              )}
             </div>
           </div>
         )}

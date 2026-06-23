@@ -184,6 +184,32 @@ async function sendViaSmtp(
   throw lastError instanceof Error ? lastError : new Error('SMTP send failed');
 }
 
+export async function sendTransactionalEmail(params: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+}): Promise<void> {
+  const { to, subject, html, text } = params;
+
+  if (!isEmailConfigured()) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[email:dev] No provider — transactional email:', { to, subject, text });
+      return;
+    }
+    throw new Error(
+      'Email service is not configured. Set RESEND_API_KEY (recommended) or SMTP_* variables.'
+    );
+  }
+
+  if (getResendConfig()) {
+    await sendViaResend(to, subject, html, text);
+    return;
+  }
+
+  await sendViaSmtp(to, subject, html, text);
+}
+
 export async function sendVerificationCodeEmail(
   to: string,
   name: string,
@@ -206,22 +232,7 @@ export async function sendVerificationCodeEmail(
 
   const text = `Hello ${name},\n\nYour verification code: ${code}\n\nIt expires in 15 minutes.\n\n— ${SITE_NAME}`;
 
-  if (!isEmailConfigured()) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[email:dev] No provider — verification code:', { to, code });
-      return;
-    }
-    throw new Error(
-      'Email service is not configured. Set RESEND_API_KEY (recommended) or SMTP_* variables.'
-    );
-  }
-
-  if (getResendConfig()) {
-    await sendViaResend(to, subject, html, text);
-    return;
-  }
-
-  await sendViaSmtp(to, subject, html, text);
+  await sendTransactionalEmail({ to, subject, html, text });
 }
 
 function escapeHtml(value: string): string {

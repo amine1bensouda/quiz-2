@@ -3,6 +3,10 @@ import type Stripe from 'stripe';
 import { getStripe, getStripeWebhookSecret } from '@/lib/stripe';
 import { prisma } from '@/lib/db';
 import { stripeSubscriptionHasScheduledCancellation } from '@/lib/subscription-access';
+import {
+  sendSubscriptionCheckoutEmail,
+  sendSubscriptionInvoiceEmail,
+} from '@/lib/subscription-order-email';
 
 export const runtime = 'nodejs';
 // Webhook Stripe : pas de cache, pas de pré-render.
@@ -153,6 +157,15 @@ async function handleCheckoutSessionCompleted(
       cancelAtPeriodEnd: stripeSubscriptionHasScheduledCancellation(stripeSub as any),
     },
   });
+
+  try {
+    await sendSubscriptionCheckoutEmail({
+      subscriptionId: record.id,
+      provider: 'stripe',
+    });
+  } catch (emailError) {
+    console.error('Failed to send checkout confirmation email:', emailError);
+  }
 }
 
 async function handleSubscriptionUpdated(stripeSub: Stripe.Subscription) {
@@ -223,6 +236,29 @@ async function handleInvoicePaid(invoice: Stripe.Invoice, stripe: Stripe) {
       cancelAtPeriodEnd: stripeSubscriptionHasScheduledCancellation(stripeSub as any),
     },
   });
+
+  const amountPaid = invoice.amount_paid ?? 0;
+  if (amountPaid <= 0) return;
+
+  const invoiceNumber =
+    invoice.number ||
+    (typeof invoice.id === 'string' ? invoice.id : 'invoice');
+  const invoiceUrl =
+    invoice.hosted_invoice_url || invoice.invoice_pdf || null;
+
+  try {
+    await sendSubscriptionInvoiceEmail({
+      subscriptionId: record.id,
+      provider: 'stripe',
+      invoiceNumber,
+      amountCents: amountPaid,
+      currency: invoice.currency || 'usd',
+      invoiceUrl,
+      paidAt: toDate(invoice.status_transitions?.paid_at ?? null),
+    });
+  } catch (emailError) {
+    console.error('Failed to send payment receipt email:', emailError);
+  }
 }
 
 async function handleInvoiceFailed(invoice: Stripe.Invoice) {

@@ -33,6 +33,30 @@ export async function getPublishedCoursesSummary() {
   }
 }
 
+/**
+ * Published courses the user can practice (active subscription).
+ * Admins see the full catalog.
+ */
+export async function getAccessibleCoursesForUser(
+  userId: string | null | undefined,
+  hasAdminAccess: boolean = false,
+) {
+  const { getUserActiveSubscription } = await import('./subscription-access');
+  const courses = await getPublishedCoursesSummary();
+
+  if (hasAdminAccess) return courses;
+  if (!userId) return [];
+
+  const sub = await getUserActiveSubscription(userId);
+  if (!sub) return [];
+  if (sub.plan === 'ALL_ACCESS') return courses;
+  if (sub.plan === 'SINGLE_COURSE' && sub.courseId) {
+    return courses.filter((course) => course.id === sub.courseId);
+  }
+
+  return [];
+}
+
 export type GetCourseBySlugOptions = {
   /**
    * If true, includes draft courses (server-only, after admin check).

@@ -464,6 +464,15 @@ function ProfileSection({
   subscription: SubscriptionInfo | null;
   isPremium: boolean;
 }) {
+  const trialEndsLabel =
+    subscription?.trialEndsAt && subscription.status === 'trialing'
+      ? new Date(subscription.trialEndsAt).toLocaleDateString(undefined, {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        })
+      : null;
+
   return (
     <DashboardPanel id="profile" title="Profile" subtitle="Your account details and subscription status.">
       <dl className="grid gap-4 sm:grid-cols-2">
@@ -495,6 +504,15 @@ function ProfileSection({
           Active course: <span className="text-[#f5c14a]">{subscription.course.title}</span>
         </p>
       )}
+      {trialEndsLabel && (
+        <p className="dash-muted mt-3 text-sm">
+          Free trial ends on <span className="text-[#f5c14a]">{trialEndsLabel}</span>. Cancel
+          before this date to avoid being charged.
+        </p>
+      )}
+      {isPremium && subscription && (
+        <ManageSubscriptionActions subscription={subscription} />
+      )}
       {!isPremium && (
         <Link
           href="/subscribe"
@@ -507,6 +525,90 @@ function ProfileSection({
         </Link>
       )}
     </DashboardPanel>
+  );
+}
+
+function ManageSubscriptionActions({ subscription }: { subscription: SubscriptionInfo }) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function openStripePortal() {
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const res = await fetch('/api/subscriptions/stripe/portal', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.error || 'Unable to open billing portal.');
+      }
+      if (!data.url) {
+        throw new Error('Billing portal URL missing.');
+      }
+      window.location.href = data.url as string;
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Unable to open billing portal.');
+      setLoading(false);
+    }
+  }
+
+  async function cancelPaypalSubscription() {
+    const confirmed = window.confirm(
+      'Cancel your subscription? If you are still in the 48-hour trial, you will not be charged.'
+    );
+    if (!confirmed) return;
+
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const res = await fetch('/api/subscriptions/paypal/cancel', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.error || 'Unable to cancel subscription.');
+      }
+      setMessage('Subscription canceled. Your access will end shortly.');
+      router.refresh();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Unable to cancel subscription.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const isStripe = subscription.provider === 'stripe';
+
+  return (
+    <div className="mt-5 space-y-3">
+      <button
+        type="button"
+        disabled={loading}
+        onClick={isStripe ? openStripePortal : cancelPaypalSubscription}
+        className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.04] px-5 py-2.5 text-sm font-semibold text-[#eeeaf4] transition-colors hover:border-white/25 hover:bg-white/[0.08] disabled:opacity-60"
+      >
+        {loading
+          ? 'Please wait…'
+          : isStripe
+            ? 'Manage or cancel subscription'
+            : 'Cancel subscription'}
+      </button>
+      {isStripe && (
+        <p className="dash-muted text-xs leading-relaxed">
+          Opens Stripe&apos;s secure page. Choose <strong className="text-[#eeeaf4]">Cancel plan</strong>{' '}
+          before your trial ends to avoid any charge.
+        </p>
+      )}
+      {message && <p className="text-sm text-[#2be4c8]">{message}</p>}
+      {error && <p className="text-sm text-red-300">{error}</p>}
+    </div>
   );
 }
 

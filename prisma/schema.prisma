@@ -271,3 +271,11 @@ model Subscription {
   @@index([status])
   @@map("subscriptions")
 }
+
+model PaymentEmailLog {
+  id        String   @id @default(cuid())
+  dedupeKey String   @unique @map("dedupe_key")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("payment_email_logs")
+}

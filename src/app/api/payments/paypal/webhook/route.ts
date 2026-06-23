@@ -5,6 +5,10 @@ import {
   normalizePaypalStatus,
   verifyPaypalWebhookSignature,
 } from '@/lib/paypal';
+import {
+  sendSubscriptionCheckoutEmail,
+  sendPaypalPaymentReceiptEmail,
+} from '@/lib/subscription-order-email';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -140,6 +144,20 @@ async function handleSubscriptionEvent(eventType: string, resource: Record<strin
         record.providerCustomerId,
     },
   });
+
+  if (
+    eventType === 'BILLING.SUBSCRIPTION.ACTIVATED' ||
+    eventType === 'BILLING.SUBSCRIPTION.CREATED'
+  ) {
+    try {
+      await sendSubscriptionCheckoutEmail({
+        subscriptionId: record.id,
+        provider: 'paypal',
+      });
+    } catch (emailError) {
+      console.error('Failed to send PayPal checkout confirmation email:', emailError);
+    }
+  }
 }
 
 async function handlePaymentCompleted(resource: Record<string, any>) {
@@ -166,5 +184,24 @@ async function handlePaymentCompleted(resource: Record<string, any>) {
     }
   } catch (err) {
     console.warn('PayPal PAYMENT.SALE.COMPLETED re-fetch failed:', err);
+  }
+
+  const amountValue = parseFloat(String(resource.amount?.total ?? resource.amount?.value ?? '0'));
+  const amountCents = Number.isFinite(amountValue) ? Math.round(amountValue * 100) : 0;
+  const currency = String(resource.amount?.currency ?? 'USD');
+  const transactionId = String(resource.id ?? resource.transaction_id ?? `paypal-${Date.now()}`);
+
+  if (amountCents > 0) {
+    try {
+      await sendPaypalPaymentReceiptEmail({
+        subscriptionId: record.id,
+        transactionId,
+        amountCents,
+        currency,
+        paidAt: resource.create_time ? new Date(resource.create_time as string) : new Date(),
+      });
+    } catch (emailError) {
+      console.error('Failed to send PayPal payment receipt email:', emailError);
+    }
   }
 }
