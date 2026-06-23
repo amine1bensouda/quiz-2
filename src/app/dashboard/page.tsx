@@ -4,17 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getCurrentUser, getQuizStats, logout, type User } from '@/lib/auth-client';
-import { excerptFromHtml } from '@/lib/utils';
 import LoadingSpinner from '@/components/Layout/LoadingSpinner';
-
-interface Course {
-  id: string;
-  title: string;
-  slug: string;
-  description: string | null;
-  moduleCount: number;
-  totalQuizzes: number;
-}
 
 interface SubscriptionInfo {
   id: string;
@@ -32,7 +22,6 @@ const ACTIVE_STATUSES = new Set(['trialing', 'active', 'past_due']);
 
 type NavKey =
   | 'dashboard'
-  | 'exams'
   | 'practice'
   | 'analytics'
   | 'notifications'
@@ -40,7 +29,6 @@ type NavKey =
   | 'resources';
 
 const DASHBOARD_HASH_KEYS: Record<string, NavKey> = {
-  exams: 'exams',
   analytics: 'analytics',
   notifications: 'notifications',
   profile: 'profile',
@@ -60,13 +48,6 @@ const ICON: Record<NavKey, ReactNode> = {
       <rect x="14" y="3" width="7" height="5" rx="1.5" />
       <rect x="14" y="12" width="7" height="9" rx="1.5" />
       <rect x="3" y="16" width="7" height="5" rx="1.5" />
-    </svg>
-  ),
-  exams: (
-    <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
-      <rect x="9" y="3" width="6" height="4" rx="1" />
-      <path d="M9 12h6M9 16h4" />
     </svg>
   ),
   practice: (
@@ -103,7 +84,6 @@ const ICON: Record<NavKey, ReactNode> = {
 
 const NAV_ITEMS: NavItem[] = [
   { key: 'dashboard', label: 'Dashboard', href: '/dashboard', icon: ICON.dashboard },
-  { key: 'exams', label: 'Exams', href: '/dashboard#exams', icon: ICON.exams },
   { key: 'practice', label: 'Practice', href: '/quiz', icon: ICON.practice },
   { key: 'analytics', label: 'Analytics', href: '/dashboard#analytics', icon: ICON.analytics },
   { key: 'notifications', label: 'Notifications', href: '/dashboard#notifications', icon: ICON.notifications },
@@ -130,8 +110,6 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<any>(null);
   const [activeNavKey, setActiveNavKey] = useState<NavKey>('dashboard');
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [coursesLoading, setCoursesLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -162,42 +140,6 @@ export default function DashboardPage() {
     loadUserAndStats();
   }, [router]);
 
-  useEffect(() => {
-    if (loading || !user) return;
-
-    let isMounted = true;
-
-    async function loadCourses() {
-      setCoursesLoading(true);
-      try {
-        const response = await fetch('/api/courses', { cache: 'no-store' });
-        if (!response.ok) {
-          throw new Error(`Failed to fetch courses: ${response.status}`);
-        }
-
-        const data: Course[] = await response.json();
-        if (isMounted) {
-          setCourses(Array.isArray(data) ? data : []);
-        }
-      } catch (error) {
-        console.error('Error loading dashboard exams:', error);
-        if (isMounted) {
-          setCourses([]);
-        }
-      } finally {
-        if (isMounted) {
-          setCoursesLoading(false);
-        }
-      }
-    }
-
-    loadCourses();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [loading, user]);
-
   const scrollToSection = useCallback((hash: string) => {
     if (typeof window === 'undefined') return;
     const id = hash.replace('#', '');
@@ -222,18 +164,12 @@ export default function DashboardPage() {
   }, [loading, pathname]);
 
   useEffect(() => {
-    if (loading || coursesLoading) return;
+    if (loading) return;
     const hash = typeof window !== 'undefined' ? window.location.hash : '';
     if (!hash) return;
     const timer = window.setTimeout(() => scrollToSection(hash), 80);
     return () => window.clearTimeout(timer);
-  }, [loading, coursesLoading, scrollToSection]);
-
-  const examTotals = useMemo(() => {
-    const totalQuizzes = courses.reduce((sum, c) => sum + (c.totalQuizzes || 0), 0);
-    const totalModules = courses.reduce((sum, c) => sum + (c.moduleCount || 0), 0);
-    return { totalQuizzes, totalModules, examBanks: courses.length };
-  }, [courses]);
+  }, [loading, scrollToSection]);
 
   const isPremium = useMemo(
     () => !!subscription && ACTIVE_STATUSES.has(subscription.status),
@@ -297,7 +233,7 @@ export default function DashboardPage() {
           <WelcomeHero
             name={firstName}
             isPremium={isPremium}
-            startHref="/dashboard#exams"
+            startHref="/quiz"
             upgradeHref="/subscribe"
           />
         </div>
@@ -333,34 +269,7 @@ export default function DashboardPage() {
           </StatCard>
         </section>
 
-        <ExamsSection
-          courses={courses}
-          loading={coursesLoading}
-          totalQuizzes={examTotals.totalQuizzes}
-          totalModules={examTotals.totalModules}
-          examBanks={examTotals.examBanks}
-        />
-
-        <section className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <ActionCard
-            accent="#2be4c8"
-            tag="BOOST YOUR SCORE"
-            title="Practice Tests"
-            description={
-              <>
-                Take <strong className="dash-strong font-semibold">full-length simulated exams</strong>{' '}
-                under timed conditions to see where you stand.
-              </>
-            }
-            cta="Start Now"
-            href="/quiz"
-            icon={
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-5 h-5">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <path d="M14 2v6h6M8 13h8M8 17h6" />
-              </svg>
-            }
-          />
+        <section className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <ActionCard
             accent="#60c8ff"
             tag="PREMIUM ONLY"
@@ -451,130 +360,6 @@ export default function DashboardPage() {
         </section>
       </main>
     </div>
-  );
-}
-
-function ExamsSection({
-  courses,
-  loading,
-  totalQuizzes,
-  totalModules,
-  examBanks,
-}: {
-  courses: Course[];
-  loading: boolean;
-  totalQuizzes: number;
-  totalModules: number;
-  examBanks: number;
-}) {
-  return (
-    <section id="exams" className="mb-8 scroll-mt-6">
-      <div className="mb-6 text-center">
-        <h2
-          className="dash-exams-title mb-4"
-          style={{
-            fontFamily: "'Instrument Serif', serif",
-            fontSize: 'clamp(1.75rem, 3vw, 2.5rem)',
-            lineHeight: 1.1,
-          }}
-        >
-          All Exams
-        </h2>
-        {!loading && (
-          <p className="dash-exams-note dash-muted mx-auto max-w-3xl rounded-2xl border px-5 py-4 text-base md:text-lg">
-            {totalQuizzes} exam{totalQuizzes !== 1 ? 's' : ''} available to test your knowledge and
-            improve your mathematics skills
-          </p>
-        )}
-      </div>
-
-      {!loading && examBanks > 0 && (
-        <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-          <div className="dash-exam-stat rounded-xl border p-4 text-center">
-            <p className="text-2xl font-bold text-[#f5c14a]">{examBanks}</p>
-            <p className="dash-muted text-xs uppercase tracking-wider">Exam banks</p>
-          </div>
-          <div className="dash-exam-stat rounded-xl border p-4 text-center">
-            <p className="text-2xl font-bold text-[#b388ff]">{totalQuizzes}</p>
-            <p className="dash-muted text-xs uppercase tracking-wider">Total exams</p>
-          </div>
-          <div className="dash-exam-stat rounded-xl border p-4 text-center">
-            <p className="text-2xl font-bold text-[#2be4c8]">{totalModules}</p>
-            <p className="dash-muted text-xs uppercase tracking-wider">Modules</p>
-          </div>
-          <div className="dash-exam-stat rounded-xl border p-4 text-center">
-            <p className="text-2xl font-bold text-[#ff5f7e]">48h</p>
-            <p className="dash-muted text-xs uppercase tracking-wider">Free trial</p>
-          </div>
-        </div>
-      )}
-
-      {loading ? (
-        <div className="flex justify-center py-12">
-          <LoadingSpinner size="lg" />
-        </div>
-      ) : courses.length > 0 ? (
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {courses.map((course) => (
-            <DashboardExamCard key={course.id} course={course} />
-          ))}
-        </div>
-      ) : (
-        <div className="dash-exam-stat rounded-2xl border px-6 py-12 text-center">
-          <p className="dash-muted">No exam banks published yet.</p>
-        </div>
-      )}
-    </section>
-  );
-}
-
-function DashboardExamCard({ course }: { course: Course }) {
-  return (
-    <Link
-      href={`/quiz/course/${course.slug}`}
-      className="dash-exam-card group block rounded-2xl border p-6 text-left transition-all duration-300 hover:-translate-y-1"
-    >
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <h3 className="dash-exam-card-title text-lg font-bold leading-snug">{course.title}</h3>
-        <svg
-          className="h-5 w-5 shrink-0 text-[#f5c14a] opacity-0 transition-opacity group-hover:opacity-100"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </div>
-      {course.description && (
-        <p className="dash-muted mb-5 line-clamp-3 text-sm leading-relaxed">
-          {excerptFromHtml(course.description, 220)}
-        </p>
-      )}
-      <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
-        <span className="dash-exam-badge inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5">
-          <svg className="h-4 w-4 text-[#b388ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-            />
-          </svg>
-          {course.moduleCount} module{course.moduleCount !== 1 ? 's' : ''}
-        </span>
-        <span className="dash-exam-badge inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5">
-          <svg className="h-4 w-4 text-[#2be4c8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-            />
-          </svg>
-          {course.totalQuizzes} exam{course.totalQuizzes !== 1 ? 's' : ''}
-        </span>
-      </div>
-    </Link>
   );
 }
 
@@ -828,7 +613,7 @@ function WelcomeHero({
           {isPremium ? 'Premium Plan' : 'Free Plan'}
         </span>
         <h1
-          className="dash-hero-title mb-2.5"
+          className="dash-hero-title mb-6"
           style={{
             fontFamily: "'Instrument Serif', serif",
             fontSize: 'clamp(2rem, 4vw, 2.75rem)',
@@ -838,7 +623,6 @@ function WelcomeHero({
         >
           Welcome, <span className="text-[#f5c14a]">{name}</span>
         </h1>
-        <p className="dash-muted mb-6 text-[0.95rem]">Ready for your next milestone?</p>
         <div className="flex flex-wrap gap-2.5">
           <Link
             href={startHref}
