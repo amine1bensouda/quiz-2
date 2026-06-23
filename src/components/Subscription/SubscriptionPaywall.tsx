@@ -5,6 +5,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   PLANS,
   PURCHASABLE_PLAN_IDS,
+  formatPlanPrice,
+  formatPlanPriceAmount,
   planHighlightsForTrial,
   type PlanId,
 } from '@/lib/plans';
@@ -29,12 +31,14 @@ interface SubscriptionPaywallProps {
   autoStartCheckout?: CheckoutProvider | null;
 }
 
+const DEFAULT_PAYWALL_SUBTITLE = `${formatPlanPrice(PLANS.SINGLE_COURSE)} per course — 48-hour free trial, you only get charged if you continue.`;
+
 export default function SubscriptionPaywall({
   courses,
   defaultCourseId = null,
   isAuthenticated,
   title = 'Unlock access to this content',
-  subtitle = '$7/month per course — 48-hour free trial, you only get charged if you continue.',
+  subtitle = DEFAULT_PAYWALL_SUBTITLE,
   returnUrl,
   autoStartCheckout = null,
 }: SubscriptionPaywallProps) {
@@ -222,7 +226,7 @@ export default function SubscriptionPaywall({
         </h1>
         <p className="text-lg text-[rgba(238,234,244,0.65)]">
           {trialChecked && !trialEligible
-            ? '$7/month per course — subscribe now, billed immediately.'
+            ? `${formatPlanPrice(PLANS.SINGLE_COURSE)} per course — subscribe now, billed immediately.`
             : subtitle}
         </p>
         {trialChecked && trialEligible && (
@@ -269,7 +273,7 @@ export default function SubscriptionPaywall({
                 )}
               </div>
               <div className="text-3xl font-bold text-[#eeeaf4] mb-3">
-                ${(plan.priceCents / 100).toFixed(0)}
+                ${formatPlanPriceAmount(plan)}
                 <span className="text-base font-medium text-[rgba(238,234,244,0.5)]">/month</span>
               </div>
               <p className="text-sm text-[rgba(238,234,244,0.65)] mb-4">{plan.description}</p>

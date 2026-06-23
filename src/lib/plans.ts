@@ -2,7 +2,7 @@
  * Central subscription plan configuration.
  *
  * Fixed price:
- *  - SINGLE_COURSE: $7/month — access to one course of your choice.
+ *  - SINGLE_COURSE: $0.50/month — access to one course of your choice.
  *
  * `ALL_ACCESS` is kept for legacy subscriptions already in the database.
  *
@@ -37,7 +37,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
   SINGLE_COURSE: {
     id: 'SINGLE_COURSE',
     label: 'Single Course',
-    priceCents: 700,
+    priceCents: 50,
     requiresCourseId: true,
     stripePriceId: process.env.STRIPE_PRICE_SINGLE_COURSE_ID,
     paypalPlanId: process.env.PAYPAL_PLAN_SINGLE_COURSE_ID,
@@ -100,9 +100,16 @@ export function planHighlightsForTrial(
   );
 }
 
+export function formatPlanPriceAmount(plan: PlanDefinition): string {
+  return (plan.priceCents / 100).toFixed(plan.priceCents % 100 === 0 ? 0 : 2);
+}
+
 export function formatPlanPrice(plan: PlanDefinition): string {
-  const dollars = (plan.priceCents / 100).toFixed(plan.priceCents % 100 === 0 ? 0 : 2);
-  return `$${dollars}/month`;
+  return `$${formatPlanPriceAmount(plan)}/month`;
+}
+
+export function formatPlanPriceMo(plan: PlanDefinition): string {
+  return `$${formatPlanPriceAmount(plan)}/mo`;
 }
 
 /**

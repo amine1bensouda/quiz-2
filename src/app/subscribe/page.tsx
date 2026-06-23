@@ -3,14 +3,14 @@ import { prisma } from '@/lib/db';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
 import { getUserActiveSubscription } from '@/lib/subscription-access';
 import { parseCheckoutIntent } from '@/lib/subscription-checkout-url';
+import { formatPlanPrice, PLANS } from '@/lib/plans';
 import SubscriptionPaywall from '@/components/Subscription/SubscriptionPaywall';
 
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Choose your subscription',
-  description:
-    'Subscribe to Quiz Platform: $7/month per course. 48h free trial.',
+  description: `Subscribe to Quiz Platform: ${formatPlanPrice(PLANS.SINGLE_COURSE)} per course. 48h free trial.`,
 };
 
 interface SubscribePageProps {

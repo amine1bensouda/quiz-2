@@ -2,6 +2,12 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_DESCRIPTION } from '@/lib/constants';
 import { getAllPublishedCourses } from '@/lib/course-service';
+import {
+  PLANS,
+  formatPlanPrice,
+  formatPlanPriceAmount,
+  formatPlanPriceMo,
+} from '@/lib/plans';
 import { formatNumber } from '@/lib/utils';
 export const metadata: Metadata = {
   title: 'Home',
@@ -29,11 +35,13 @@ export default async function HomePage() {
 
   const publishedCourses = await withTimeout(getAllPublishedCourses(), []);
 
-  const monthlyPrice = 7;
+  const singleCoursePlan = PLANS.SINGLE_COURSE;
+  const monthlyPrice = formatPlanPriceAmount(singleCoursePlan);
+  const pricePerExam = `${formatPlanPriceAmount(singleCoursePlan)} per exam / month`;
 
   const marqueeItems = [
     ...publishedCourses.map((course) => `${course.title} QBank`),
-    '$7 per exam / month',
+    pricePerExam,
     '48-hour free trial',
     'Cancel anytime',
   ];
@@ -95,7 +103,7 @@ export default async function HomePage() {
             <div>
               <p className="section-desc">Test prep has always been pay-to-win. We built Crack the Curve to make serious exam prep affordable for every student.</p>
               <div className="mission-pillars">
-                <div className="pillar">Fair pricing<br /><span className="muted">$7/month</span></div>
+                <div className="pillar">Fair pricing<br /><span className="muted">{formatPlanPrice(singleCoursePlan)}</span></div>
                 <div className="pillar">Real analytics<br /><span className="muted">Track every weak spot.</span></div>
                 <div className="pillar">Targeted drills<br /><span className="muted">Focus on what matters.</span></div>
                 <div className="pillar">Instant access<br /><span className="muted">Start in 60 seconds.</span></div>
@@ -106,7 +114,7 @@ export default async function HomePage() {
 
         <section className="section" id="qbanks">
           <h2 className="section-title">Pick your exam. Start <em>today.</em></h2>
-          <p className="section-desc">Each QBank includes full-length timed tests, topic drills, detailed answer explanations, and a personal performance dashboard. $7/month per course with a 48h free trial.</p>
+          <p className="section-desc">Each QBank includes full-length timed tests, topic drills, detailed answer explanations, and a personal performance dashboard. {formatPlanPrice(singleCoursePlan)} per course with a 48h free trial.</p>
           <div className="qbank-grid">
             {publishedCourses.length > 0 ? (
               publishedCourses.map((course, index) => {
@@ -121,7 +129,7 @@ export default async function HomePage() {
                     <p className="muted">
                       {formatNumber(totalQuizzes)} quiz · {formatNumber(moduleCount)} module{moduleCount > 1 ? 's' : ''}
                     </p>
-                    <div className="price" style={{ color: theme.accent }}>$7/mo</div>
+                    <div className="price" style={{ color: theme.accent }}>{formatPlanPriceMo(singleCoursePlan)}</div>
                     <Link className="card-btn" href={targetUrl}>Try free</Link>
                   </article>
                 );

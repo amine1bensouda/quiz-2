@@ -10,6 +10,7 @@ import QuizCard from '@/components/Quiz/QuizCard';
 import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
 import CourseSchema from '@/components/SEO/CourseSchema';
 import { getCourseBySlug } from '@/lib/course-service';
+import { formatPlanPrice, PLANS } from '@/lib/plans';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
 import { excerptFromHtml, stripHtml } from '@/lib/utils';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
@@ -202,7 +203,7 @@ export default async function CoursePage({ params }: PageProps) {
                     Unlock this course
                   </h2>
                   <p className="text-sm text-[#a29cb0] sm:text-base">
-                    $7/month for this course. 48h free trial — no charge before.
+                    {formatPlanPrice(PLANS.SINGLE_COURSE)} for this course. 48h free trial — no charge before.
                   </p>
                 </div>
                 <Link
