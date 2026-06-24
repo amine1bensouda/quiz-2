@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Navigation from '@/components/Layout/Navigation';
 import AnimatedShapes from '@/components/Layout/AnimatedShapes';
@@ -19,10 +19,24 @@ interface Course {
 }
 
 export default function QuizListPage() {
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [accessibleCourses, setAccessibleCourses] = useState<Course[]>([]);
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
   const [totalQuizzes, setTotalQuizzes] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showAllCourses, setShowAllCourses] = useState(false);
+
+  const accessibleIds = useMemo(
+    () => new Set(accessibleCourses.map((course) => course.id)),
+    [accessibleCourses]
+  );
+
+  const displayedCourses = useMemo(() => {
+    if (!isAuthenticated || !showAllCourses) {
+      return isAuthenticated ? accessibleCourses : allCourses;
+    }
+    return allCourses;
+  }, [isAuthenticated, showAllCourses, accessibleCourses, allCourses]);
 
   useEffect(() => {
     async function loadData() {
@@ -30,20 +44,39 @@ export default function QuizListPage() {
         const user = await getCurrentUser();
         setIsAuthenticated(!!user);
 
-        const coursesResponse = await fetch(
-          user ? '/api/courses/accessible' : '/api/courses',
-          user ? { credentials: 'include' } : undefined
-        );
+        if (user) {
+          const [accessibleRes, allRes] = await Promise.all([
+            fetch('/api/courses/accessible', { credentials: 'include' }),
+            fetch('/api/courses'),
+          ]);
 
-        if (coursesResponse.ok) {
-          const coursesData = await coursesResponse.json();
-          setCourses(coursesData);
+          if (accessibleRes.ok) {
+            const accessibleData = await accessibleRes.json();
+            setAccessibleCourses(accessibleData);
+          }
 
-          const total = coursesData.reduce(
-            (sum: number, course: Course) => sum + (course.totalQuizzes || 0),
-            0
-          );
-          setTotalQuizzes(total);
+          if (allRes.ok) {
+            const allData = await allRes.json();
+            setAllCourses(allData);
+            const total = allData.reduce(
+              (sum: number, course: Course) => sum + (course.totalQuizzes || 0),
+              0
+            );
+            setTotalQuizzes(total);
+          }
+        } else {
+          const coursesResponse = await fetch('/api/courses');
+
+          if (coursesResponse.ok) {
+            const coursesData = await coursesResponse.json();
+            setAllCourses(coursesData);
+
+            const total = coursesData.reduce(
+              (sum: number, course: Course) => sum + (course.totalQuizzes || 0),
+              0
+            );
+            setTotalQuizzes(total);
+          }
         }
       } catch (error) {
         console.error('Failed to load quiz listing data:', error);
@@ -70,41 +103,50 @@ export default function QuizListPage() {
             Crack The Curve
           </span>
           <h1 className="mb-6 font-['Instrument_Serif',serif] text-5xl leading-tight md:text-6xl lg:text-7xl">
-            {isAuthenticated ? 'Your Practice' : 'All Exams'}
+            {isAuthenticated
+              ? showAllCourses
+                ? 'All Exams'
+                : 'Your Practice'
+              : 'All Exams'}
           </h1>
           {!loading && isAuthenticated && (
-            <p className="quiz-hero-note mx-auto inline-block max-w-3xl rounded-2xl border border-white/10 bg-white/5 px-6 py-5 text-base text-[#d4d0dc] backdrop-blur-sm md:text-xl">
-              {courses.length > 0
-                ? `${courses.length} course${courses.length !== 1 ? 's' : ''} included in your subscription`
-                : 'Subscribe to unlock practice for your exam bank'}
-            </p>
+            <div className="space-y-5">
+              <p className="quiz-hero-note mx-auto inline-block max-w-3xl rounded-2xl border border-white/10 bg-white/5 px-6 py-5 text-base text-[#d4d0dc] backdrop-blur-sm md:text-xl">
+                {showAllCourses
+                  ? `${allCourses.length} course${allCourses.length !== 1 ? 's' : ''} available · ${accessibleCourses.length} included in your subscription`
+                  : accessibleCourses.length > 0
+                    ? `${accessibleCourses.length} course${accessibleCourses.length !== 1 ? 's' : ''} included in your subscription`
+                    : 'Subscribe to unlock practice for your exam bank'}
+              </p>
+              {allCourses.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllCourses((prev) => !prev)}
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-semibold text-[#eeeaf4] transition hover:border-[#f5c14a]/40 hover:bg-[#f5c14a]/10"
+                >
+                  {showAllCourses ? (
+                    <>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                      </svg>
+                      My courses only
+                    </>
+                  ) : (
+                    <>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                      </svg>
+                      View all courses
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           )}
           {!loading && !isAuthenticated && (
             <p className="quiz-hero-note mx-auto inline-block max-w-3xl rounded-2xl border border-white/10 bg-white/5 px-6 py-5 text-base text-[#d4d0dc] backdrop-blur-sm md:text-xl">
               {totalQuizzes} exam{totalQuizzes !== 1 ? 's' : ''} available to test your knowledge and improve your mathematics skills
             </p>
-          )}
-          {!loading && !isAuthenticated && courses.length > 0 && (
-            <div className="mx-auto mt-8 grid max-w-4xl grid-cols-2 gap-3 text-left md:grid-cols-4">
-              <div className="quiz-stat-card rounded-xl border border-white/10 bg-[#111121]/80 p-4">
-                <p className="text-2xl font-bold text-[#f5c14a]">{courses.length}</p>
-                <p className="quiz-muted text-xs uppercase tracking-wider text-[#9d98ab]">Exam banks</p>
-              </div>
-              <div className="quiz-stat-card rounded-xl border border-white/10 bg-[#111121]/80 p-4">
-                <p className="text-2xl font-bold text-[#b388ff]">{totalQuizzes}</p>
-                <p className="quiz-muted text-xs uppercase tracking-wider text-[#9d98ab]">Total exams</p>
-              </div>
-              <div className="quiz-stat-card rounded-xl border border-white/10 bg-[#111121]/80 p-4">
-                <p className="text-2xl font-bold text-[#2be4c8]">
-                  {courses.reduce((sum, course) => sum + (course.moduleCount || 0), 0)}
-                </p>
-                <p className="quiz-muted text-xs uppercase tracking-wider text-[#9d98ab]">Modules</p>
-              </div>
-              <div className="quiz-stat-card rounded-xl border border-white/10 bg-[#111121]/80 p-4">
-                <p className="text-2xl font-bold text-[#ff5f7e]">48h</p>
-                <p className="quiz-muted text-xs uppercase tracking-wider text-[#9d98ab]">Free trial</p>
-              </div>
-            </div>
           )}
         </div>
 
@@ -118,23 +160,21 @@ export default function QuizListPage() {
               </div>
             </div>
           </div>
-        ) : courses.length > 0 ? (
+        ) : displayedCourses.length > 0 ? (
           <div className="space-y-8">
-            {/* Cartes des cours */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {courses.map((course) => {
-                return (
-                  <CourseCard
-                    key={course.id}
-                    id={course.id}
-                    title={course.title}
-                    description={course.description}
-                    moduleCount={course.moduleCount}
-                    totalQuizzes={course.totalQuizzes}
-                    slug={course.slug}
-                  />
-                );
-              })}
+              {displayedCourses.map((course) => (
+                <CourseCard
+                  key={course.id}
+                  id={course.id}
+                  title={course.title}
+                  description={course.description}
+                  moduleCount={course.moduleCount}
+                  totalQuizzes={course.totalQuizzes}
+                  slug={course.slug}
+                  locked={isAuthenticated && showAllCourses && !accessibleIds.has(course.id)}
+                />
+              ))}
             </div>
           </div>
         ) : (
@@ -150,12 +190,23 @@ export default function QuizListPage() {
                   : 'Check back soon for new courses!'}
               </p>
               {isAuthenticated && (
-                <Link
-                  href="/subscribe"
-                  className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#f5c14a] px-6 py-3 font-semibold text-[#0c0a00] transition hover:bg-[#f9d06a]"
-                >
-                  Start 48h trial
-                </Link>
+                <>
+                  {allCourses.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllCourses(true)}
+                      className="mt-6 mr-3 inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-6 py-3 font-semibold text-[#eeeaf4] transition hover:border-[#f5c14a]/40 hover:bg-[#f5c14a]/10"
+                    >
+                      View all courses
+                    </button>
+                  )}
+                  <Link
+                    href="/subscribe"
+                    className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#f5c14a] px-6 py-3 font-semibold text-[#0c0a00] transition hover:bg-[#f9d06a]"
+                  >
+                    Start 48h trial
+                  </Link>
+                </>
               )}
             </div>
           </div>

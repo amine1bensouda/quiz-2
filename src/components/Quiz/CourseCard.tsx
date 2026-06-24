@@ -10,35 +10,53 @@ interface CourseCardProps {
   moduleCount: number;
   totalQuizzes: number;
   slug: string;
+  locked?: boolean;
 }
 
 export default function CourseCard({
+  id,
   title,
   description,
   moduleCount,
   totalQuizzes,
   slug,
+  locked = false,
 }: CourseCardProps) {
+  const href = locked ? `/subscribe?courseId=${id}` : `/quiz/course/${slug}`;
+
   return (
     <Link
-      href={`/quiz/course/${slug}`}
-      className="course-card group block w-full rounded-2xl border border-white/10 bg-[#111121]/85 p-6 text-left shadow-lg shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:border-[#f5c14a]/45 hover:shadow-2xl hover:shadow-black/40"
+      href={href}
+      className={`course-card group block w-full rounded-2xl border p-6 text-left shadow-lg transition-all duration-300 ${
+        locked
+          ? 'border-white/10 bg-[#111121]/55 opacity-90 hover:border-[#f5c14a]/30 hover:shadow-xl hover:shadow-black/30'
+          : 'border-white/10 bg-[#111121]/85 shadow-black/20 hover:-translate-y-1 hover:border-[#f5c14a]/45 hover:shadow-2xl hover:shadow-black/40'
+      }`}
     >
       <div className="mb-4 flex items-start justify-between gap-3">
         <h3 className="course-card-title text-xl font-bold text-[#f5f2ff]">{title}</h3>
-        <svg
-          className="h-6 w-6 text-[#f5c14a] opacity-0 transition-opacity group-hover:opacity-100"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 5l7 7-7 7"
-          />
-        </svg>
+        {locked ? (
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#9d98ab]">
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Locked
+          </span>
+        ) : (
+          <svg
+            className="h-6 w-6 text-[#f5c14a] opacity-0 transition-opacity group-hover:opacity-100"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        )}
       </div>
       
       {description && (

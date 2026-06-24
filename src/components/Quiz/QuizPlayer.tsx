@@ -385,12 +385,18 @@ export default function QuizPlayer({ quiz, onSkipQuestion }: QuizPlayerProps) {
   }, [currentQuestion, currentQuestionIndex]);
 
   const handleAnswerSelect = (answerKey: string) => {
-    setSelectedAnswers({
-      ...selectedAnswers,
-      [currentQuestionIndex]: answerKey,
+    const isDeselect = selectedAnswers[currentQuestionIndex] === answerKey;
+    setSelectedAnswers((prev) => {
+      if (prev[currentQuestionIndex] === answerKey) {
+        const next = { ...prev };
+        delete next[currentQuestionIndex];
+        return next;
+      }
+      return { ...prev, [currentQuestionIndex]: answerKey };
     });
-    // Track la sélection de réponse
-    trackAnswerSelect(quiz.id, currentQuestionIndex + 1);
+    if (!isDeselect) {
+      trackAnswerSelect(quiz.id, currentQuestionIndex + 1);
+    }
   };
 
   const handleNext = async () => {
