@@ -115,6 +115,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    await prisma.subscription.updateMany({
+      where: {
+        userId: user.id,
+        provider: 'stripe',
+        status: 'incomplete',
+      },
+      data: { status: 'expired' },
+    });
+
     const subscription = await prisma.subscription.create({
       data: {
         userId: user.id,

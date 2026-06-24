@@ -4,6 +4,10 @@ import { getStripe, getStripeWebhookSecret } from '@/lib/stripe';
 import { prisma } from '@/lib/db';
 import { stripeSubscriptionHasScheduledCancellation } from '@/lib/subscription-access';
 import {
+  getStripeSubscriptionPeriodEnd,
+  getStripeSubscriptionPeriodStart,
+} from '@/lib/stripe-subscription-period';
+import {
   sendSubscriptionCheckoutEmail,
   sendSubscriptionInvoiceEmail,
 } from '@/lib/subscription-order-email';
@@ -152,9 +156,10 @@ async function handleCheckoutSessionCompleted(
       providerCustomerId: customerId,
       status,
       trialEndsAt,
-      currentPeriodStart: toDate((stripeSub as any).current_period_start ?? null),
-      currentPeriodEnd: toDate((stripeSub as any).current_period_end ?? null),
+      currentPeriodStart: toDate(getStripeSubscriptionPeriodStart(stripeSub as any)),
+      currentPeriodEnd: toDate(getStripeSubscriptionPeriodEnd(stripeSub as any)),
       cancelAtPeriodEnd: stripeSubscriptionHasScheduledCancellation(stripeSub as any),
+      canceledAt: toDate((stripeSub as any).canceled_at ?? null),
     },
   });
 
@@ -190,8 +195,8 @@ async function handleSubscriptionUpdated(stripeSub: Stripe.Subscription) {
           : stripeSub.customer?.id ?? null,
       status,
       trialEndsAt,
-      currentPeriodStart: toDate((stripeSub as any).current_period_start ?? null),
-      currentPeriodEnd: toDate((stripeSub as any).current_period_end ?? null),
+      currentPeriodStart: toDate(getStripeSubscriptionPeriodStart(stripeSub as any)),
+      currentPeriodEnd: toDate(getStripeSubscriptionPeriodEnd(stripeSub as any)),
       cancelAtPeriodEnd: stripeSubscriptionHasScheduledCancellation(stripeSub as any),
       canceledAt: toDate((stripeSub as any).canceled_at ?? null),
     },
@@ -220,19 +225,24 @@ async function handleInvoicePaid(invoice: Stripe.Invoice, stripe: Stripe) {
       ? ((invoice as any).subscription as string)
       : (invoice as any).subscription?.id ?? null;
   if (!stripeSubId) return;
-  const record = await prisma.subscription.findUnique({
+  let record = await prisma.subscription.findUnique({
     where: { providerSubscriptionId: stripeSubId },
   });
+  const stripeSub = await stripe.subscriptions.retrieve(stripeSubId);
+  if (!record) {
+    const metadataSubId =
+      (stripeSub.metadata?.subscriptionId as string | undefined) ?? null;
+    record = await findSubscriptionRecord(stripeSubId, metadataSubId);
+  }
   if (!record) return;
 
-  const stripeSub = await stripe.subscriptions.retrieve(stripeSubId);
   await prisma.subscription.update({
     where: { id: record.id },
     data: {
       status: normalizeStatus(stripeSub.status),
       trialEndsAt: toDate((stripeSub as any).trial_end ?? null),
-      currentPeriodStart: toDate((stripeSub as any).current_period_start ?? null),
-      currentPeriodEnd: toDate((stripeSub as any).current_period_end ?? null),
+      currentPeriodStart: toDate(getStripeSubscriptionPeriodStart(stripeSub as any)),
+      currentPeriodEnd: toDate(getStripeSubscriptionPeriodEnd(stripeSub as any)),
       cancelAtPeriodEnd: stripeSubscriptionHasScheduledCancellation(stripeSub as any),
     },
   });

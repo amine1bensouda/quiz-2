@@ -1,6 +1,10 @@
 import { prisma } from './db';
 import { isActiveStatus, type PlanId } from './plans';
 import { getStripe } from './stripe';
+import {
+  getStripeSubscriptionPeriodEnd,
+  getStripeSubscriptionPeriodStart,
+} from './stripe-subscription-period';
 
 /**
  * Helpers centralisant la logique d'accès basée sur l'abonnement.
@@ -91,115 +95,199 @@ function hasValidAccessWindow(
   return false;
 }
 
+function subscriptionSelectFields() {
+  return {
+    id: true,
+    userId: true,
+    plan: true,
+    courseId: true,
+    provider: true,
+    providerSubscriptionId: true,
+    providerCustomerId: true,
+    status: true,
+    trialEndsAt: true,
+    currentPeriodEnd: true,
+    cancelAtPeriodEnd: true,
+  } as const;
+}
+
+type SubscriptionRow = {
+  id: string;
+  userId: string;
+  plan: string;
+  courseId: string | null;
+  provider: string;
+  providerSubscriptionId: string | null;
+  providerCustomerId: string | null;
+  status: string;
+  trialEndsAt: Date | null;
+  currentPeriodEnd: Date | null;
+  cancelAtPeriodEnd: boolean;
+};
+
+function toActiveSubscription(row: SubscriptionRow): ActiveSubscription {
+  return {
+    id: row.id,
+    userId: row.userId,
+    plan: row.plan as PlanId,
+    courseId: row.courseId,
+    provider: row.provider,
+    providerSubscriptionId: row.providerSubscriptionId,
+    status: row.status,
+    trialEndsAt: row.trialEndsAt,
+    currentPeriodEnd: row.currentPeriodEnd,
+    cancelAtPeriodEnd: row.cancelAtPeriodEnd,
+  };
+}
+
+async function resolveStripeSubscriptionForLocalRow(
+  localSub: Pick<
+    SubscriptionRow,
+    'id' | 'userId' | 'providerSubscriptionId' | 'providerCustomerId'
+  >,
+  userEmail: string
+): Promise<{ stripeSub: any; customerId: string | null } | null> {
+  const stripe = getStripe();
+
+  const findByMetadata = async (customerId: string) => {
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      status: 'all',
+      limit: 20,
+    });
+    const byLocalId = subscriptions.data.find(
+      (s) => s.metadata?.subscriptionId === localSub.id
+    );
+    if (byLocalId) return byLocalId;
+
+    const activeish = subscriptions.data
+      .filter(
+        (s) =>
+          s.status !== 'canceled' &&
+          s.status !== 'incomplete_expired' &&
+          s.metadata?.userId === localSub.userId
+      )
+      .sort((a, b) => b.created - a.created);
+    return activeish[0] ?? null;
+  };
+
+  let customerId = localSub.providerCustomerId;
+
+  if (localSub.providerSubscriptionId) {
+    try {
+      const stripeSub = await stripe.subscriptions.retrieve(
+        localSub.providerSubscriptionId
+      );
+      customerId =
+        customerId ??
+        (typeof stripeSub.customer === 'string'
+          ? stripeSub.customer
+          : stripeSub.customer?.id ?? null);
+
+      if (
+        stripeSub.status === 'canceled' ||
+        stripeSub.status === 'incomplete_expired'
+      ) {
+        if (customerId) {
+          const byMeta = await findByMetadata(customerId);
+          if (byMeta) {
+            return {
+              stripeSub: byMeta,
+              customerId:
+                customerId ??
+                (typeof byMeta.customer === 'string'
+                  ? byMeta.customer
+                  : byMeta.customer?.id ?? null),
+            };
+          }
+        }
+      }
+
+      return { stripeSub, customerId };
+    } catch {
+      // Subscription removed on Stripe — fall through to metadata lookup.
+    }
+  }
+
+  const customers = await stripe.customers.list({
+    email: userEmail,
+    limit: 1,
+  });
+  const customer = customers.data[0];
+  if (!customer) return null;
+
+  customerId = customer.id;
+  const stripeSub = await findByMetadata(customer.id);
+  if (!stripeSub) return null;
+
+  return { stripeSub, customerId };
+}
+
+async function syncSubscriptionRowFromStripe(
+  localSub: SubscriptionRow,
+  userEmail: string
+): Promise<ActiveSubscription | null> {
+  const resolved = await resolveStripeSubscriptionForLocalRow(localSub, userEmail);
+  if (!resolved) return null;
+
+  const { stripeSub, customerId } = resolved;
+  const normalizedStatus = normalizeStripeStatus(stripeSub.status);
+  const updated = await prisma.subscription.update({
+    where: { id: localSub.id },
+    data: {
+      providerSubscriptionId: stripeSub.id,
+      providerCustomerId: customerId,
+      status: normalizedStatus,
+      trialEndsAt: toDate((stripeSub as any).trial_end ?? null),
+      currentPeriodStart: toDate(getStripeSubscriptionPeriodStart(stripeSub as any)),
+      currentPeriodEnd: toDate(getStripeSubscriptionPeriodEnd(stripeSub as any)),
+      cancelAtPeriodEnd: stripeSubscriptionHasScheduledCancellation(stripeSub as any),
+      canceledAt: toDate((stripeSub as any).canceled_at ?? null),
+    },
+    select: subscriptionSelectFields(),
+  });
+
+  if (
+    isActiveStatus(updated.status) &&
+    hasValidAccessWindow(
+      updated.status,
+      updated.trialEndsAt,
+      updated.currentPeriodEnd,
+      updated.cancelAtPeriodEnd,
+    )
+  ) {
+    return toActiveSubscription(updated);
+  }
+
+  return null;
+}
+
 /**
- * Met à jour la ligne d'abonnement Stripe la plus récente depuis l'API Stripe
- * (statut, fin de période, cancel_at_period_end, etc.). Utile quand le webhook
- * est en retard ou absent : le dashboard reflète l'annulation programmée.
+ * Met à jour les lignes d'abonnement Stripe depuis l'API Stripe (la plus récente
+ * en priorité). Utile quand le webhook est en retard ou après une réinscription.
  */
 export async function syncStripeSubscriptionForUser(
   userId: string
 ): Promise<ActiveSubscription | null> {
-  // D'abord l'abonnement Stripe « actif » côté statut — sinon on synchronise la
-  // dernière ligne `incomplete` et on ne met jamais à jour le `trialing` réel.
-  const latestStripeSub =
-    (await prisma.subscription.findFirst({
-      where: {
-        userId,
-        provider: 'stripe',
-        status: { in: ['trialing', 'active', 'past_due'] },
-      },
-      orderBy: { createdAt: 'desc' },
-    })) ??
-    (await prisma.subscription.findFirst({
-      where: { userId, provider: 'stripe' },
-      orderBy: { createdAt: 'desc' },
-    }));
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true },
+  });
+  if (!user?.email) return null;
 
-  if (!latestStripeSub) return null;
+  const rows = await prisma.subscription.findMany({
+    where: { userId, provider: 'stripe' },
+    orderBy: { createdAt: 'desc' },
+    take: 6,
+    select: subscriptionSelectFields(),
+  });
+
+  if (rows.length === 0) return null;
 
   try {
-    const stripe = getStripe();
-    let stripeSub: any = null;
-    let customerId: string | null = latestStripeSub.providerCustomerId ?? null;
-
-    if (latestStripeSub.providerSubscriptionId) {
-      stripeSub = await stripe.subscriptions.retrieve(
-        latestStripeSub.providerSubscriptionId
-      );
-      if (!customerId) {
-        customerId =
-          typeof stripeSub.customer === 'string'
-            ? stripeSub.customer
-            : stripeSub.customer?.id ?? null;
-      }
-    } else {
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { email: true },
-      });
-      if (!user?.email) return null;
-
-      const customers = await stripe.customers.list({
-        email: user.email,
-        limit: 1,
-      });
-      const customer = customers.data[0];
-      if (!customer) return null;
-      customerId = customer.id;
-
-      const subscriptions = await stripe.subscriptions.list({
-        customer: customer.id,
-        status: 'all',
-        limit: 10,
-      });
-
-      // Ne pas utiliser subscriptions.data[0] ni un simple match userId : on
-      // pourrait lier un ancien abonnement Stripe à une nouvelle ligne incomplete.
-      stripeSub =
-        subscriptions.data.find(
-          (s) => s.metadata?.subscriptionId === latestStripeSub.id
-        ) ?? null;
-    }
-
-    if (!stripeSub) return null;
-
-    const normalizedStatus = normalizeStripeStatus(stripeSub.status);
-    const updated = await prisma.subscription.update({
-      where: { id: latestStripeSub.id },
-      data: {
-        providerSubscriptionId: stripeSub.id,
-        providerCustomerId: customerId,
-        status: normalizedStatus,
-        trialEndsAt: toDate((stripeSub as any).trial_end ?? null),
-        currentPeriodStart: toDate((stripeSub as any).current_period_start ?? null),
-        currentPeriodEnd: toDate((stripeSub as any).current_period_end ?? null),
-        cancelAtPeriodEnd: stripeSubscriptionHasScheduledCancellation(stripeSub as any),
-        canceledAt: toDate((stripeSub as any).canceled_at ?? null),
-      },
-      select: {
-        id: true,
-        userId: true,
-        plan: true,
-        courseId: true,
-        provider: true,
-        providerSubscriptionId: true,
-        status: true,
-        trialEndsAt: true,
-        currentPeriodEnd: true,
-        cancelAtPeriodEnd: true,
-      },
-    });
-
-    if (
-      isActiveStatus(updated.status) &&
-      hasValidAccessWindow(
-        updated.status,
-        updated.trialEndsAt,
-        updated.currentPeriodEnd,
-        updated.cancelAtPeriodEnd,
-      )
-    ) {
-      return updated as ActiveSubscription;
+    for (const row of rows) {
+      const synced = await syncSubscriptionRowFromStripe(row, user.email);
+      if (synced) return synced;
     }
   } catch (error) {
     console.error('Stripe subscription sync failed:', error);
@@ -213,33 +301,22 @@ export async function getUserActiveSubscription(
 ): Promise<ActiveSubscription | null> {
   if (!userId) return null;
   try {
-    // Rafraîchir Stripe avant de décider (portail client / webhooks en retard).
     const hasStripeRow = await prisma.subscription.findFirst({
       where: { userId, provider: 'stripe' },
       select: { id: true },
     });
     if (hasStripeRow) {
-      await syncStripeSubscriptionForUser(userId);
+      const synced = await syncStripeSubscriptionForUser(userId);
+      if (synced) return synced;
     }
 
     const candidates = await prisma.subscription.findMany({
       where: {
         userId,
-        status: { in: ['trialing', 'active', 'past_due'] },
+        status: { in: ['trialing', 'active', 'past_due', 'incomplete'] },
       },
       orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        userId: true,
-        plan: true,
-        courseId: true,
-        provider: true,
-        providerSubscriptionId: true,
-        status: true,
-        trialEndsAt: true,
-        currentPeriodEnd: true,
-        cancelAtPeriodEnd: true,
-      },
+      select: subscriptionSelectFields(),
     });
 
     for (const sub of candidates) {
@@ -251,7 +328,7 @@ export async function getUserActiveSubscription(
           sub.cancelAtPeriodEnd,
         )
       ) {
-        return sub as ActiveSubscription;
+        return toActiveSubscription(sub);
       }
     }
     return null;
