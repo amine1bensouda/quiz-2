@@ -29,6 +29,7 @@ interface SubscriptionPaywallProps {
   subtitle?: string;
   returnUrl?: string;
   autoStartCheckout?: CheckoutProvider | null;
+  existingSubscriptionCourseTitle?: string | null;
 }
 
 const DEFAULT_PAYWALL_SUBTITLE = `${formatPlanPrice(PLANS.SINGLE_COURSE)} per course — 48-hour free trial, you only get charged if you continue.`;
@@ -41,6 +42,7 @@ export default function SubscriptionPaywall({
   subtitle = DEFAULT_PAYWALL_SUBTITLE,
   returnUrl,
   autoStartCheckout = null,
+  existingSubscriptionCourseTitle = null,
 }: SubscriptionPaywallProps) {
   const autoCheckoutStarted = useRef(false);
   const [selectedPlan, setSelectedPlan] = useState<PlanId>('SINGLE_COURSE');
@@ -248,6 +250,18 @@ export default function SubscriptionPaywall({
           </p>
         )}
       </header>
+
+      {existingSubscriptionCourseTitle && (
+        <div className="relative mb-8 max-w-xl mx-auto rounded-xl border border-amber-500/35 bg-amber-950/35 px-5 py-4 text-sm text-amber-100">
+          You are currently subscribed to{' '}
+          <strong className="text-[#f5c14a]">{existingSubscriptionCourseTitle}</strong>.
+          Cancel that plan from your{' '}
+          <Link href="/dashboard#profile" className="font-semibold underline text-[#f5c14a]">
+            dashboard
+          </Link>{' '}
+          before subscribing to another course.
+        </div>
+      )}
 
       <div className="relative grid gap-6 mb-8 max-w-xl mx-auto">
         {PURCHASABLE_PLAN_IDS.map((key) => {

@@ -1,7 +1,10 @@
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
-import { getUserActiveSubscription } from '@/lib/subscription-access';
+import {
+  canUserAccessCourse,
+  getUserActiveSubscription,
+} from '@/lib/subscription-access';
 import { parseCheckoutIntent } from '@/lib/subscription-checkout-url';
 import { formatPlanPrice, PLANS } from '@/lib/plans';
 import SubscriptionPaywall from '@/components/Subscription/SubscriptionPaywall';
@@ -38,18 +41,53 @@ export default async function SubscribePage({ searchParams }: SubscribePageProps
     });
   }
 
-  if (user) {
-    const active = await getUserActiveSubscription(user.id);
-    if (active) {
-      redirect('/dashboard?subscription=already');
-    }
-  }
-
   const courses = await prisma.course.findMany({
     where: { status: 'published' },
     select: { id: true, title: true, slug: true },
     orderBy: { createdAt: 'desc' },
   });
+
+  const requestedCourseId =
+    typeof params.courseId === 'string' ? params.courseId.trim() : '';
+  const requestedCourse = requestedCourseId
+    ? courses.find((course) => course.id === requestedCourseId)
+    : null;
+
+  let existingSubscriptionCourseTitle: string | null = null;
+
+  if (user) {
+    const active = await getUserActiveSubscription(user.id);
+
+    if (requestedCourseId) {
+      const hasAccess = await canUserAccessCourse(
+        user.id,
+        requestedCourseId,
+        false
+      );
+      if (hasAccess) {
+        redirect(
+          requestedCourse
+            ? `/quiz/course/${requestedCourse.slug}`
+            : '/dashboard'
+        );
+      }
+    } else if (active) {
+      redirect('/dashboard?subscription=already');
+    }
+
+    if (
+      active?.plan === 'SINGLE_COURSE' &&
+      active.courseId &&
+      active.courseId !== requestedCourseId
+    ) {
+      const currentCourse = courses.find((course) => course.id === active.courseId);
+      existingSubscriptionCourseTitle = currentCourse?.title ?? null;
+    }
+  }
+
+  const subscribeReturnUrl = requestedCourseId
+    ? `/subscribe?courseId=${encodeURIComponent(requestedCourseId)}`
+    : '/subscribe';
 
   return (
     <main className="subscribe-page paywall-page min-h-screen bg-[#080810] py-10 text-[#eeeaf4] relative overflow-hidden">
@@ -73,10 +111,14 @@ export default async function SubscribePage({ searchParams }: SubscribePageProps
       )}
       <SubscriptionPaywall
         courses={courses}
-        defaultCourseId={params.courseId ?? null}
+        defaultCourseId={requestedCourseId || null}
         isAuthenticated={!!user}
-        returnUrl="/subscribe"
+        returnUrl={subscribeReturnUrl}
         autoStartCheckout={autoStartCheckout}
+        title={
+          requestedCourse ? `Unlock ${requestedCourse.title}` : undefined
+        }
+        existingSubscriptionCourseTitle={existingSubscriptionCourseTitle}
       />
       </div>
     </main>

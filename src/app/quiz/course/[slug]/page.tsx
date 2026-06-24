@@ -118,6 +118,10 @@ export default async function CoursePage({ params }: PageProps) {
   const hasAccess = await canUserAccessCourse(currentUser?.id ?? null, course.id, isAdmin);
   const isDraftCourse = course.status === 'draft';
 
+  if (currentUser && !hasAccess && !isAdmin) {
+    redirect(`/subscribe?courseId=${encodeURIComponent(course.id)}`);
+  }
+
   return (
     <div className="quiz-page relative min-h-screen overflow-hidden bg-[#080810] text-[#eeeaf4]">
       {!isDraftCourse && (
