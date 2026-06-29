@@ -4,6 +4,7 @@ import { getQuizBySlug } from '@/lib/wordpress';
 import QuizCorrection from '@/components/Quiz/QuizCorrection';
 import { SITE_URL } from '@/lib/constants';
 import { stripHtml } from '@/lib/utils';
+import { isAdminAuthenticated } from '@/lib/admin-auth';
 
 export const revalidate = 3600;
 
@@ -38,7 +39,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function QuizCorrectionPage({ params }: PageProps) {
-  const quiz = await getQuizBySlug(params.slug);
+  const isAdmin = await isAdminAuthenticated();
+  const quiz = await getQuizBySlug(params.slug, { allowDraftCourse: isAdmin });
 
   if (!quiz) {
     notFound();

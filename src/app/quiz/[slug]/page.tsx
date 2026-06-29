@@ -79,15 +79,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function QuizPage({ params, searchParams }: PageProps) {
   const sp = (await searchParams) ?? {};
   const autoStartCheckout = parseCheckoutIntent(sp.startCheckout);
+  const isAdmin = await isAdminAuthenticated();
+  const quizLoadOptions = { allowDraftCourse: isAdmin };
   // Décoder le slug pour gérer les espaces encodés (%20)
   const decodedSlug = decodeURIComponent(params.slug);
   
   // Essayer d'abord avec le slug décodé, puis avec le slug original
-  let quiz = await getQuizBySlug(decodedSlug);
+  let quiz = await getQuizBySlug(decodedSlug, quizLoadOptions);
   
   if (!quiz && decodedSlug !== params.slug) {
     // Si le slug décodé ne fonctionne pas, essayer le slug original
-    quiz = await getQuizBySlug(params.slug);
+    quiz = await getQuizBySlug(params.slug, quizLoadOptions);
   }
 
   if (!quiz) {
@@ -98,7 +100,6 @@ export default async function QuizPage({ params, searchParams }: PageProps) {
   // n'a pas d'abonnement couvrant le cours parent du quiz (ou un ALL_ACCESS
   // pour les quizzes autonomes).
   const currentUser = await getCurrentUserFromSession();
-  const isAdmin = await isAdminAuthenticated();
   const hasAccess = await canUserAccessQuiz(currentUser?.id ?? null, {
     id: quiz.prismaId ?? '',
     moduleId: quiz.courseId ? 'present' : null,

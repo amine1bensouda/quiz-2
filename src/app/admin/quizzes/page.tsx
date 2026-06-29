@@ -1,6 +1,6 @@
 import DeleteQuizButton from '@/components/Admin/DeleteQuizButton';
 import { difficultyToEnglish, stripHtml, shouldDisplayDifficulty } from '@/lib/utils';
-import { getAllQuiz } from '@/lib/quiz-service';
+import { getAllQuizForAdmin } from '@/lib/quiz-service';
 
 type GroupedQuizzes = {
   [courseTitle: string]: {
@@ -13,7 +13,7 @@ export default async function AdminQuizzesPage({
 }: {
   searchParams?: { q?: string };
 }) {
-  const quizzes = await getAllQuiz();
+  const quizzes = await getAllQuizForAdmin();
 
   const searchQuery = searchParams?.q?.toLowerCase().trim() || '';
 
@@ -103,6 +103,10 @@ export default async function AdminQuizzesPage({
               (acc, moduleQuizzes) => acc + (moduleQuizzes as any[]).length,
               0
             );
+            const firstQuiz = Object.values(modules)[0]?.[0] as any;
+            const isDraftCourse =
+              firstQuiz?.module?.course?.status &&
+              firstQuiz.module.course.status !== 'published';
 
             return (
               <section
@@ -111,9 +115,16 @@ export default async function AdminQuizzesPage({
               >
                 <div className="flex items-center justify-between border-b border-white/10 bg-[#0e0e1a] px-6 py-4">
                   <div>
-                    <h2 className="text-xl font-semibold text-[#eeeaf4]">
-                      {courseTitle}
-                    </h2>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="text-xl font-semibold text-[#eeeaf4]">
+                        {courseTitle}
+                      </h2>
+                      {isDraftCourse && (
+                        <span className="rounded-full border border-amber-500/35 bg-amber-500/15 px-2.5 py-0.5 text-xs font-medium text-amber-200">
+                          Draft course
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-[rgba(238,234,244,0.45)]">
                       {courseQuizCount} quiz
                       {courseQuizCount > 1 ? 'zes' : ''} in this course

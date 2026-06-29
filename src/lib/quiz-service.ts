@@ -25,6 +25,36 @@ export const PUBLISHED_QUIZ_WHERE: Prisma.QuizWhereInput = {
   ],
 };
 
+const quizWithRelationsInclude = {
+  module: {
+    include: {
+      course: true,
+    },
+  },
+  questions: {
+    include: {
+      answers: true,
+    },
+    orderBy: {
+      order: 'asc' as const,
+    },
+  },
+} satisfies Prisma.QuizInclude;
+
+async function fetchQuizzes(
+  where: Prisma.QuizWhereInput = {}
+): Promise<Quiz[]> {
+  const quizzes = await prisma.quiz.findMany({
+    where,
+    include: quizWithRelationsInclude,
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+
+  return quizzes.map(convertPrismaQuizToQuiz);
+}
+
 const getFeaturedQuizzesUncached = async () => {
   return prisma.quiz.findMany({
     where: PUBLISHED_QUIZ_WHERE,
@@ -58,35 +88,21 @@ const getFeaturedQuizzesCached = unstable_cache(
  */
 export async function getAllQuiz(): Promise<Quiz[]> {
   try {
-    const quizzes = await prisma.quiz.findMany({
-      where: PUBLISHED_QUIZ_WHERE,
-      include: {
-        module: {
-          include: {
-            course: true,
-          },
-        },
-        questions: {
-          include: {
-            answers: true,
-          },
-          orderBy: {
-            order: 'asc',
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-
-    // Convertir au format Quiz attendu par le frontend
-    const converted = quizzes.map(convertPrismaQuizToQuiz);
-    return converted;
+    return await fetchQuizzes(PUBLISHED_QUIZ_WHERE);
   } catch (error: any) {
     console.error('❌ Erreur getAllQuiz:', error);
     console.error('   Message:', error.message);
     console.error('   Stack:', error.stack);
+    return [];
+  }
+}
+
+/** Tous les quiz (y compris cours en brouillon) — panneau admin uniquement. */
+export async function getAllQuizForAdmin(): Promise<Quiz[]> {
+  try {
+    return await fetchQuizzes();
+  } catch (error: any) {
+    console.error('❌ Erreur getAllQuizForAdmin:', error);
     return [];
   }
 }
@@ -127,7 +143,10 @@ export async function getQuizList(options?: {
  * Récupère un quiz par son slug
  * Gère les slugs avec espaces (anciens quiz) et les slugs normalisés
  */
-export async function getQuizBySlug(slug: string): Promise<Quiz | null> {
+export async function getQuizBySlug(
+  slug: string,
+  options?: { allowDraftCourse?: boolean }
+): Promise<Quiz | null> {
   try {
     // Décoder le slug pour gérer les espaces encodés (%20)
     const decodedSlug = decodeURIComponent(slug);
@@ -200,8 +219,11 @@ export async function getQuizBySlug(slug: string): Promise<Quiz | null> {
 
     if (!quiz) return null;
 
-    // Vérifier que le cours est publié
-    if (quiz.module && quiz.module.course.status !== 'published') {
+    if (
+      !options?.allowDraftCourse &&
+      quiz.module &&
+      quiz.module.course.status !== 'published'
+    ) {
       console.log(`⚠️ Quiz ${slug} non accessible: cours en brouillon`);
       return null;
     }

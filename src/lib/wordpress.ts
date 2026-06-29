@@ -602,12 +602,15 @@ async function _getQuizBySlugUncached(slug: string): Promise<Quiz | null> {
 // Version avec cache (uniquement pour Server Components)
 // Désactivation temporaire du cache en dev pour éviter les problèmes
 // TODO: Migrer vers quiz-service.ts pour utiliser Prisma
-export async function getQuizBySlug(slug: string): Promise<Quiz | null> {
+export async function getQuizBySlug(
+  slug: string,
+  options?: { allowDraftCourse?: boolean }
+): Promise<Quiz | null> {
   try {
     // Essayer d'abord d'utiliser le nouveau service Prisma
     try {
       const { getQuizBySlug: getQuizBySlugFromService } = await import('./quiz-service');
-      const quiz = await getQuizBySlugFromService(slug);
+      const quiz = await getQuizBySlugFromService(slug, options);
       if (quiz) {
         log(`✅ Quiz ${slug} fetched from Prisma (new backend)`);
         return quiz;
