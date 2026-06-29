@@ -186,6 +186,8 @@ export async function PATCH(
           },
         });
 
+    invalidatePublishedCoursesCache();
+
     console.log(`✅ Course ${courseId} updated: status=${course.status}`);
 
     return NextResponse.json(course);

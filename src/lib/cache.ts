@@ -1,4 +1,4 @@
-import { revalidateTag, unstable_cache } from 'next/cache';
+import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache';
 import { prisma } from './db';
 
 /**
@@ -132,6 +132,10 @@ export const getPublishedCoursesSummaryData = unstable_cache(
 /** À appeler après toute mutation de cours côté admin (API routes / server actions). */
 export function invalidatePublishedCoursesCache() {
   revalidateTag(COURSES_CACHE_TAG);
+  revalidatePath('/quiz');
+  revalidatePath('/api/courses');
+  revalidatePath('/');
+  revalidatePath('/categorie');
 }
 
 /** Liste des blogs en base (tous statuts) pour lister ce qui est ajouté. */

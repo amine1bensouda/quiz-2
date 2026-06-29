@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface PublishCourseButtonProps {
@@ -17,6 +17,10 @@ export default function PublishCourseButton({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<'published' | 'draft'>(currentStatus);
+
+  useEffect(() => {
+    setStatus(currentStatus);
+  }, [currentStatus]);
 
   const handleToggleStatus = async () => {
     if (isLoading) return;
