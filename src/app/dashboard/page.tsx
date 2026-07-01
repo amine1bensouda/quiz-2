@@ -18,8 +18,6 @@ interface SubscriptionInfo {
   course: { id: string; title: string; slug: string } | null;
 }
 
-const ACTIVE_STATUSES = new Set(['trialing', 'active', 'past_due']);
-
 type NavKey =
   | 'dashboard'
   | 'practice'
@@ -140,6 +138,29 @@ export default function DashboardPage() {
     loadUserAndStats();
   }, [router]);
 
+  useEffect(() => {
+    if (loading || typeof window === 'undefined') return;
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('subscription') !== 'success') return;
+
+    const storageKey = 'subscription-confirmation-email-sent';
+    if (sessionStorage.getItem(storageKey)) {
+      router.replace('/dashboard', { scroll: false });
+      return;
+    }
+    sessionStorage.setItem(storageKey, '1');
+
+    fetch('/api/subscriptions/send-confirmation-email', {
+      method: 'POST',
+      credentials: 'include',
+    }).catch((err) => {
+      console.error('Subscription confirmation email fallback failed:', err);
+    });
+
+    router.replace('/dashboard', { scroll: false });
+  }, [loading, router]);
+
   const scrollToSection = useCallback((hash: string) => {
     if (typeof window === 'undefined') return;
     const id = hash.replace('#', '');
@@ -171,10 +192,7 @@ export default function DashboardPage() {
     return () => window.clearTimeout(timer);
   }, [loading, scrollToSection]);
 
-  const isPremium = useMemo(
-    () => !!subscription && ACTIVE_STATUSES.has(subscription.status),
-    [subscription]
-  );
+  const isPremium = useMemo(() => !!subscription, [subscription]);
 
   const handleLogout = async () => {
     await logout();
@@ -465,13 +483,19 @@ function ProfileSection({
   isPremium: boolean;
 }) {
   const trialEndsLabel =
-    subscription?.trialEndsAt && subscription.status === 'trialing'
+    subscription?.trialEndsAt &&
+    new Date(subscription.trialEndsAt).getTime() > Date.now()
       ? new Date(subscription.trialEndsAt).toLocaleDateString(undefined, {
           day: 'numeric',
           month: 'long',
           year: 'numeric',
         })
       : null;
+
+  const trialCanceled =
+    !!trialEndsLabel &&
+    (subscription?.cancelAtPeriodEnd ||
+      subscription?.status === 'canceled');
 
   return (
     <DashboardPanel id="profile" title="Profile" subtitle="Your account details and subscription status.">
@@ -506,8 +530,18 @@ function ProfileSection({
       )}
       {trialEndsLabel && (
         <p className="dash-muted mt-3 text-sm">
-          Free trial ends on <span className="text-[#f5c14a]">{trialEndsLabel}</span>. Cancel
-          before this date to avoid being charged.
+          {trialCanceled ? (
+            <>
+              Subscription canceled — you keep access until{' '}
+              <span className="text-[#f5c14a]">{trialEndsLabel}</span>. You will not be
+              charged.
+            </>
+          ) : (
+            <>
+              Free trial ends on <span className="text-[#f5c14a]">{trialEndsLabel}</span>.
+              Cancel before this date to avoid being charged.
+            </>
+          )}
         </p>
       )}
       {isPremium && subscription && (
@@ -575,7 +609,11 @@ function ManageSubscriptionActions({ subscription }: { subscription: Subscriptio
       if (!res.ok) {
         throw new Error(data?.error || 'Unable to cancel subscription.');
       }
-      setMessage('Subscription canceled. Your access will end shortly.');
+      setMessage(
+        subscription.trialEndsAt && subscription.status === 'trialing'
+          ? `Subscription canceled. You keep access until ${new Date(subscription.trialEndsAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}.`
+          : 'Subscription canceled. Your access will end shortly.'
+      );
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Unable to cancel subscription.');

@@ -1,5 +1,5 @@
 import { prisma } from './db';
-import { isActiveStatus, type PlanId } from './plans';
+import { type PlanId } from './plans';
 import { getStripe } from './stripe';
 import {
   getStripeSubscriptionPeriodEnd,
@@ -15,9 +15,10 @@ import {
  *    autonomes (sans cours parent) ne sont PAS accessibles avec ce plan.
  *  - Les statuts actifs sont définis dans `isActiveStatus` (trialing, active,
  *    past_due). `canceled`/`expired`/`incomplete` bloquent l'accès.
- *  - Essai (`trialing`) ou période payante (`active` / `past_due`) + annulation
- *    Stripe (`cancel_at_period_end`) : plus d'accès au catalogue (l'utilisateur a
- *    demandé l'arrêt dans le portail ; on ne garde pas la période jusqu'à la fin).
+ *  - Essai (`trialing`) : accès jusqu'à `trialEndsAt`, même si l'utilisateur a
+ *    annulé avant la fin des 48 h (`cancel_at_period_end`).
+ *  - Période payante (`active` / `past_due`) + annulation : accès coupé dès
+ *    l'annulation (comportement actuel pour la facturation mensuelle).
  */
 
 export interface ActiveSubscription {
@@ -81,10 +82,10 @@ function hasValidAccessWindow(
 ): boolean {
   const now = new Date();
   if (status === 'trialing') {
-    if (!trialEndsAt || trialEndsAt.getTime() <= now.getTime()) return false;
-    // Annulation depuis le portail Stripe pendant l'essai : on coupe l'accès au
-    // catalogue tout de suite (sinon l'utilisateur garde l'accès jusqu'à trial_end).
-    if (cancelAtPeriodEnd) return false;
+    return !!(trialEndsAt && trialEndsAt.getTime() > now.getTime());
+  }
+  // Stripe peut passer en `canceled` avant trial_end après annulation portail.
+  if (status === 'canceled' && trialEndsAt && trialEndsAt.getTime() > now.getTime()) {
     return true;
   }
   if (status === 'active' || status === 'past_due') {
@@ -248,7 +249,6 @@ async function syncSubscriptionRowFromStripe(
   });
 
   if (
-    isActiveStatus(updated.status) &&
     hasValidAccessWindow(
       updated.status,
       updated.trialEndsAt,
@@ -313,7 +313,7 @@ export async function getUserActiveSubscription(
     const candidates = await prisma.subscription.findMany({
       where: {
         userId,
-        status: { in: ['trialing', 'active', 'past_due', 'incomplete'] },
+        status: { in: ['trialing', 'active', 'past_due', 'incomplete', 'canceled'] },
       },
       orderBy: { createdAt: 'desc' },
       select: subscriptionSelectFields(),

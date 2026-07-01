@@ -7,6 +7,7 @@ import {
   getStripeSubscriptionPeriodEnd,
   getStripeSubscriptionPeriodStart,
 } from '@/lib/stripe-subscription-period';
+import { isEmailConfigured } from '@/lib/email';
 import {
   sendSubscriptionCheckoutEmail,
   sendSubscriptionInvoiceEmail,
@@ -180,14 +181,7 @@ async function handleCheckoutSessionCompleted(
     },
   });
 
-  try {
-    await sendSubscriptionCheckoutEmail({
-      subscriptionId: record.id,
-      provider: 'stripe',
-    });
-  } catch (emailError) {
-    console.error('Failed to send checkout confirmation email:', emailError);
-  }
+  await trySendCheckoutConfirmationEmail(record.id, 'stripe', 'checkout.session.completed');
 }
 
 async function handleSubscriptionUpdated(stripeSub: Stripe.Subscription) {
@@ -218,6 +212,14 @@ async function handleSubscriptionUpdated(stripeSub: Stripe.Subscription) {
       canceledAt: toDate((stripeSub as any).canceled_at ?? null),
     },
   });
+
+  if (status === 'trialing' || status === 'active') {
+    await trySendCheckoutConfirmationEmail(
+      record.id,
+      'stripe',
+      'customer.subscription.updated'
+    );
+  }
 }
 
 async function handleSubscriptionDeleted(stripeSub: Stripe.Subscription) {
@@ -311,6 +313,28 @@ async function handleInvoiceFailed(
       cancelAtPeriodEnd: stripeSubscriptionHasScheduledCancellation(stripeSub as any),
     },
   });
+}
+
+async function trySendCheckoutConfirmationEmail(
+  subscriptionId: string,
+  provider: 'stripe' | 'paypal',
+  source: string
+): Promise<void> {
+  if (!isEmailConfigured()) {
+    console.error(
+      `[subscription-email] ${source}: email not configured — set RESEND_API_KEY on the server.`
+    );
+    return;
+  }
+
+  try {
+    await sendSubscriptionCheckoutEmail({ subscriptionId, provider });
+  } catch (emailError) {
+    console.error(
+      `[subscription-email] ${source}: failed for subscription ${subscriptionId}:`,
+      emailError
+    );
+  }
 }
 
 function normalizeStatus(stripeStatus: Stripe.Subscription.Status): string {
