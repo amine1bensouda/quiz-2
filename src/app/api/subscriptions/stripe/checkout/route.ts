@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getStripe } from '@/lib/stripe';
 import { prisma } from '@/lib/db';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
-import { getPurchasablePlan, TRIAL_HOURS, type PlanId } from '@/lib/plans';
+import { getPurchasablePlan, TRIAL_SECONDS, type PlanId } from '@/lib/plans';
 import { getUserActiveSubscription } from '@/lib/subscription-access';
 import { canUserStartFreeTrial } from '@/lib/trial-eligibility';
 import { addResponseObservability } from '@/lib/traffic-guard';
@@ -139,7 +139,13 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_SITE_URL ||
       'http://localhost:3000';
 
-    if (paymentLinkBase) {
+    const stripe = getStripe();
+    const withTrial = await canUserStartFreeTrial(user.id);
+
+    // Payment Links ignore server-side trial settings — always use Checkout API
+    // when the user is eligible for the 48h trial so Stripe saves the card and
+    // can charge automatically when the trial ends.
+    if (paymentLinkBase && !withTrial) {
       const url = buildStripePaymentLinkUrl({
         clientReferenceId: subscription.id,
         email: user.email,
@@ -151,14 +157,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const stripe = getStripe();
-
-    const withTrial = await canUserStartFreeTrial(user.id);
-    const trialPeriodDays = Math.max(1, Math.ceil(TRIAL_HOURS / 24));
+    if (!plan.stripePriceId) {
+      return addResponseObservability(
+        NextResponse.json(
+          {
+            error: `Stripe price not configured for plan ${plan.id}. Set STRIPE_PRICE_${plan.id}_ID.`,
+          },
+          { status: 500 }
+        ),
+        startTime,
+        '/api/subscriptions/stripe/checkout'
+      );
+    }
 
     const subscriptionData: {
       metadata: Record<string, string>;
-      trial_period_days?: number;
+      trial_end?: number;
     } = {
       metadata: {
         subscriptionId: subscription.id,
@@ -169,7 +183,8 @@ export async function POST(request: NextRequest) {
       },
     };
     if (withTrial) {
-      subscriptionData.trial_period_days = trialPeriodDays;
+      subscriptionData.trial_end =
+        Math.floor(Date.now() / 1000) + TRIAL_SECONDS;
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -179,6 +194,7 @@ export async function POST(request: NextRequest) {
         display_name: SITE_BRAND_UPPER,
       },
       customer_email: user.email,
+      payment_method_collection: 'always',
       line_items: [{ price: plan.stripePriceId, quantity: 1 }],
       subscription_data: subscriptionData,
       metadata: {

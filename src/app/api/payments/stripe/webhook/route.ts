@@ -24,7 +24,7 @@ export const dynamic = 'force-dynamic';
  *  - customer.subscription.created   : bascule en `trialing` / `active`
  *  - customer.subscription.updated   : met à jour statut, period, cancelAt
  *  - customer.subscription.deleted   : passe en `canceled` ou `expired`
- *  - invoice.payment_succeeded       : garde `active`, met à jour la période
+ *  - invoice.payment_succeeded / invoice.paid : garde `active`, met à jour la période
  *  - invoice.payment_failed          : passe en `past_due`
  */
 export async function POST(request: NextRequest) {
@@ -71,11 +71,15 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'invoice.payment_succeeded':
+      case 'invoice.paid':
         await handleInvoicePaid(event.data.object as Stripe.Invoice, stripe);
         break;
 
       case 'invoice.payment_failed':
-        await handleInvoiceFailed(event.data.object as Stripe.Invoice);
+        await handleInvoiceFailed(
+          event.data.object as Stripe.Invoice,
+          stripe
+        );
         break;
 
       default:
@@ -95,6 +99,19 @@ export async function POST(request: NextRequest) {
 function toDate(ts: number | null | undefined): Date | null {
   if (!ts || Number.isNaN(ts)) return null;
   return new Date(ts * 1000);
+}
+
+function getInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+  const direct = (invoice as { subscription?: string | { id?: string } | null })
+    .subscription;
+  if (typeof direct === 'string') return direct;
+  if (direct && typeof direct === 'object' && typeof direct.id === 'string') {
+    return direct.id;
+  }
+  const nested = (invoice as {
+    parent?: { subscription_details?: { subscription?: string | null } };
+  }).parent?.subscription_details?.subscription;
+  return typeof nested === 'string' ? nested : null;
 }
 
 async function findSubscriptionRecord(
@@ -220,10 +237,7 @@ async function handleSubscriptionDeleted(stripeSub: Stripe.Subscription) {
 }
 
 async function handleInvoicePaid(invoice: Stripe.Invoice, stripe: Stripe) {
-  const stripeSubId =
-    typeof (invoice as any).subscription === 'string'
-      ? ((invoice as any).subscription as string)
-      : (invoice as any).subscription?.id ?? null;
+  const stripeSubId = getInvoiceSubscriptionId(invoice);
   if (!stripeSubId) return;
   let record = await prisma.subscription.findUnique({
     where: { providerSubscriptionId: stripeSubId },
@@ -271,19 +285,31 @@ async function handleInvoicePaid(invoice: Stripe.Invoice, stripe: Stripe) {
   }
 }
 
-async function handleInvoiceFailed(invoice: Stripe.Invoice) {
-  const stripeSubId =
-    typeof (invoice as any).subscription === 'string'
-      ? ((invoice as any).subscription as string)
-      : (invoice as any).subscription?.id ?? null;
+async function handleInvoiceFailed(
+  invoice: Stripe.Invoice,
+  stripe: Stripe
+) {
+  const stripeSubId = getInvoiceSubscriptionId(invoice);
   if (!stripeSubId) return;
-  const record = await prisma.subscription.findUnique({
+  let record = await prisma.subscription.findUnique({
     where: { providerSubscriptionId: stripeSubId },
   });
+  const stripeSub = await stripe.subscriptions.retrieve(stripeSubId);
+  if (!record) {
+    const metadataSubId =
+      (stripeSub.metadata?.subscriptionId as string | undefined) ?? null;
+    record = await findSubscriptionRecord(stripeSubId, metadataSubId);
+  }
   if (!record) return;
   await prisma.subscription.update({
     where: { id: record.id },
-    data: { status: 'past_due' },
+    data: {
+      status: normalizeStatus(stripeSub.status),
+      trialEndsAt: toDate((stripeSub as any).trial_end ?? null),
+      currentPeriodStart: toDate(getStripeSubscriptionPeriodStart(stripeSub as any)),
+      currentPeriodEnd: toDate(getStripeSubscriptionPeriodEnd(stripeSub as any)),
+      cancelAtPeriodEnd: stripeSubscriptionHasScheduledCancellation(stripeSub as any),
+    },
   });
 }
 
