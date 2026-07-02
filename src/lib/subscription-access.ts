@@ -15,10 +15,10 @@ import {
  *    autonomes (sans cours parent) ne sont PAS accessibles avec ce plan.
  *  - Les statuts actifs sont définis dans `isActiveStatus` (trialing, active,
  *    past_due). `canceled`/`expired`/`incomplete` bloquent l'accès.
- *  - Essai (`trialing`) : accès jusqu'à `trialEndsAt`, même si l'utilisateur a
- *    annulé avant la fin des 48 h (`cancel_at_period_end`).
- *  - Période payante (`active` / `past_due`) + annulation : accès coupé dès
- *    l'annulation (comportement actuel pour la facturation mensuelle).
+ *  - Essai : accès jusqu'à `trialEndsAt` (ou `cancel_at` Stripe), même après
+ *    annulation avant la fin des 48 h.
+ *  - Période payante : accès jusqu'à `currentPeriodEnd`, y compris si annulé
+ *    (`cancel_at_period_end`).
  */
 
 export interface ActiveSubscription {
@@ -74,25 +74,59 @@ export function stripeSubscriptionHasScheduledCancellation(stripeSub: {
   return false;
 }
 
+function stripeTimestampInFuture(ts: number | null | undefined): boolean {
+  return typeof ts === 'number' && ts > Math.floor(Date.now() / 1000);
+}
+
+function stripeSubscriptionInTrialGrace(stripeSub: {
+  trial_end?: number | null;
+  cancel_at?: number | null;
+}): boolean {
+  return (
+    stripeTimestampInFuture(stripeSub.trial_end ?? null) ||
+    stripeTimestampInFuture(stripeSub.cancel_at ?? null)
+  );
+}
+
+/** Fin d'essai : trial_end, puis cancel_at (portail Stripe), puis valeur locale. */
+export function resolveTrialEndsAt(
+  stripeSub: { trial_end?: number | null; cancel_at?: number | null },
+  existingTrialEndsAt?: Date | null
+): Date | null {
+  const now = Date.now();
+  const fromTrial = toDate(stripeSub.trial_end ?? null);
+  if (fromTrial && fromTrial.getTime() > now) return fromTrial;
+
+  const fromCancelAt = toDate(stripeSub.cancel_at ?? null);
+  if (fromCancelAt && fromCancelAt.getTime() > now) return fromCancelAt;
+
+  if (existingTrialEndsAt && existingTrialEndsAt.getTime() > now) {
+    return existingTrialEndsAt;
+  }
+
+  return fromTrial ?? fromCancelAt ?? existingTrialEndsAt ?? null;
+}
+
 function hasValidAccessWindow(
   status: string,
   trialEndsAt: Date | null,
   currentPeriodEnd: Date | null,
-  cancelAtPeriodEnd: boolean,
+  _cancelAtPeriodEnd: boolean,
 ): boolean {
-  const now = new Date();
-  if (status === 'trialing') {
-    return !!(trialEndsAt && trialEndsAt.getTime() > now.getTime());
-  }
-  // Stripe peut passer en `canceled` avant trial_end après annulation portail.
-  if (status === 'canceled' && trialEndsAt && trialEndsAt.getTime() > now.getTime()) {
+  const now = Date.now();
+
+  if (trialEndsAt && trialEndsAt.getTime() > now) {
     return true;
   }
-  if (status === 'active' || status === 'past_due') {
-    if (!currentPeriodEnd || currentPeriodEnd.getTime() <= now.getTime()) return false;
-    if (cancelAtPeriodEnd) return false;
+
+  if (
+    (status === 'active' || status === 'past_due' || status === 'canceled') &&
+    currentPeriodEnd &&
+    currentPeriodEnd.getTime() > now
+  ) {
     return true;
   }
+
   return false;
 }
 
@@ -164,7 +198,7 @@ async function resolveStripeSubscriptionForLocalRow(
     const activeish = subscriptions.data
       .filter(
         (s) =>
-          s.status !== 'canceled' &&
+          (s.status !== 'canceled' || stripeSubscriptionInTrialGrace(s)) &&
           s.status !== 'incomplete_expired' &&
           s.metadata?.userId === localSub.userId
       )
@@ -189,6 +223,9 @@ async function resolveStripeSubscriptionForLocalRow(
         stripeSub.status === 'canceled' ||
         stripeSub.status === 'incomplete_expired'
       ) {
+        if (stripeSubscriptionInTrialGrace(stripeSub)) {
+          return { stripeSub, customerId };
+        }
         if (customerId) {
           const byMeta = await findByMetadata(customerId);
           if (byMeta) {
@@ -229,17 +266,30 @@ async function syncSubscriptionRowFromStripe(
   userEmail: string
 ): Promise<ActiveSubscription | null> {
   const resolved = await resolveStripeSubscriptionForLocalRow(localSub, userEmail);
-  if (!resolved) return null;
+  if (!resolved) {
+    if (
+      hasValidAccessWindow(
+        localSub.status,
+        localSub.trialEndsAt,
+        localSub.currentPeriodEnd,
+        localSub.cancelAtPeriodEnd,
+      )
+    ) {
+      return toActiveSubscription(localSub);
+    }
+    return null;
+  }
 
   const { stripeSub, customerId } = resolved;
   const normalizedStatus = normalizeStripeStatus(stripeSub.status);
+  const trialEndsAt = resolveTrialEndsAt(stripeSub as any, localSub.trialEndsAt);
   const updated = await prisma.subscription.update({
     where: { id: localSub.id },
     data: {
       providerSubscriptionId: stripeSub.id,
       providerCustomerId: customerId,
       status: normalizedStatus,
-      trialEndsAt: toDate((stripeSub as any).trial_end ?? null),
+      trialEndsAt,
       currentPeriodStart: toDate(getStripeSubscriptionPeriodStart(stripeSub as any)),
       currentPeriodEnd: toDate(getStripeSubscriptionPeriodEnd(stripeSub as any)),
       cancelAtPeriodEnd: stripeSubscriptionHasScheduledCancellation(stripeSub as any),

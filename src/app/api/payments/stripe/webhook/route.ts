@@ -12,6 +12,7 @@ import {
   sendSubscriptionCheckoutEmail,
   sendSubscriptionInvoiceEmail,
 } from '@/lib/subscription-order-email';
+import { resolveTrialEndsAt } from '@/lib/subscription-access';
 
 export const runtime = 'nodejs';
 // Webhook Stripe : pas de cache, pas de pré-render.
@@ -165,7 +166,7 @@ async function handleCheckoutSessionCompleted(
   }
 
   const stripeSub = await stripe.subscriptions.retrieve(stripeSubId);
-  const trialEndsAt = toDate((stripeSub as any).trial_end ?? null);
+  const trialEndsAt = resolveTrialEndsAt(stripeSub as any, record.trialEndsAt);
   const status = normalizeStatus(stripeSub.status);
   await prisma.subscription.update({
     where: { id: record.id },
@@ -194,7 +195,7 @@ async function handleSubscriptionUpdated(stripeSub: Stripe.Subscription) {
     );
     return;
   }
-  const trialEndsAt = toDate((stripeSub as any).trial_end ?? null);
+  const trialEndsAt = resolveTrialEndsAt(stripeSub as any, record.trialEndsAt);
   const status = normalizeStatus(stripeSub.status);
   await prisma.subscription.update({
     where: { id: record.id },
@@ -228,12 +229,15 @@ async function handleSubscriptionDeleted(stripeSub: Stripe.Subscription) {
     stripeSub.metadata?.subscriptionId as string | undefined
   );
   if (!record) return;
+  const trialEndsAt = resolveTrialEndsAt(stripeSub as any, record.trialEndsAt);
   await prisma.subscription.update({
     where: { id: record.id },
     data: {
       status: 'canceled',
       canceledAt: new Date(),
       cancelAtPeriodEnd: false,
+      trialEndsAt,
+      currentPeriodEnd: toDate(getStripeSubscriptionPeriodEnd(stripeSub as any)),
     },
   });
 }
@@ -256,7 +260,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice, stripe: Stripe) {
     where: { id: record.id },
     data: {
       status: normalizeStatus(stripeSub.status),
-      trialEndsAt: toDate((stripeSub as any).trial_end ?? null),
+      trialEndsAt: resolveTrialEndsAt(stripeSub as any, record.trialEndsAt),
       currentPeriodStart: toDate(getStripeSubscriptionPeriodStart(stripeSub as any)),
       currentPeriodEnd: toDate(getStripeSubscriptionPeriodEnd(stripeSub as any)),
       cancelAtPeriodEnd: stripeSubscriptionHasScheduledCancellation(stripeSub as any),
@@ -307,7 +311,7 @@ async function handleInvoiceFailed(
     where: { id: record.id },
     data: {
       status: normalizeStatus(stripeSub.status),
-      trialEndsAt: toDate((stripeSub as any).trial_end ?? null),
+      trialEndsAt: resolveTrialEndsAt(stripeSub as any, record.trialEndsAt),
       currentPeriodStart: toDate(getStripeSubscriptionPeriodStart(stripeSub as any)),
       currentPeriodEnd: toDate(getStripeSubscriptionPeriodEnd(stripeSub as any)),
       cancelAtPeriodEnd: stripeSubscriptionHasScheduledCancellation(stripeSub as any),
