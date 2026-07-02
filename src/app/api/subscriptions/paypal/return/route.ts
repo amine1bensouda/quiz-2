@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getPaypalSubscription, normalizePaypalStatus } from '@/lib/paypal';
-import { TRIAL_SECONDS } from '@/lib/plans';
+import { getTrialSeconds } from '@/lib/plans';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     // ce que l'API nous dit, quitte à ce que le webhook réaligne après.
     const trialEndsAt =
       normalized === 'active' || normalized === 'trialing'
-        ? new Date(Date.now() + TRIAL_SECONDS * 1000)
+        ? new Date(Date.now() + getTrialSeconds() * 1000)
         : record.trialEndsAt;
 
     const nextBillingTime = paypalSub.billing_info?.next_billing_time

@@ -7,6 +7,10 @@ import {
   PURCHASABLE_PLAN_IDS,
   formatPlanPrice,
   formatPlanPriceAmount,
+  getTrialLongLabel,
+  getTrialMinutes,
+  getTrialShortLabel,
+  getTrialSeconds,
   planHighlightsForTrial,
   type PlanId,
 } from '@/lib/plans';
@@ -32,14 +36,16 @@ interface SubscriptionPaywallProps {
   existingSubscriptionCourseTitle?: string | null;
 }
 
-const DEFAULT_PAYWALL_SUBTITLE = `${formatPlanPrice(PLANS.SINGLE_COURSE)} per course — 48-hour free trial, you only get charged if you continue.`;
+function defaultPaywallSubtitle(): string {
+  return `${formatPlanPrice(PLANS.SINGLE_COURSE)} per course — ${getTrialLongLabel()}, you only get charged if you continue.`;
+}
 
 export default function SubscriptionPaywall({
   courses,
   defaultCourseId = null,
   isAuthenticated,
   title = 'Unlock access to this content',
-  subtitle = DEFAULT_PAYWALL_SUBTITLE,
+  subtitle = defaultPaywallSubtitle(),
   returnUrl,
   autoStartCheckout = null,
   existingSubscriptionCourseTitle = null,
@@ -54,7 +60,8 @@ export default function SubscriptionPaywall({
   const [trialEligible, setTrialEligible] = useState(true);
   const [trialChecked, setTrialChecked] = useState(false);
 
-  const firstChargeDate = new Date(Date.now() + 48 * 3600 * 1000);
+  const firstChargeDate = new Date(Date.now() + getTrialSeconds() * 1000);
+  const trialShort = getTrialShortLabel();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -233,13 +240,20 @@ export default function SubscriptionPaywall({
         </p>
         {trialChecked && trialEligible && (
           <p className="text-sm text-[rgba(238,234,244,0.5)] mt-3">
-            One-time 48h free trial per account — first charge on{' '}
+            One-time {trialShort} per account — first charge on{' '}
             <strong className="text-[#f5c14a]">
-              {firstChargeDate.toLocaleDateString('en-US', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-              })}
+              {getTrialMinutes() < 60
+                ? firstChargeDate.toLocaleString('en-US', {
+                    day: 'numeric',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                : firstChargeDate.toLocaleDateString('en-US', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })}
             </strong>{' '}
             unless you cancel before.
           </p>
@@ -373,7 +387,7 @@ export default function SubscriptionPaywall({
           {loadingProvider === 'stripe'
             ? 'Opening Stripe…'
             : trialEligible
-              ? 'Start 48h trial (card)'
+              ? `Start ${trialShort} (card)`
               : 'Subscribe with card'}
         </button>
         <button
@@ -385,7 +399,7 @@ export default function SubscriptionPaywall({
           {loadingProvider === 'paypal'
             ? 'Opening PayPal…'
             : trialEligible
-              ? 'Start 48h trial with PayPal'
+              ? `Start ${trialShort} with PayPal`
               : 'Subscribe with PayPal'}
         </button>
       </div>

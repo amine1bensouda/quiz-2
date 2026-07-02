@@ -10,6 +10,7 @@ import {
   splitTrialRemaining,
   type TrialDisplaySubscription,
 } from '@/lib/trial-display';
+import { getTrialBadgeLabel } from '@/lib/plans';
 
 type TrialCountdownVariant = 'hero' | 'inline' | 'banner';
 
@@ -84,6 +85,7 @@ export function TrialCountdown({
 
   const { days, hours, minutes, seconds } = splitTrialRemaining(remainingMs);
   const endLabel = formatTrialEndDate(trialEndsAt);
+  const trialBadge = getTrialBadgeLabel();
 
   const title = canceled ? 'Trial access ends in' : 'Free trial ends in';
   const subtitle = canceled
@@ -107,7 +109,7 @@ export function TrialCountdown({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="text-left">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f5c14a]">
-              48h trial
+              {trialBadge}
             </p>
             <p className="mt-1 text-base font-semibold text-[#f5f2ff] sm:text-lg">{title}</p>
             <p className="mt-1 text-xs text-[#9d98ab] sm:text-sm">{subtitle}</p>
@@ -124,7 +126,7 @@ export function TrialCountdown({
         className={`mt-5 rounded-2xl border border-[#f5c14a]/20 bg-black/25 p-4 backdrop-blur-sm sm:p-5 ${className}`}
       >
         <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#f5c14a]">
-          48h trial
+          {trialBadge}
         </p>
         <p className="mb-3 text-sm font-medium text-[#eeeaf4]">{title}</p>
         {units}

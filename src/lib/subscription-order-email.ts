@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db';
 import { sendTransactionalEmail } from '@/lib/email';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
-import { formatPlanPrice, getPlan } from '@/lib/plans';
+import { formatPlanPrice, getPlan, getTrialLongLabel } from '@/lib/plans';
 
 type SubscriptionWithUser = {
   id: string;
@@ -123,7 +123,7 @@ export async function sendSubscriptionCheckoutEmail(params: {
 
   const firstName = sub.user.name?.split(' ')[0] || 'there';
   const trialNote = sub.trialEndsAt
-    ? `Your 48-hour free trial is active until <strong>${formatDate(sub.trialEndsAt)}</strong>. You will only be charged after the trial if you do not cancel.`
+    ? `Your ${getTrialLongLabel()} is active until <strong>${formatDate(sub.trialEndsAt)}</strong>. You will only be charged after the trial if you do not cancel.`
     : 'Your subscription is now active.';
 
   const html = emailShell(

@@ -230,12 +230,13 @@ async function handleSubscriptionDeleted(stripeSub: Stripe.Subscription) {
   );
   if (!record) return;
   const trialEndsAt = resolveTrialEndsAt(stripeSub as any, record.trialEndsAt);
+  const trialStillActive = !!(trialEndsAt && trialEndsAt.getTime() > Date.now());
   await prisma.subscription.update({
     where: { id: record.id },
     data: {
       status: 'canceled',
       canceledAt: new Date(),
-      cancelAtPeriodEnd: false,
+      cancelAtPeriodEnd: trialStillActive,
       trialEndsAt,
       currentPeriodEnd: toDate(getStripeSubscriptionPeriodEnd(stripeSub as any)),
     },

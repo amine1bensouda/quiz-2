@@ -1,6 +1,6 @@
 import { prisma } from './db';
 import { type PlanId } from './plans';
-import { isPlausibleTrialEndDate } from './trial-display';
+import { subscriptionHasContentAccess } from './trial-display';
 import { getStripe } from './stripe';
 import {
   getStripeSubscriptionPeriodEnd,
@@ -108,35 +108,15 @@ export function resolveTrialEndsAt(
   return fromTrial ?? fromCancelAt ?? existingTrialEndsAt ?? null;
 }
 
-function hasValidAccessWindow(
-  status: string,
-  trialEndsAt: Date | null,
-  currentPeriodEnd: Date | null,
-  _cancelAtPeriodEnd: boolean,
-): boolean {
-  const now = Date.now();
-
-  if (status === 'active' || status === 'past_due') {
-    return !!(currentPeriodEnd && currentPeriodEnd.getTime() > now);
-  }
-
-  if (
-    trialEndsAt &&
-    trialEndsAt.getTime() > now &&
-    isPlausibleTrialEndDate(trialEndsAt, now)
-  ) {
-    return true;
-  }
-
-  if (
-    (status === 'trialing' || status === 'canceled') &&
-    currentPeriodEnd &&
-    isPlausibleTrialEndDate(currentPeriodEnd, now)
-  ) {
-    return true;
-  }
-
-  return false;
+function hasValidAccessWindow(row: {
+  status: string;
+  trialEndsAt: Date | null;
+  currentPeriodStart: Date | null;
+  currentPeriodEnd: Date | null;
+  cancelAtPeriodEnd: boolean;
+  createdAt: Date;
+}): boolean {
+  return subscriptionHasContentAccess(row);
 }
 
 function subscriptionSelectFields() {
@@ -150,8 +130,10 @@ function subscriptionSelectFields() {
     providerCustomerId: true,
     status: true,
     trialEndsAt: true,
+    currentPeriodStart: true,
     currentPeriodEnd: true,
     cancelAtPeriodEnd: true,
+    createdAt: true,
   } as const;
 }
 
@@ -165,8 +147,10 @@ type SubscriptionRow = {
   providerCustomerId: string | null;
   status: string;
   trialEndsAt: Date | null;
+  currentPeriodStart: Date | null;
   currentPeriodEnd: Date | null;
   cancelAtPeriodEnd: boolean;
+  createdAt: Date;
 };
 
 function toActiveSubscription(row: SubscriptionRow): ActiveSubscription {
@@ -276,14 +260,7 @@ async function syncSubscriptionRowFromStripe(
 ): Promise<ActiveSubscription | null> {
   const resolved = await resolveStripeSubscriptionForLocalRow(localSub, userEmail);
   if (!resolved) {
-    if (
-      hasValidAccessWindow(
-        localSub.status,
-        localSub.trialEndsAt,
-        localSub.currentPeriodEnd,
-        localSub.cancelAtPeriodEnd,
-      )
-    ) {
+    if (hasValidAccessWindow(localSub)) {
       return toActiveSubscription(localSub);
     }
     return null;
@@ -307,14 +284,7 @@ async function syncSubscriptionRowFromStripe(
     select: subscriptionSelectFields(),
   });
 
-  if (
-    hasValidAccessWindow(
-      updated.status,
-      updated.trialEndsAt,
-      updated.currentPeriodEnd,
-      updated.cancelAtPeriodEnd,
-    )
-  ) {
+  if (hasValidAccessWindow(updated)) {
     return toActiveSubscription(updated);
   }
 
@@ -379,14 +349,7 @@ export async function getUserActiveSubscription(
     });
 
     for (const sub of candidates) {
-      if (
-        hasValidAccessWindow(
-          sub.status,
-          sub.trialEndsAt,
-          sub.currentPeriodEnd,
-          sub.cancelAtPeriodEnd,
-        )
-      ) {
+      if (hasValidAccessWindow(sub)) {
         return toActiveSubscription(sub);
       }
     }

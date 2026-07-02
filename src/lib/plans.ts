@@ -6,12 +6,73 @@
  *
  * `ALL_ACCESS` is kept for legacy subscriptions already in the database.
  *
- * Trial: 48 hours free; payment method collected up front.
- * First charge at `now + TRIAL_HOURS`.
+ * Trial duration: `TRIAL_DURATION_MINUTES` in .env (default 48 h = 2880 min).
+ * Test rapide : TRIAL_DURATION_MINUTES=5
  */
 
-export const TRIAL_HOURS = 48;
-export const TRIAL_SECONDS = TRIAL_HOURS * 60 * 60;
+const DEFAULT_TRIAL_MINUTES = 48 * 60;
+
+/** Lit TRIAL_DURATION_MINUTES (serveur) ou NEXT_PUBLIC_TRIAL_DURATION_MINUTES (UI). */
+export function getTrialMinutes(): number {
+  const raw =
+    process.env.TRIAL_DURATION_MINUTES?.trim() ||
+    process.env.NEXT_PUBLIC_TRIAL_DURATION_MINUTES?.trim() ||
+    '';
+  const minutes = parseInt(raw, 10);
+  if (!Number.isNaN(minutes) && minutes > 0) return minutes;
+  return DEFAULT_TRIAL_MINUTES;
+}
+
+export function getTrialSeconds(): number {
+  return getTrialMinutes() * 60;
+}
+
+export function getTrialHours(): number {
+  return getTrialSeconds() / 3600;
+}
+
+/** Fenêtre max pour détecter une fin d'essai (évite la fin de mois Stripe). */
+export function getTrialWindowMaxMs(): number {
+  const trialMs = getTrialSeconds() * 1000;
+  return trialMs + Math.min(trialMs * 0.5, 6 * 60 * 60 * 1000);
+}
+
+export function getTrialShortLabel(): string {
+  const minutes = getTrialMinutes();
+  if (minutes < 60) return `${minutes} min free trial`;
+  if (minutes < 24 * 60) {
+    const hours = Math.round(minutes / 60);
+    return `${hours}h free trial`;
+  }
+  const days = Math.round(minutes / (24 * 60));
+  return `${days}d free trial`;
+}
+
+export function getTrialLongLabel(): string {
+  const minutes = getTrialMinutes();
+  if (minutes < 60) return `${minutes}-minute free trial`;
+  if (minutes < 24 * 60) {
+    const hours = Math.round(minutes / 60);
+    return `${hours}-hour free trial`;
+  }
+  const days = Math.round(minutes / (24 * 60));
+  return `${days}-day free trial`;
+}
+
+export function getTrialBadgeLabel(): string {
+  const minutes = getTrialMinutes();
+  if (minutes < 60) return `${minutes} min trial`;
+  if (minutes < 24 * 60) return `${Math.round(minutes / 60)}h trial`;
+  return `${Math.round(minutes / (24 * 60))}d trial`;
+}
+
+/** @deprecated Use getTrialSeconds() */
+export const TRIAL_SECONDS = getTrialSeconds();
+/** @deprecated Use getTrialHours() */
+export const TRIAL_HOURS = getTrialHours();
+
+export const TRIAL_HIGHLIGHT_KEY = '48h free trial';
+
 export const CURRENCY = 'USD';
 export const BILLING_INTERVAL = 'month' as const;
 
@@ -94,9 +155,14 @@ export function planHighlightsForTrial(
   plan: PlanDefinition,
   withTrial: boolean
 ): string[] {
-  if (withTrial) return plan.highlights;
+  const trialHighlight = getTrialShortLabel();
+  if (withTrial) {
+    return plan.highlights.map((h) =>
+      h === TRIAL_HIGHLIGHT_KEY ? trialHighlight : h
+    );
+  }
   return plan.highlights.map((h) =>
-    h === '48h free trial' ? 'Billed immediately' : h
+    h === TRIAL_HIGHLIGHT_KEY ? 'Billed immediately' : h
   );
 }
 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getStripe } from '@/lib/stripe';
 import { prisma } from '@/lib/db';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
-import { getPurchasablePlan, TRIAL_SECONDS, type PlanId } from '@/lib/plans';
+import { getPurchasablePlan, getTrialSeconds, type PlanId } from '@/lib/plans';
 import { getUserActiveSubscription } from '@/lib/subscription-access';
 import { canUserStartFreeTrial } from '@/lib/trial-eligibility';
 import { addResponseObservability } from '@/lib/traffic-guard';
@@ -184,7 +184,7 @@ export async function POST(request: NextRequest) {
     };
     if (withTrial) {
       subscriptionData.trial_end =
-        Math.floor(Date.now() / 1000) + TRIAL_SECONDS;
+        Math.floor(Date.now() / 1000) + getTrialSeconds();
     }
 
     const session = await stripe.checkout.sessions.create({
