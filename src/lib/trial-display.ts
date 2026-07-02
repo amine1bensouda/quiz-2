@@ -1,3 +1,8 @@
+import { TRIAL_SECONDS } from './plans';
+
+/** Fenêtre max pour considérer une date comme fin d'essai 48h (pas fin de mois). */
+const TRIAL_WINDOW_MAX_MS = TRIAL_SECONDS * 1000 + 6 * 60 * 60 * 1000;
+
 export interface TrialDisplaySubscription {
   trialEndsAt: string | Date | null;
   currentPeriodEnd?: string | Date | null;
@@ -5,16 +10,31 @@ export interface TrialDisplaySubscription {
   status?: string;
 }
 
-/** Date de fin d'accès affichée (trial_end ou current_period_end en essai). */
+/** True si la date est dans le futur et dans la fenêtre d'un essai 48h. */
+export function isPlausibleTrialEndDate(
+  date: Date | string,
+  nowMs: number = Date.now()
+): boolean {
+  const remaining = new Date(date).getTime() - nowMs;
+  return remaining > 0 && remaining <= TRIAL_WINDOW_MAX_MS;
+}
+
+/** Date de fin d'essai affichée — jamais la fin de période mensuelle (~30 j). */
 export function getTrialAccessEndDate(
   subscription: TrialDisplaySubscription | null | undefined
 ): Date | null {
   if (!subscription) return null;
   const now = Date.now();
+  const candidates: number[] = [];
+
+  const pushIfTrialWindow = (date: Date | string) => {
+    if (isPlausibleTrialEndDate(date, now)) {
+      candidates.push(new Date(date).getTime());
+    }
+  };
 
   if (subscription.trialEndsAt) {
-    const trialEnd = new Date(subscription.trialEndsAt);
-    if (trialEnd.getTime() > now) return trialEnd;
+    pushIfTrialWindow(subscription.trialEndsAt);
   }
 
   const inTrialLikeStatus =
@@ -23,11 +43,11 @@ export function getTrialAccessEndDate(
     subscription.status === 'canceled';
 
   if (inTrialLikeStatus && subscription.currentPeriodEnd) {
-    const periodEnd = new Date(subscription.currentPeriodEnd);
-    if (periodEnd.getTime() > now) return periodEnd;
+    pushIfTrialWindow(subscription.currentPeriodEnd);
   }
 
-  return null;
+  if (candidates.length === 0) return null;
+  return new Date(Math.min(...candidates));
 }
 
 export function isActiveTrialSubscription(

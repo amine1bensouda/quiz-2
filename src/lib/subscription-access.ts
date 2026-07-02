@@ -1,5 +1,6 @@
 import { prisma } from './db';
 import { type PlanId } from './plans';
+import { isPlausibleTrialEndDate } from './trial-display';
 import { getStripe } from './stripe';
 import {
   getStripeSubscriptionPeriodEnd,
@@ -115,14 +116,22 @@ function hasValidAccessWindow(
 ): boolean {
   const now = Date.now();
 
-  if (trialEndsAt && trialEndsAt.getTime() > now) {
+  if (status === 'active' || status === 'past_due') {
+    return !!(currentPeriodEnd && currentPeriodEnd.getTime() > now);
+  }
+
+  if (
+    trialEndsAt &&
+    trialEndsAt.getTime() > now &&
+    isPlausibleTrialEndDate(trialEndsAt, now)
+  ) {
     return true;
   }
 
   if (
-    (status === 'active' || status === 'past_due' || status === 'canceled') &&
+    (status === 'trialing' || status === 'canceled') &&
     currentPeriodEnd &&
-    currentPeriodEnd.getTime() > now
+    isPlausibleTrialEndDate(currentPeriodEnd, now)
   ) {
     return true;
   }
