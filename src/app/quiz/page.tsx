@@ -7,6 +7,7 @@ import AnimatedShapes from '@/components/Layout/AnimatedShapes';
 import BackgroundPattern from '@/components/Layout/BackgroundPattern';
 import CourseCard from '@/components/Quiz/CourseCard';
 import LoadingSpinner from '@/components/Layout/LoadingSpinner';
+import { TrialCountdownFromSubscription } from '@/components/Subscription/TrialCountdown';
 import { getCurrentUser } from '@/lib/auth-client';
 
 interface Course {
@@ -18,9 +19,16 @@ interface Course {
   totalQuizzes: number;
 }
 
+interface UserSubscription {
+  trialEndsAt: string | null;
+  cancelAtPeriodEnd: boolean;
+  status: string;
+}
+
 export default function QuizListPage() {
   const [accessibleCourses, setAccessibleCourses] = useState<Course[]>([]);
   const [allCourses, setAllCourses] = useState<Course[]>([]);
+  const [subscription, setSubscription] = useState<UserSubscription | null>(null);
   const [totalQuizzes, setTotalQuizzes] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -45,14 +53,20 @@ export default function QuizListPage() {
         setIsAuthenticated(!!user);
 
         if (user) {
-          const [accessibleRes, allRes] = await Promise.all([
+          const [accessibleRes, allRes, subRes] = await Promise.all([
             fetch('/api/courses/accessible', { credentials: 'include' }),
             fetch('/api/courses'),
+            fetch('/api/users/me/subscription', { credentials: 'include' }),
           ]);
 
           if (accessibleRes.ok) {
             const accessibleData = await accessibleRes.json();
             setAccessibleCourses(accessibleData);
+          }
+
+          if (subRes.ok) {
+            const subData = await subRes.json();
+            setSubscription(subData.subscription || null);
           }
 
           if (allRes.ok) {
@@ -109,6 +123,11 @@ export default function QuizListPage() {
                 : 'Your Practice'
               : 'All Exams'}
           </h1>
+          {!loading && isAuthenticated && subscription && (
+            <div className="mx-auto mt-6 max-w-3xl">
+              <TrialCountdownFromSubscription subscription={subscription} variant="banner" />
+            </div>
+          )}
           {!loading && isAuthenticated && (
             <div className="mx-auto mt-2 max-w-2xl">
               <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111121]/80 shadow-2xl shadow-black/35 backdrop-blur-md">

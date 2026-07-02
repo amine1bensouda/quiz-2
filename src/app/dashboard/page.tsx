@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getCurrentUser, getQuizStats, logout, type User } from '@/lib/auth-client';
 import LoadingSpinner from '@/components/Layout/LoadingSpinner';
+import { TrialCountdownFromSubscription } from '@/components/Subscription/TrialCountdown';
 
 interface SubscriptionInfo {
   id: string;
@@ -251,6 +252,7 @@ export default function DashboardPage() {
           <WelcomeHero
             name={firstName}
             isPremium={isPremium}
+            subscription={subscription}
             startHref="/quiz"
             upgradeHref="/subscribe"
           />
@@ -482,21 +484,6 @@ function ProfileSection({
   subscription: SubscriptionInfo | null;
   isPremium: boolean;
 }) {
-  const trialEndsLabel =
-    subscription?.trialEndsAt &&
-    new Date(subscription.trialEndsAt).getTime() > Date.now()
-      ? new Date(subscription.trialEndsAt).toLocaleDateString(undefined, {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
-        })
-      : null;
-
-  const trialCanceled =
-    !!trialEndsLabel &&
-    (subscription?.cancelAtPeriodEnd ||
-      subscription?.status === 'canceled');
-
   return (
     <DashboardPanel id="profile" title="Profile" subtitle="Your account details and subscription status.">
       <dl className="grid gap-4 sm:grid-cols-2">
@@ -528,22 +515,7 @@ function ProfileSection({
           Active course: <span className="text-[#f5c14a]">{subscription.course.title}</span>
         </p>
       )}
-      {trialEndsLabel && (
-        <p className="dash-muted mt-3 text-sm">
-          {trialCanceled ? (
-            <>
-              Subscription canceled — you keep access until{' '}
-              <span className="text-[#f5c14a]">{trialEndsLabel}</span>. You will not be
-              charged.
-            </>
-          ) : (
-            <>
-              Free trial ends on <span className="text-[#f5c14a]">{trialEndsLabel}</span>.
-              Cancel before this date to avoid being charged.
-            </>
-          )}
-        </p>
-      )}
+      <TrialCountdownFromSubscription subscription={subscription} variant="inline" />
       {isPremium && subscription && (
         <ManageSubscriptionActions subscription={subscription} />
       )}
@@ -733,11 +705,13 @@ function Sidebar({
 function WelcomeHero({
   name,
   isPremium,
+  subscription,
   startHref,
   upgradeHref,
 }: {
   name: string;
   isPremium: boolean;
+  subscription: SubscriptionInfo | null;
   startHref: string;
   upgradeHref: string;
 }) {
@@ -790,6 +764,7 @@ function WelcomeHero({
             </Link>
           )}
         </div>
+        <TrialCountdownFromSubscription subscription={subscription} variant="hero" />
       </div>
 
       <div className="relative z-0 hidden w-[320px] max-w-[38%] shrink-0 md:block" aria-hidden="true">
