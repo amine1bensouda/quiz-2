@@ -248,6 +248,11 @@ export default function DashboardPage() {
         className="flex-1 px-4 py-6 transition-[margin] duration-200 md:px-8 md:py-7"
         style={{ marginLeft: collapsed ? '72px' : '240px' }}
       >
+        <TrialCountdownFromSubscription
+          subscription={subscription}
+          variant="banner"
+          className="mb-5"
+        />
         <div id="dashboard" className="scroll-mt-6">
           <WelcomeHero
             name={firstName}

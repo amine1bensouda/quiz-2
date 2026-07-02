@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import {
   formatTrialEndDate,
+  getTrialAccessEndDate,
   getTrialRemainingMs,
   isActiveTrialSubscription,
   isTrialCanceled,
@@ -150,13 +151,14 @@ export function TrialCountdownFromSubscription({
   variant?: TrialCountdownVariant;
   className?: string;
 }) {
-  if (!isActiveTrialSubscription(subscription) || !subscription?.trialEndsAt) {
+  const accessEnd = getTrialAccessEndDate(subscription);
+  if (!isActiveTrialSubscription(subscription) || !accessEnd) {
     return null;
   }
 
   return (
     <TrialCountdown
-      trialEndsAt={subscription.trialEndsAt}
+      trialEndsAt={accessEnd}
       canceled={isTrialCanceled(subscription)}
       variant={variant}
       className={className}

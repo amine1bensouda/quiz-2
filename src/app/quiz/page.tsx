@@ -21,6 +21,7 @@ interface Course {
 
 interface UserSubscription {
   trialEndsAt: string | null;
+  currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
   status: string;
 }

@@ -1,14 +1,39 @@
 export interface TrialDisplaySubscription {
   trialEndsAt: string | Date | null;
+  currentPeriodEnd?: string | Date | null;
   cancelAtPeriodEnd?: boolean;
   status?: string;
+}
+
+/** Date de fin d'accès affichée (trial_end ou current_period_end en essai). */
+export function getTrialAccessEndDate(
+  subscription: TrialDisplaySubscription | null | undefined
+): Date | null {
+  if (!subscription) return null;
+  const now = Date.now();
+
+  if (subscription.trialEndsAt) {
+    const trialEnd = new Date(subscription.trialEndsAt);
+    if (trialEnd.getTime() > now) return trialEnd;
+  }
+
+  const inTrialLikeStatus =
+    subscription.status === 'trialing' ||
+    subscription.cancelAtPeriodEnd ||
+    subscription.status === 'canceled';
+
+  if (inTrialLikeStatus && subscription.currentPeriodEnd) {
+    const periodEnd = new Date(subscription.currentPeriodEnd);
+    if (periodEnd.getTime() > now) return periodEnd;
+  }
+
+  return null;
 }
 
 export function isActiveTrialSubscription(
   subscription: TrialDisplaySubscription | null | undefined
 ): boolean {
-  if (!subscription?.trialEndsAt) return false;
-  return new Date(subscription.trialEndsAt).getTime() > Date.now();
+  return getTrialAccessEndDate(subscription) !== null;
 }
 
 export function isTrialCanceled(
