@@ -117,7 +117,8 @@ export default function DashboardPage() {
       try {
         const currentUser = await getCurrentUser();
         if (!currentUser) {
-          router.push('/login');
+          await logout().catch(() => undefined);
+          router.replace('/login');
           return;
         }
         setUser(currentUser);
@@ -131,7 +132,8 @@ export default function DashboardPage() {
         setSubscription(subRes.subscription || null);
       } catch (error) {
         console.error('Error loading user:', error);
-        router.push('/login');
+        await logout().catch(() => undefined);
+        router.replace('/login');
       } finally {
         setLoading(false);
       }
@@ -215,11 +217,25 @@ export default function DashboardPage() {
     );
   }
 
-  if (!user || !stats) return null;
+  if (!user) {
+    return (
+      <div className="dash-app flex min-h-screen items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  const safeStats = stats ?? {
+    totalAttempts: 0,
+    averageScore: 0,
+    passedQuizzes: 0,
+    totalTimeSpent: 0,
+    attempts: [],
+  };
 
   const firstName = user.name?.split(' ')[0] ?? 'there';
-  const totalAttempts: number = stats.totalAttempts ?? 0;
-  const averageScore: number = stats.averageScore ?? 0;
+  const totalAttempts: number = safeStats.totalAttempts ?? 0;
+  const averageScore: number = safeStats.averageScore ?? 0;
 
   return (
     <div className="dash-app flex min-h-screen">
@@ -357,7 +373,7 @@ export default function DashboardPage() {
           />
         </section>
 
-        <AnalyticsSection stats={stats} />
+        <AnalyticsSection stats={safeStats} />
         <NotificationsSection />
         <ProfileSection user={user} subscription={subscription} isPremium={isPremium} />
 
