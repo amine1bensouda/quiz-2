@@ -235,6 +235,33 @@ export async function sendVerificationCodeEmail(
   await sendTransactionalEmail({ to, subject, html, text });
 }
 
+export async function sendPasswordResetEmail(
+  to: string,
+  name: string,
+  resetUrl: string
+): Promise<void> {
+  const subject = `${SITE_NAME} — Reset your password`;
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto;">
+      <h2 style="color: #111;">Reset your password</h2>
+      <p>Hello ${escapeHtml(name)},</p>
+      <p>We received a request to reset the password for your <strong>${escapeHtml(SITE_NAME)}</strong> account.</p>
+      <p style="text-align: center; margin: 28px 0;">
+        <a href="${resetUrl}" style="display: inline-block; background: #f5c14a; color: #0c0a00; text-decoration: none; font-weight: bold; padding: 14px 28px; border-radius: 12px;">
+          Reset password
+        </a>
+      </p>
+      <p style="color: #666; font-size: 14px;">This link expires in <strong>1 hour</strong>. If you did not request a password reset, you can safely ignore this email.</p>
+      <p style="color: #999; font-size: 12px; word-break: break-all;">Or copy this link: ${escapeHtml(resetUrl)}</p>
+    </div>
+  `;
+
+  const text = `Hello ${name},\n\nReset your password: ${resetUrl}\n\nThis link expires in 1 hour.\n\n— ${SITE_NAME}`;
+
+  await sendTransactionalEmail({ to, subject, html, text });
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')

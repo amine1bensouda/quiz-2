@@ -140,6 +140,44 @@ function parseAuthError(message: string | undefined, fallback: string): string {
   return message;
 }
 
+export async function requestPasswordReset(
+  email: string
+): Promise<{ message: string; devHint?: string; devResetUrl?: string }> {
+  const response = await fetch('/api/auth/forgot-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(parseAuthError(data.error, 'Failed to send reset link'));
+  }
+
+  return data;
+}
+
+export async function resetPassword(
+  email: string,
+  token: string,
+  password: string
+): Promise<{ message: string }> {
+  const response = await fetch('/api/auth/reset-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, token, password }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(parseAuthError(data.error, 'Password reset failed'));
+  }
+
+  return data;
+}
+
 /**
  * Connecte un utilisateur
  */

@@ -183,6 +183,19 @@ model RegistrationVerification {
   @@index([expiresAt])
 }
 
+model PasswordReset {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  tokenHash  String
+  expiresAt  DateTime
+  lastSentAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("password_resets")
+  @@index([expiresAt])
+}
+
 model BlogPost {
   id          String    @id @default(cuid())
   title       String

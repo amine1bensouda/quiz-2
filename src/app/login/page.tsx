@@ -11,6 +11,7 @@ function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = sanitizeRedirectPath(searchParams.get('redirect')) || '/dashboard';
+  const resetSuccess = searchParams.get('reset') === 'success';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -54,6 +55,11 @@ function LoginPageContent() {
 
         <div className="bg-[#12121f]/95 rounded-2xl shadow-2xl p-8 border border-white/10 backdrop-blur-sm">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {resetSuccess && (
+              <div className="bg-emerald-900/20 border border-emerald-500/40 text-emerald-200 px-4 py-3 rounded-xl">
+                Your password has been updated. You can now sign in.
+              </div>
+            )}
             {error && (
               <div className="bg-red-900/20 border border-red-500/40 text-red-200 px-4 py-3 rounded-xl">
                 {error}
@@ -76,9 +82,17 @@ function LoginPageContent() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-[rgba(238,234,244,0.9)] mb-2">
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="password" className="block text-sm font-semibold text-[rgba(238,234,244,0.9)]">
+                  Password
+                </label>
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-[#f5c14a] hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <input
                 id="password"
                 type="password"
