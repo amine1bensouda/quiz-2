@@ -30,7 +30,6 @@ export default function QuizListPage() {
   const [accessibleCourses, setAccessibleCourses] = useState<Course[]>([]);
   const [allCourses, setAllCourses] = useState<Course[]>([]);
   const [subscription, setSubscription] = useState<UserSubscription | null>(null);
-  const [totalQuizzes, setTotalQuizzes] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showAllCourses, setShowAllCourses] = useState(false);
@@ -73,11 +72,6 @@ export default function QuizListPage() {
           if (allRes.ok) {
             const allData = await allRes.json();
             setAllCourses(allData);
-            const total = allData.reduce(
-              (sum: number, course: Course) => sum + (course.totalQuizzes || 0),
-              0
-            );
-            setTotalQuizzes(total);
           }
         } else {
           const coursesResponse = await fetch('/api/courses');
@@ -85,12 +79,6 @@ export default function QuizListPage() {
           if (coursesResponse.ok) {
             const coursesData = await coursesResponse.json();
             setAllCourses(coursesData);
-
-            const total = coursesData.reduce(
-              (sum: number, course: Course) => sum + (course.totalQuizzes || 0),
-              0
-            );
-            setTotalQuizzes(total);
           }
         }
       } catch (error) {
@@ -213,11 +201,6 @@ export default function QuizListPage() {
                 </div>
               </div>
             </div>
-          )}
-          {!loading && !isAuthenticated && (
-            <p className="quiz-hero-note mx-auto inline-block max-w-3xl rounded-2xl border border-white/10 bg-white/5 px-6 py-5 text-base text-[#d4d0dc] backdrop-blur-sm md:text-xl">
-              {totalQuizzes} exam{totalQuizzes !== 1 ? 's' : ''} available to test your knowledge and improve your mathematics skills
-            </p>
           )}
         </div>
 
