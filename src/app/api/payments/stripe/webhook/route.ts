@@ -27,7 +27,7 @@ export const dynamic = 'force-dynamic';
  *  - customer.subscription.updated   : met à jour statut, period, cancelAt
  *  - customer.subscription.deleted   : passe en `canceled` ou `expired`
  *  - invoice.payment_succeeded / invoice.paid : garde `active`, met à jour la période
- *  - invoice.payment_failed          : passe en `past_due`
+ *  - invoice.payment_failed          : une seule tentative — annule l'abo et coupe l'accès
  */
 export async function POST(request: NextRequest) {
   const stripe = getStripe();
@@ -301,21 +301,41 @@ async function handleInvoiceFailed(
   let record = await prisma.subscription.findUnique({
     where: { providerSubscriptionId: stripeSubId },
   });
-  const stripeSub = await stripe.subscriptions.retrieve(stripeSubId);
-  if (!record) {
+  let stripeSub: Stripe.Subscription | null = null;
+  try {
+    stripeSub = await stripe.subscriptions.retrieve(stripeSubId);
+  } catch (error) {
+    console.error('Failed to retrieve Stripe subscription after payment failure:', error);
+  }
+  if (!record && stripeSub) {
     const metadataSubId =
       (stripeSub.metadata?.subscriptionId as string | undefined) ?? null;
     record = await findSubscriptionRecord(stripeSubId, metadataSubId);
   }
   if (!record) return;
+
+  // Single payment attempt: cancel immediately so Stripe does not retry charges.
+  if (stripeSub && stripeSub.status !== 'canceled') {
+    try {
+      await stripe.subscriptions.cancel(stripeSubId);
+    } catch (error) {
+      console.error(
+        `Failed to cancel Stripe subscription ${stripeSubId} after payment failure:`,
+        error
+      );
+    }
+  }
+
+  const now = new Date();
   await prisma.subscription.update({
     where: { id: record.id },
     data: {
-      status: normalizeStatus(stripeSub.status),
-      trialEndsAt: resolveTrialEndsAt(stripeSub as any, record.trialEndsAt),
-      currentPeriodStart: toDate(getStripeSubscriptionPeriodStart(stripeSub as any)),
-      currentPeriodEnd: toDate(getStripeSubscriptionPeriodEnd(stripeSub as any)),
-      cancelAtPeriodEnd: stripeSubscriptionHasScheduledCancellation(stripeSub as any),
+      status: 'expired',
+      cancelAtPeriodEnd: false,
+      canceledAt: record.canceledAt ?? now,
+      currentPeriodEnd: now,
+      // Keep trialEndsAt so the user cannot start another free trial.
+      trialEndsAt: record.trialEndsAt,
     },
   });
 }

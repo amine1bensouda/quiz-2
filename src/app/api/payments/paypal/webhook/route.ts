@@ -114,7 +114,7 @@ async function handleSubscriptionEvent(eventType: string, resource: Record<strin
     finalStatus = 'trialing';
   }
   if (eventType === 'BILLING.SUBSCRIPTION.PAYMENT.FAILED') {
-    finalStatus = 'past_due';
+    finalStatus = 'expired';
   }
   if (eventType === 'BILLING.SUBSCRIPTION.EXPIRED') {
     finalStatus = 'expired';
@@ -123,7 +123,7 @@ async function handleSubscriptionEvent(eventType: string, resource: Record<strin
     finalStatus = 'canceled';
   }
   if (eventType === 'BILLING.SUBSCRIPTION.SUSPENDED') {
-    finalStatus = 'past_due';
+    finalStatus = 'expired';
   }
 
   const trialEndsAt =
@@ -136,7 +136,12 @@ async function handleSubscriptionEvent(eventType: string, resource: Record<strin
     data: {
       status: finalStatus,
       trialEndsAt,
-      currentPeriodEnd: nextBillingTs ? new Date(nextBillingTs) : record.currentPeriodEnd,
+      currentPeriodEnd:
+        finalStatus === 'expired'
+          ? new Date()
+          : nextBillingTs
+            ? new Date(nextBillingTs)
+            : record.currentPeriodEnd,
       canceledAt:
         finalStatus === 'canceled' || finalStatus === 'expired' ? new Date() : record.canceledAt,
       providerCustomerId:

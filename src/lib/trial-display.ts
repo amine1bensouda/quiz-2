@@ -70,7 +70,7 @@ export function resolveSubscriptionAccessEnd(
     pushFutureTimestamp(candidates, subscription.currentPeriodEnd, now);
   }
 
-  if (inTrialContext && status !== 'active' && status !== 'past_due') {
+  if (inTrialContext && status !== 'active' && status !== 'past_due' && status !== 'expired') {
     pushSyntheticTrialEnd(candidates, subscription.currentPeriodStart, now);
     pushSyntheticTrialEnd(candidates, subscription.createdAt, now);
     const periodEndMs = toTimestampMs(subscription.currentPeriodEnd);
@@ -83,7 +83,9 @@ export function resolveSubscriptionAccessEnd(
     }
   }
 
-  if ((status === 'active' || status === 'past_due') && candidates.length === 0) {
+  // past_due / expired: no content access (single payment attempt policy)
+
+  if (status === 'active' && candidates.length === 0) {
     pushFutureTimestamp(candidates, subscription.currentPeriodEnd, now);
   }
 

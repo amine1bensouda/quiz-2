@@ -14,12 +14,13 @@ import {
  *  - `ALL_ACCESS` : l'utilisateur a accès à tout (tous cours + quizzes autonomes).
  *  - `SINGLE_COURSE` : accès limité à `sub.courseId`. Les quizzes/leçons
  *    autonomes (sans cours parent) ne sont PAS accessibles avec ce plan.
- *  - Les statuts actifs sont définis dans `isActiveStatus` (trialing, active,
- *    past_due). `canceled`/`expired`/`incomplete` bloquent l'accès.
+ *  - Les statuts actifs sont définis dans `isActiveStatus` (trialing, active).
+ *    `past_due` / `canceled` / `expired` / `incomplete` bloquent l'accès.
  *  - Essai : accès jusqu'à `trialEndsAt` (ou `cancel_at` Stripe), même après
  *    annulation avant la fin des 48 h.
- *  - Période payante : accès jusqu'à `currentPeriodEnd`, y compris si annulé
- *    (`cancel_at_period_end`).
+ *  - Période payante : accès jusqu'à `currentPeriodEnd` uniquement si `active`,
+ *    y compris si `cancel_at_period_end` (accès jusqu'à la fin de période payée).
+ *  - Échec de paiement : une seule tentative — accès coupé immédiatement.
  */
 
 export interface ActiveSubscription {

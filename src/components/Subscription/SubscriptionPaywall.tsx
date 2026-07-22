@@ -260,7 +260,8 @@ export default function SubscriptionPaywall({
         )}
         {trialChecked && !trialEligible && (
           <p className="text-sm text-amber-200/90 mt-3">
-            You have already used your free trial on this account.
+            You have already used your free trial on this account. You will be
+            charged immediately — no new trial.
           </p>
         )}
       </header>

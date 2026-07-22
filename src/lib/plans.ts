@@ -180,11 +180,10 @@ export function formatPlanPriceMo(plan: PlanDefinition): string {
 
 /**
  * Subscription statuses that still grant access.
- * `trialing` = within the 48h trial. `active` = after first successful payment.
- * `past_due` is lenient: user keeps access while the provider retries billing;
- * webhooks eventually move the row to `canceled` / `expired`.
+ * `trialing` = within the free trial. `active` = after first successful payment.
+ * `past_due` does NOT grant access: one failed charge ends access immediately.
  */
-export const ACTIVE_SUBSCRIPTION_STATUSES = ['trialing', 'active', 'past_due'] as const;
+export const ACTIVE_SUBSCRIPTION_STATUSES = ['trialing', 'active'] as const;
 export type ActiveSubscriptionStatus = (typeof ACTIVE_SUBSCRIPTION_STATUSES)[number];
 
 export function isActiveStatus(status: string | null | undefined): boolean {
