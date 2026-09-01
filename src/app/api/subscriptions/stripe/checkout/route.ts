@@ -6,7 +6,7 @@ import { getPurchasablePlan, getTrialSeconds, type PlanId } from '@/lib/plans';
 import { getUserActiveSubscription } from '@/lib/subscription-access';
 import { canUserStartFreeTrial } from '@/lib/trial-eligibility';
 import { addResponseObservability } from '@/lib/traffic-guard';
-import { SITE_BRAND_UPPER } from '@/lib/constants';
+import { getStripeCheckoutBrandingSettings } from '@/lib/stripe-checkout-branding';
 import {
   buildStripePaymentLinkUrl,
   getStripePaymentLinkBaseUrl,
@@ -190,9 +190,7 @@ export async function POST(request: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       locale: 'en',
-      branding_settings: {
-        display_name: SITE_BRAND_UPPER,
-      },
+      branding_settings: getStripeCheckoutBrandingSettings(),
       customer_email: user.email,
       payment_method_collection: 'always',
       line_items: [{ price: plan.stripePriceId, quantity: 1 }],
