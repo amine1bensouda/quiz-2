@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js';
@@ -37,11 +37,6 @@ interface CheckoutFormProps {
   trialEligible: boolean;
 }
 
-type IntentResponse = {
-  clientSecret: string;
-  withTrial: boolean;
-};
-
 function formatRenewalDate(): string {
   const date = new Date(Date.now() + getTrialSeconds() * 1000);
   return date.toLocaleDateString('en-US', {
@@ -69,10 +64,11 @@ export default function CheckoutForm({
     defaultCourseId ?? courses[0]?.id ?? ''
   );
   const [promoCode, setPromoCode] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [intent, setIntent] = useState<IntentResponse | null>(null);
-  const [intentLoading, setIntentLoading] = useState(false);
+  const [paymentReady, setPaymentReady] = useState(Boolean(initialUser));
+  const [checkoutKey, setCheckoutKey] = useState(0);
 
   const selectedCourse = courses.find((c) => c.id === selectedCourseId) ?? null;
   const withTrial = trialEligible;
@@ -82,51 +78,31 @@ export default function CheckoutForm({
     ? `${SITE_NAME} — ${selectedCourse.title}`
     : `${SITE_NAME} — ${plan.label}`;
 
-  const loadIntent = useCallback(async () => {
-    if (!user || !selectedCourseId) return false;
-    setIntentLoading(true);
-    setError('');
-    try {
-      const res = await fetch('/api/subscriptions/stripe/intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          plan: 'SINGLE_COURSE',
-          courseId: selectedCourseId,
-          promoCode: promoCode.trim() || undefined,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(data?.error || `Error ${res.status}`);
-      }
-      if (data.completed) {
-        window.location.href = '/dashboard?subscription=success';
-        return true;
-      }
-      if (data.redirectUrl) {
-        window.location.href = data.redirectUrl;
-        return true;
-      }
-      if (!data.clientSecret) {
-        throw new Error('Unable to start secure payment. Please try again.');
-      }
-      setIntent({
-        clientSecret: data.clientSecret,
-        withTrial: data.withTrial !== false,
-      });
-      return true;
-    } catch (err: unknown) {
-      setIntent(null);
-      setError(err instanceof Error ? err.message : 'Unable to load payment form.');
-      return false;
-    } finally {
-      setIntentLoading(false);
+  const fetchClientSecret = useCallback(async () => {
+    const res = await fetch('/api/subscriptions/stripe/intent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        plan: 'SINGLE_COURSE',
+        courseId: selectedCourseId,
+        promoCode: appliedPromo || undefined,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data?.error || `Error ${res.status}`);
     }
-  }, [user, selectedCourseId, promoCode]);
+    if (!data.clientSecret) {
+      throw new Error('Unable to start secure payment. Please try again.');
+    }
+    return data.clientSecret as string;
+  }, [selectedCourseId, appliedPromo]);
 
-  const [paymentReady, setPaymentReady] = useState(false);
+  const embeddedCheckoutOptions = useMemo(
+    () => ({ fetchClientSecret }),
+    [fetchClientSecret]
+  );
 
   const ensureAccount = async () => {
     if (user) return user;
@@ -161,18 +137,12 @@ export default function CheckoutForm({
         throw new Error('Please select a course.');
       }
       setPaymentReady(true);
-      await loadIntent();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Unable to continue.');
     } finally {
       setLoading(false);
     }
   };
-
-  const embeddedCheckoutOptions = useMemo(() => {
-    if (!intent?.clientSecret) return null;
-    return { clientSecret: intent.clientSecret };
-  }, [intent?.clientSecret]);
 
   return (
     <div className="checkout-page mx-auto max-w-3xl px-4 py-10">
@@ -274,8 +244,8 @@ export default function CheckoutForm({
               value={selectedCourseId}
               onChange={(e) => {
                 setSelectedCourseId(e.target.value);
-                setIntent(null);
                 setPaymentReady(false);
+                setCheckoutKey((key) => key + 1);
               }}
               className="checkout-input"
             >
@@ -307,30 +277,18 @@ export default function CheckoutForm({
               disabled={loading || !selectedCourseId}
               className="checkout-complete-btn w-full rounded-md py-3 text-base font-semibold text-white disabled:opacity-60"
             >
-              {loading ? 'Please wait…' : 'Continue to secure payment'}
+              {loading ? 'Please wait…' : 'Continue to payment'}
             </button>
-          ) : intentLoading && !intent ? (
-            <div className="rounded-md border border-[#e5e7eb] bg-[#f9fafb] px-4 py-8 text-center text-sm text-[#6b7280]">
-              Loading secure payment form…
-            </div>
-          ) : embeddedCheckoutOptions && intent ? (
+          ) : (
             <div className="checkout-payment-element overflow-hidden rounded-lg border border-[#d8dde3] bg-white">
               <EmbeddedCheckoutProvider
+                key={`${checkoutKey}-${selectedCourseId}-${appliedPromo}`}
                 stripe={stripePromise}
                 options={embeddedCheckoutOptions}
               >
                 <EmbeddedCheckout />
               </EmbeddedCheckoutProvider>
             </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => void loadIntent()}
-              disabled={loading || intentLoading || !selectedCourseId}
-              className="checkout-complete-btn w-full rounded-md py-3 text-base font-semibold text-white disabled:opacity-60"
-            >
-              {intentLoading ? 'Opening Stripe…' : 'Retry secure payment'}
-            </button>
           )}
         </section>
 
@@ -374,8 +332,12 @@ export default function CheckoutForm({
               />
               <button
                 type="button"
-                onClick={() => void loadIntent()}
-                disabled={!user || intentLoading}
+                onClick={() => {
+                  setAppliedPromo(promoCode.trim());
+                  setPaymentReady(true);
+                  setCheckoutKey((key) => key + 1);
+                }}
+                disabled={!user}
                 className="rounded-md border border-[#d1d5db] bg-white px-4 py-2 text-sm font-medium text-[#374151] hover:bg-[#f9fafb] disabled:opacity-50"
               >
                 Apply
