@@ -7,13 +7,22 @@ import { getPurchasablePlan, getTrialSeconds, type PlanId } from '@/lib/plans';
 import { getUserActiveSubscription } from '@/lib/subscription-access';
 import { canUserStartFreeTrial } from '@/lib/trial-eligibility';
 import { addResponseObservability } from '@/lib/traffic-guard';
+import { SITE_BRAND_UPPER } from '@/lib/constants';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+function getAppUrl(): string {
+  return (
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    'http://localhost:3000'
+  );
+}
+
 /**
  * POST /api/subscriptions/stripe/intent
- * Creates a Stripe subscription and returns a client secret for Payment Element.
+ * Creates an embedded Stripe Checkout session and returns its client secret.
  */
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -114,6 +123,7 @@ export async function POST(request: NextRequest) {
 
     const stripe = getStripe();
     const withTrial = await canUserStartFreeTrial(user.id);
+    const appUrl = getAppUrl();
 
     let customerId =
       (
@@ -137,13 +147,10 @@ export async function POST(request: NextRequest) {
       customerId = customer.id;
     }
 
-    const subscriptionData: Stripe.SubscriptionCreateParams = {
-      customer: customerId,
-      items: [{ price: plan.stripePriceId }],
-      payment_behavior: 'default_incomplete',
-      payment_settings: {
-        save_default_payment_method: 'on_subscription',
-      },
+    const subscriptionData: {
+      metadata: Record<string, string>;
+      trial_end?: number;
+    } = {
       metadata: {
         subscriptionId: subscription.id,
         userId: user.id,
@@ -151,13 +158,33 @@ export async function POST(request: NextRequest) {
         courseId: courseId ?? '',
         withTrial: withTrial ? '1' : '0',
       },
-      expand: ['pending_setup_intent', 'latest_invoice.payment_intent'],
     };
 
     if (withTrial) {
       subscriptionData.trial_end =
         Math.floor(Date.now() / 1000) + getTrialSeconds();
     }
+
+    const sessionParams = {
+      ui_mode: 'embedded',
+      mode: 'subscription',
+      locale: 'en',
+      customer: customerId,
+      branding_settings: {
+        display_name: SITE_BRAND_UPPER,
+      },
+      line_items: [{ price: plan.stripePriceId, quantity: 1 }],
+      subscription_data: subscriptionData,
+      metadata: {
+        subscriptionId: subscription.id,
+        userId: user.id,
+        plan: plan.id,
+        courseId: courseId ?? '',
+      },
+      return_url: `${appUrl}/dashboard?subscription=success&session_id={CHECKOUT_SESSION_ID}`,
+      allow_promotion_codes: true,
+      payment_method_collection: 'always',
+    } as unknown as Stripe.Checkout.SessionCreateParams;
 
     const promoCode = typeof body?.promoCode === 'string' ? body.promoCode.trim() : '';
     if (promoCode) {
@@ -174,37 +201,15 @@ export async function POST(request: NextRequest) {
           '/api/subscriptions/stripe/intent'
         );
       }
-      subscriptionData.discounts = [{ promotion_code: promotion.id }];
+      sessionParams.discounts = [{ promotion_code: promotion.id }];
     }
 
-    const stripeSub = await stripe.subscriptions.create(subscriptionData);
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
-    const setupIntent = stripeSub.pending_setup_intent;
-    const latestInvoice =
-      stripeSub.latest_invoice && typeof stripeSub.latest_invoice !== 'string'
-        ? stripeSub.latest_invoice
-        : null;
-    const paymentIntent = latestInvoice
-      ? (latestInvoice as Stripe.Invoice & {
-          payment_intent?: string | Stripe.PaymentIntent | null;
-        }).payment_intent
-      : null;
-
-    let clientSecret: string | null = null;
-    let intentType: 'setup' | 'payment' = 'setup';
-
-    if (setupIntent && typeof setupIntent !== 'string') {
-      clientSecret = setupIntent.client_secret;
-      intentType = 'setup';
-    } else if (paymentIntent && typeof paymentIntent !== 'string') {
-      clientSecret = paymentIntent.client_secret;
-      intentType = 'payment';
-    }
-
-    if (!clientSecret) {
+    if (!session.client_secret) {
       return addResponseObservability(
         NextResponse.json(
-          { error: 'Stripe did not return a payment client secret.' },
+          { error: 'Stripe did not return a checkout client secret.' },
           { status: 500 }
         ),
         startTime,
@@ -215,15 +220,15 @@ export async function POST(request: NextRequest) {
     await prisma.subscription.update({
       where: { id: subscription.id },
       data: {
-        providerSubscriptionId: stripeSub.id,
         providerCustomerId: customerId,
       },
     });
 
     return addResponseObservability(
       NextResponse.json({
-        clientSecret,
-        intentType,
+        clientSecret: session.client_secret,
+        checkoutMode: 'embedded',
+        sessionId: session.id,
         subscriptionId: subscription.id,
         withTrial,
       }),
@@ -231,14 +236,14 @@ export async function POST(request: NextRequest) {
       '/api/subscriptions/stripe/intent'
     );
   } catch (error: unknown) {
-    console.error('Error creating Stripe subscription intent:', error);
+    console.error('Error creating Stripe embedded checkout session:', error);
     return addResponseObservability(
       NextResponse.json(
         {
           error:
             error instanceof Error
               ? error.message
-              : 'Failed to create payment intent',
+              : 'Failed to create checkout session',
         },
         { status: 500 }
       ),

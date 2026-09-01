@@ -1,15 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
-import {
-  Elements,
-  PaymentElement,
-  useElements,
-  useStripe,
-} from '@stripe/react-stripe-js';
+import { EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js';
 import {
   PLANS,
   formatPlanPrice,
@@ -45,7 +39,6 @@ interface CheckoutFormProps {
 
 type IntentResponse = {
   clientSecret: string;
-  intentType: 'setup' | 'payment';
   withTrial: boolean;
 };
 
@@ -56,92 +49,6 @@ function formatRenewalDate(): string {
     day: 'numeric',
     year: 'numeric',
   });
-}
-
-function CheckoutPaymentForm({
-  intentType,
-  withTrial,
-  loading,
-  onSubmit,
-}: {
-  intentType: 'setup' | 'payment';
-  withTrial: boolean;
-  loading: boolean;
-  onSubmit: () => Promise<void>;
-}) {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleComplete = async () => {
-    if (!stripe || !elements) return;
-    setError('');
-    setSubmitting(true);
-    try {
-      await onSubmit();
-
-      const returnUrl = `${window.location.origin}/dashboard?subscription=success`;
-      const result =
-        intentType === 'setup'
-          ? await stripe.confirmSetup({
-              elements,
-              confirmParams: { return_url: returnUrl },
-            })
-          : await stripe.confirmPayment({
-              elements,
-              confirmParams: { return_url: returnUrl },
-            });
-
-      if (result.error) {
-        setError(result.error.message || 'Payment could not be completed.');
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Payment failed.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <>
-      <div className="checkout-payment-element rounded-lg border border-[#d8dde3] bg-white p-4">
-        <PaymentElement
-          options={{
-            layout: 'tabs',
-          }}
-        />
-      </div>
-
-      {error && (
-        <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
-      <button
-        type="button"
-        onClick={handleComplete}
-        disabled={!stripe || !elements || submitting || loading}
-        className="checkout-complete-btn mt-6 w-full rounded-md py-4 text-lg font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {submitting ? 'Processing…' : withTrial ? 'Start free trial' : 'Complete order'}
-      </button>
-
-      <p className="mt-4 text-center text-xs leading-relaxed text-[#6b7280]">
-        By clicking &quot;{withTrial ? 'Start free trial' : 'Complete order'}&quot;, you agree to
-        our{' '}
-        <Link href="/terms-of-service" className="text-[#2563eb] hover:underline">
-          Terms of Use
-        </Link>{' '}
-        and{' '}
-        <Link href="/privacy-policy" className="text-[#2563eb] hover:underline">
-          Privacy Policy
-        </Link>
-        .
-      </p>
-    </>
-  );
 }
 
 export default function CheckoutForm({
@@ -194,9 +101,15 @@ export default function CheckoutForm({
       if (!res.ok) {
         throw new Error(data?.error || `Error ${res.status}`);
       }
+      if (data.completed) {
+        window.location.href = '/dashboard?subscription=success';
+        return;
+      }
+      if (!data.clientSecret) {
+        throw new Error('Stripe did not return a payment client secret.');
+      }
       setIntent({
         clientSecret: data.clientSecret,
-        intentType: data.intentType,
         withTrial: data.withTrial !== false,
       });
     } catch (err: unknown) {
@@ -255,19 +168,9 @@ export default function CheckoutForm({
     }
   };
 
-  const elementsOptions = useMemo(() => {
+  const embeddedCheckoutOptions = useMemo(() => {
     if (!intent?.clientSecret) return null;
-    return {
-      clientSecret: intent.clientSecret,
-      appearance: {
-        theme: 'stripe' as const,
-        variables: {
-          colorPrimary: '#2d8a4e',
-          colorText: '#1f2937',
-          borderRadius: '6px',
-        },
-      },
-    };
+    return { clientSecret: intent.clientSecret };
   }, [intent?.clientSecret]);
 
   return (
@@ -399,17 +302,15 @@ export default function CheckoutForm({
             <div className="rounded-md border border-[#e5e7eb] bg-[#f9fafb] px-4 py-8 text-center text-sm text-[#6b7280]">
               Loading secure payment form…
             </div>
-          ) : elementsOptions && intent ? (
-            <Elements stripe={stripePromise} options={elementsOptions}>
-              <CheckoutPaymentForm
-                intentType={intent.intentType}
-                withTrial={intent.withTrial}
-                loading={loading}
-                onSubmit={async () => {
-                  await ensureAccount();
-                }}
-              />
-            </Elements>
+          ) : embeddedCheckoutOptions && intent ? (
+            <div className="checkout-payment-element overflow-hidden rounded-lg border border-[#d8dde3] bg-white">
+              <EmbeddedCheckoutProvider
+                stripe={stripePromise}
+                options={embeddedCheckoutOptions}
+              >
+                <EmbeddedCheckout />
+              </EmbeddedCheckoutProvider>
+            </div>
           ) : (
             <button
               type="button"

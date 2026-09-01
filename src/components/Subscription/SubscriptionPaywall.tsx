@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   PLANS,
   PURCHASABLE_PLAN_IDS,
@@ -14,10 +14,7 @@ import {
   planHighlightsForTrial,
   type PlanId,
 } from '@/lib/plans';
-import {
-  buildAuthUrl,
-  type CheckoutProvider,
-} from '@/lib/subscription-checkout-url';
+import type { CheckoutProvider } from '@/lib/subscription-checkout-url';
 
 interface CourseOption {
   id: string;
@@ -40,13 +37,18 @@ function defaultPaywallSubtitle(): string {
   return `${formatPlanPrice(PLANS.SINGLE_COURSE)} per course — ${getTrialLongLabel()}, you only get charged if you continue.`;
 }
 
+function buildCheckoutHref(courseId?: string): string {
+  if (courseId) {
+    return `/checkout?courseId=${encodeURIComponent(courseId)}`;
+  }
+  return '/checkout';
+}
+
 export default function SubscriptionPaywall({
   courses,
   defaultCourseId = null,
-  isAuthenticated,
   title = 'Unlock access to this content',
   subtitle = defaultPaywallSubtitle(),
-  returnUrl,
   autoStartCheckout = null,
   existingSubscriptionCourseTitle = null,
 }: SubscriptionPaywallProps) {
@@ -55,20 +57,18 @@ export default function SubscriptionPaywall({
   const [selectedCourseId, setSelectedCourseId] = useState<string>(
     defaultCourseId ?? (courses[0]?.id ?? '')
   );
-  const [loadingProvider, setLoadingProvider] = useState<'stripe' | 'paypal' | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [trialEligible, setTrialEligible] = useState(true);
   const [trialChecked, setTrialChecked] = useState(false);
 
   const firstChargeDate = new Date(Date.now() + getTrialSeconds() * 1000);
   const trialShort = getTrialShortLabel();
 
+  const checkoutHref = useMemo(() => {
+    const courseId = PLANS[selectedPlan].requiresCourseId ? selectedCourseId : undefined;
+    return buildCheckoutHref(courseId);
+  }, [selectedPlan, selectedCourseId]);
+
   useEffect(() => {
-    if (!isAuthenticated) {
-      setTrialEligible(true);
-      setTrialChecked(true);
-      return;
-    }
     fetch('/api/users/me/trial-eligibility', { credentials: 'include' })
       .then((r) => (r.ok ? r.json() : { eligible: false }))
       .then((data: { eligible?: boolean }) => {
@@ -79,116 +79,7 @@ export default function SubscriptionPaywall({
         setTrialEligible(false);
         setTrialChecked(true);
       });
-  }, [isAuthenticated]);
-
-  function openPaymentPopup(url: string, provider: 'stripe' | 'paypal') {
-    const popupWidth = 520;
-    const popupHeight = 760;
-    const left = Math.max(0, Math.round((window.screen.width - popupWidth) / 2));
-    const top = Math.max(0, Math.round((window.screen.height - popupHeight) / 2));
-
-    const popup = window.open(
-      url,
-      `${provider}-checkout`,
-      `popup=yes,width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes`
-    );
-
-    if (!popup) {
-      window.location.href = url;
-      return;
-    }
-    popup.focus();
-  }
-
-  function openPendingPopup(provider: 'stripe' | 'paypal') {
-    const popupWidth = 520;
-    const popupHeight = 760;
-    const left = Math.max(0, Math.round((window.screen.width - popupWidth) / 2));
-    const top = Math.max(0, Math.round((window.screen.height - popupHeight) / 2));
-    const popup = window.open(
-      '',
-      `${provider}-checkout`,
-      `popup=yes,width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes`
-    );
-    if (popup) {
-      popup.document.title = 'Loading payment...';
-      popup.document.body.innerHTML =
-        '<div style="font-family:Arial,sans-serif;padding:24px;background:#080810;color:#eeeaf4">Opening secure payment page...</div>';
-      popup.focus();
-    }
-    return popup;
-  }
-
-  const startCheckout = useCallback(
-    async (provider: CheckoutProvider, options?: { fullPage?: boolean }) => {
-      setError(null);
-      const authReturnUrl = returnUrl || '/subscribe';
-      const courseForCheckout =
-        PLANS[selectedPlan].requiresCourseId ? selectedCourseId : undefined;
-
-      if (!isAuthenticated) {
-        window.location.href = buildAuthUrl('login', authReturnUrl, {
-          courseId: courseForCheckout,
-          provider,
-        });
-        return;
-      }
-
-      const plan = PLANS[selectedPlan];
-      if (plan.requiresCourseId && !selectedCourseId) {
-        setError('Please pick a course for the Single Course plan.');
-        return;
-      }
-
-      const useFullPage = options?.fullPage ?? provider === 'stripe';
-
-      setLoadingProvider(provider);
-      const pendingPopup = useFullPage ? null : openPendingPopup(provider);
-      try {
-        const endpoint =
-          provider === 'stripe'
-            ? '/api/subscriptions/stripe/checkout'
-            : '/api/subscriptions/paypal/subscribe';
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            plan: selectedPlan,
-            courseId: plan.requiresCourseId ? selectedCourseId : undefined,
-          }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(data?.error || `Error ${res.status}`);
-        }
-        const url = provider === 'stripe' ? data.url : data.approveUrl;
-        if (!url) throw new Error('Payment provider returned no URL.');
-
-        if (useFullPage || provider === 'stripe') {
-          if (pendingPopup && !pendingPopup.closed) {
-            pendingPopup.close();
-          }
-          window.location.href = url;
-          return;
-        }
-
-        if (pendingPopup && !pendingPopup.closed) {
-          pendingPopup.location.href = url;
-          pendingPopup.focus();
-        } else {
-          openPaymentPopup(url, provider);
-        }
-        setLoadingProvider(null);
-      } catch (err: unknown) {
-        if (pendingPopup && !pendingPopup.closed) {
-          pendingPopup.close();
-        }
-        setError(err instanceof Error ? err.message : 'Unable to start checkout.');
-        setLoadingProvider(null);
-      }
-    },
-    [isAuthenticated, returnUrl, selectedCourseId, selectedPlan]
-  );
+  }, []);
 
   useEffect(() => {
     if (defaultCourseId) {
@@ -197,29 +88,14 @@ export default function SubscriptionPaywall({
   }, [defaultCourseId]);
 
   useEffect(() => {
-    if (
-      !autoStartCheckout ||
-      !isAuthenticated ||
-      !trialChecked ||
-      autoCheckoutStarted.current
-    ) {
+    if (!autoStartCheckout || autoCheckoutStarted.current) {
       return;
     }
 
     autoCheckoutStarted.current = true;
-
-    if (returnUrl && typeof window !== 'undefined') {
-      window.history.replaceState(null, '', returnUrl);
-    }
-
-    void startCheckout(autoStartCheckout, { fullPage: true });
-  }, [autoStartCheckout, isAuthenticated, trialChecked, returnUrl, startCheckout]);
-
-  const authReturnUrl = returnUrl || '/subscribe';
-  const courseForAuth =
-    PLANS[selectedPlan].requiresCourseId
-      ? selectedCourseId || defaultCourseId || undefined
-      : undefined;
+    const courseId = PLANS[selectedPlan].requiresCourseId ? selectedCourseId : undefined;
+    window.location.href = buildCheckoutHref(courseId);
+  }, [autoStartCheckout, selectedCourseId, selectedPlan]);
 
   return (
     <section className="paywall-page relative max-w-5xl mx-auto my-12 px-4">
@@ -346,63 +222,19 @@ export default function SubscriptionPaywall({
         </div>
       )}
 
-      {error && (
-        <div className="relative mb-6 rounded-xl border border-red-500/40 bg-red-900/20 px-4 py-3 text-sm text-red-200">
-          {error}
-        </div>
-      )}
-
-      {!isAuthenticated ? (
-        <div className="relative rounded-xl border border-amber-500/35 bg-amber-950/35 px-5 py-4 mb-6 text-sm text-amber-100">
-          You need to be signed in to start the trial.{' '}
-          <Link
-            href={buildAuthUrl('login', authReturnUrl, {
-              courseId: courseForAuth,
-              provider: 'stripe',
-            })}
-            className="font-semibold underline text-[#f5c14a]"
-          >
-            Sign in
-          </Link>{' '}
-          or{' '}
-          <Link
-            href={buildAuthUrl('register', authReturnUrl, {
-              courseId: courseForAuth,
-              provider: 'stripe',
-            })}
-            className="font-semibold underline text-[#f5c14a]"
-          >
-            create an account
-          </Link>
-          .
-        </div>
-      ) : null}
-
-      <div className="relative flex flex-col sm:flex-row gap-3 justify-center">
-        <button
-          type="button"
-          disabled={loadingProvider !== null}
-          onClick={() => startCheckout('stripe')}
-          className="inline-flex items-center justify-center rounded-xl px-6 py-3 text-[#0c0a00] font-semibold transition-colors disabled:opacity-60 bg-[#f5c14a] hover:bg-[#f9d06a] shadow-[0_4px_20px_rgba(245,193,74,0.24)]"
+      <div className="relative flex justify-center">
+        <Link
+          href={checkoutHref}
+          className="inline-flex items-center justify-center rounded-xl px-8 py-3 text-[#0c0a00] font-semibold transition-colors bg-[#f5c14a] hover:bg-[#f9d06a] shadow-[0_4px_20px_rgba(245,193,74,0.24)] disabled:pointer-events-none disabled:opacity-60"
+          aria-disabled={PLANS[selectedPlan].requiresCourseId && !selectedCourseId}
+          onClick={(e) => {
+            if (PLANS[selectedPlan].requiresCourseId && !selectedCourseId) {
+              e.preventDefault();
+            }
+          }}
         >
-          {loadingProvider === 'stripe'
-            ? 'Opening Stripe…'
-            : trialEligible
-              ? `Start ${trialShort} (card)`
-              : 'Subscribe with card'}
-        </button>
-        <button
-          type="button"
-          disabled={loadingProvider !== null}
-          onClick={() => startCheckout('paypal')}
-          className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-[#12121f] px-6 py-3 text-[#eeeaf4] font-semibold transition-colors hover:border-white/25 hover:bg-[#16162a] disabled:opacity-60"
-        >
-          {loadingProvider === 'paypal'
-            ? 'Opening PayPal…'
-            : trialEligible
-              ? `Start ${trialShort} with PayPal`
-              : 'Subscribe with PayPal'}
-        </button>
+          {trialEligible ? `Start ${trialShort}` : 'Continue to checkout'}
+        </Link>
       </div>
 
       <p className="relative mt-8 text-center text-xs text-[rgba(238,234,244,0.45)]">
