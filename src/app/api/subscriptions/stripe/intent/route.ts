@@ -76,7 +76,7 @@ async function buildCheckoutSessionParams(
   };
 
   if (mode === 'embedded') {
-    params.ui_mode = 'embedded';
+    params.ui_mode = 'embedded_page';
     params.return_url = `${appUrl}/dashboard?subscription=success&session_id={CHECKOUT_SESSION_ID}`;
   } else {
     params.success_url = `${appUrl}/dashboard?subscription=success`;
