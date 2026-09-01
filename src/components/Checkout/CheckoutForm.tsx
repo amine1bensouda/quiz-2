@@ -83,7 +83,7 @@ export default function CheckoutForm({
     : `${SITE_NAME} — ${plan.label}`;
 
   const loadIntent = useCallback(async () => {
-    if (!user || !selectedCourseId) return;
+    if (!user || !selectedCourseId) return false;
     setIntentLoading(true);
     setError('');
     try {
@@ -103,30 +103,30 @@ export default function CheckoutForm({
       }
       if (data.completed) {
         window.location.href = '/dashboard?subscription=success';
-        return;
+        return true;
+      }
+      if (data.redirectUrl) {
+        window.location.href = data.redirectUrl;
+        return true;
       }
       if (!data.clientSecret) {
-        throw new Error('Stripe did not return a payment client secret.');
+        throw new Error('Unable to start secure payment. Please try again.');
       }
       setIntent({
         clientSecret: data.clientSecret,
         withTrial: data.withTrial !== false,
       });
+      return true;
     } catch (err: unknown) {
       setIntent(null);
       setError(err instanceof Error ? err.message : 'Unable to load payment form.');
+      return false;
     } finally {
       setIntentLoading(false);
     }
   }, [user, selectedCourseId, promoCode]);
 
-  useEffect(() => {
-    if (user && selectedCourseId) {
-      void loadIntent();
-    } else {
-      setIntent(null);
-    }
-  }, [user, selectedCourseId, loadIntent]);
+  const [paymentReady, setPaymentReady] = useState(false);
 
   const ensureAccount = async () => {
     if (user) return user;
@@ -160,6 +160,7 @@ export default function CheckoutForm({
       if (!selectedCourseId) {
         throw new Error('Please select a course.');
       }
+      setPaymentReady(true);
       await loadIntent();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Unable to continue.');
@@ -274,6 +275,7 @@ export default function CheckoutForm({
               onChange={(e) => {
                 setSelectedCourseId(e.target.value);
                 setIntent(null);
+                setPaymentReady(false);
               }}
               className="checkout-input"
             >
@@ -298,6 +300,15 @@ export default function CheckoutForm({
             <div className="rounded-md border border-[#e5e7eb] bg-[#f9fafb] px-4 py-5 text-sm text-[#6b7280]">
               Enter your account details above to unlock the secure payment form.
             </div>
+          ) : !paymentReady ? (
+            <button
+              type="button"
+              onClick={handlePreparePayment}
+              disabled={loading || !selectedCourseId}
+              className="checkout-complete-btn w-full rounded-md py-3 text-base font-semibold text-white disabled:opacity-60"
+            >
+              {loading ? 'Please wait…' : 'Continue to secure payment'}
+            </button>
           ) : intentLoading && !intent ? (
             <div className="rounded-md border border-[#e5e7eb] bg-[#f9fafb] px-4 py-8 text-center text-sm text-[#6b7280]">
               Loading secure payment form…
@@ -314,11 +325,11 @@ export default function CheckoutForm({
           ) : (
             <button
               type="button"
-              onClick={handlePreparePayment}
-              disabled={loading || !selectedCourseId}
+              onClick={() => void loadIntent()}
+              disabled={loading || intentLoading || !selectedCourseId}
               className="checkout-complete-btn w-full rounded-md py-3 text-base font-semibold text-white disabled:opacity-60"
             >
-              {loading ? 'Please wait…' : 'Continue to payment'}
+              {intentLoading ? 'Opening Stripe…' : 'Retry secure payment'}
             </button>
           )}
         </section>
