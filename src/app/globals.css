@@ -2012,3 +2012,44 @@ html.light .paywall-page select {
 .admin-app .text-red-600 {
   color: #f87171 !important;
 }
+
+.checkout-title {
+  color: #2d8a4e;
+}
+
+.checkout-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.checkout-input {
+  width: 100%;
+  border: 1px solid #cfd6dd;
+  border-radius: 4px;
+  background: #fff;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.95rem;
+  color: #111827;
+}
+
+.checkout-input:focus {
+  outline: none;
+  border-color: #2d8a4e;
+  box-shadow: 0 0 0 2px rgba(45, 138, 78, 0.15);
+}
+
+.checkout-divider {
+  border: 0;
+  border-top: 1px solid #d8dde3;
+}
+
+.checkout-complete-btn {
+  background: #2d8a4e;
+}
+
+.checkout-complete-btn:hover:not(:disabled) {
+  background: #257341;
+}

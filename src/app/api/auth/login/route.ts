@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { comparePassword } from '@/lib/auth-utils';
 import { cookies } from 'next/headers';
+import { createSessionToken } from '@/lib/session-token';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     const { email, password } = body;
 
     if (!email || !password) {
@@ -61,25 +62,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Créer une session (utiliser un token simple pour l'instant)
-    // En production, utiliser JWT ou NextAuth.js
-    const sessionToken = `${user.id}-${Date.now()}`;
-    
-    // Stocker le token dans un cookie
+    const sessionToken = createSessionToken(user.id);
+
     const cookieStore = await cookies();
-    
-    // Sur Vercel, utiliser secure: true car HTTPS est toujours activé
     const isProduction = Boolean(process.env.VERCEL) || process.env.NODE_ENV === 'production';
-    
+
     cookieStore.set('session_token', sessionToken, {
       httpOnly: true,
-      secure: isProduction, // true sur Vercel (HTTPS)
+      secure: isProduction,
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 jours
+      maxAge: 60 * 60 * 24 * 7,
       path: '/',
     });
 
-    // Retourner les informations utilisateur (sans le mot de passe)
     return NextResponse.json({
       user: {
         id: user.id,
@@ -87,6 +82,7 @@ export async function POST(request: NextRequest) {
         name: user.name,
         createdAt: user.createdAt,
       },
+      token: sessionToken,
       message: 'Login successful',
     });
   } catch (error: any) {
@@ -97,24 +93,23 @@ export async function POST(request: NextRequest) {
       meta: error.meta,
       stack: error.stack,
     });
-    
-    // Gérer les erreurs de connexion à la base de données
+
     let errorMessage = 'Failed to login';
     let statusCode = 500;
-    
-    if (error.code === 'P1001' || error.message?.includes('Can\'t reach database')) {
+
+    if (error.code === 'P1001' || error.message?.includes("Can't reach database")) {
       errorMessage = 'Database connection error. Please check your DATABASE_URL configuration.';
       statusCode = 503;
     } else if (error.message) {
       errorMessage = error.message;
     }
-    
+
     return NextResponse.json(
-      { 
+      {
         error: errorMessage,
         details: process.env.NODE_ENV === 'development' ? error.message : undefined,
       },
-      { 
+      {
         status: statusCode,
         headers: {
           'Content-Type': 'application/json',

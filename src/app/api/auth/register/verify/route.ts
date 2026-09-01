@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyCodeAndCreateUser } from '@/lib/registration-verification';
+import { createSessionToken } from '@/lib/session-token';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     const user = await verifyCodeAndCreateUser(email, code);
 
-    const sessionToken = `${user.id}-${Date.now()}`;
+    const sessionToken = createSessionToken(user.id);
     const cookieStore = await cookies();
     const isProduction = Boolean(process.env.VERCEL) || process.env.NODE_ENV === 'production';
 
@@ -35,6 +36,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         user,
+        token: sessionToken,
         message: 'Account created and verified successfully',
       },
       { status: 201 }

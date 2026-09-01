@@ -96,6 +96,7 @@ function isAdminApiRequest(pathname: string): boolean {
 const NO_INDEX_PATH_PATTERNS = [
   /^\/login(\/|$)/,
   /^\/register(\/|$)/,
+  /^\/checkout(\/|$)/,
   /^\/dashboard(\/|$)/,
   /^\/admin(\/|$)/,
   /^\/account(\/|$)/,
@@ -116,6 +117,7 @@ const LOGGED_IN_ALLOWED_PATTERNS = [
   /^\/dashboard(\/|$)/,
   /^\/quiz(\/|$)/,
   /^\/subscribe(\/|$)/,
+  /^\/checkout(\/|$)/,
   /^\/api(\/|$)/,
 ];
 

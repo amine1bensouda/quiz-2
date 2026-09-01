@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { getUserBySessionToken } from '@/lib/auth-server';
+import {
+  getSessionTokenFromRequest,
+  getUserBySessionToken,
+} from '@/lib/auth-server';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const sessionToken = cookieStore.get('session_token')?.value;
+    const sessionToken = await getSessionTokenFromRequest();
     const user = await getUserBySessionToken(sessionToken);
 
     if (!user) {

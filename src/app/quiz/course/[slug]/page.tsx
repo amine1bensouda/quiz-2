@@ -119,7 +119,7 @@ export default async function CoursePage({ params }: PageProps) {
   const isDraftCourse = course.status === 'draft';
 
   if (currentUser && !hasAccess && !isAdmin) {
-    redirect(`/subscribe?courseId=${encodeURIComponent(course.id)}`);
+    redirect(`/checkout?courseId=${encodeURIComponent(course.id)}`);
   }
 
   return (
@@ -211,7 +211,7 @@ export default async function CoursePage({ params }: PageProps) {
                   </p>
                 </div>
                 <Link
-                  href={`/subscribe?courseId=${course.id}`}
+                  href={`/checkout?courseId=${course.id}`}
                   className="inline-flex items-center justify-center whitespace-nowrap rounded-xl bg-[#f5c14a] px-5 py-3 font-semibold text-[#080810] shadow-sm transition hover:bg-[#e5b443]"
                 >
                   Start 48h trial

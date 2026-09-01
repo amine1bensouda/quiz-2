@@ -22,7 +22,7 @@ export default function CourseCard({
   slug,
   locked = false,
 }: CourseCardProps) {
-  const href = locked ? `/subscribe?courseId=${id}` : `/quiz/course/${slug}`;
+  const href = locked ? `/checkout?courseId=${id}` : `/quiz/course/${slug}`;
 
   return (
     <Link

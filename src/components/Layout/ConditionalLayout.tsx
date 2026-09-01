@@ -34,8 +34,13 @@ export default function ConditionalLayout({
 
   // Pas de Header/Footer : admin, dashboard, ou utilisateur connecté
   const isSubscribePage = pathname === '/subscribe';
+  const isCheckoutPage = pathname === '/checkout';
   const hideChrome =
-    isAdminArea || isDashboardArea || isEnConstruction || isMaintenance || (isLoggedIn && !isSubscribePage);
+    isAdminArea ||
+    isDashboardArea ||
+    isEnConstruction ||
+    isMaintenance ||
+    (isLoggedIn && !isSubscribePage && !isCheckoutPage);
 
   if (hideChrome) {
     if (isSubscribePage) {
@@ -44,6 +49,9 @@ export default function ConditionalLayout({
           {children}
         </div>
       );
+    }
+    if (isCheckoutPage) {
+      return <>{children}</>;
     }
     return <>{children}</>;
   }
