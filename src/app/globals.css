@@ -1063,8 +1063,8 @@ html.light .admin-app .admin-theme-toggle:hover {
 }
 
 .ctc-home .hero-stats {
-  margin: 0 auto 40px;
-  display: inline-flex;
+  margin-top: 72px;
+  display: flex;
   border: 1px solid var(--border);
   border-radius: var(--r-card);
   overflow: hidden;
