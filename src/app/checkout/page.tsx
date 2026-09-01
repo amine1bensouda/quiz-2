@@ -69,17 +69,20 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
   const trialEligible = user ? await canUserStartFreeTrial(user.id) : true;
 
   return (
-    <main className="checkout-shell min-h-screen bg-[#eef1f4] text-[#1f2937]">
+    <main className="checkout-shell min-h-screen bg-[#080810] py-10 text-[#eeeaf4] relative overflow-hidden">
+      <div className="pointer-events-none absolute -left-16 top-16 h-56 w-56 rounded-full bg-[#f5c14a]/10 blur-3xl" />
+      <div className="pointer-events-none absolute right-[-2rem] bottom-12 h-64 w-64 rounded-full bg-[#b388ff]/10 blur-3xl" />
+
       {params.canceled && (
-        <div className="mx-auto max-w-3xl px-4 pt-6">
-          <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="relative mx-auto max-w-3xl px-4 mb-6">
+          <div className="rounded-xl border border-amber-500/35 bg-amber-950/35 px-4 py-3 text-sm text-amber-100">
             Payment canceled. No charge was made.
           </div>
         </div>
       )}
       {params.error && (
-        <div className="mx-auto max-w-3xl px-4 pt-6">
-          <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="relative mx-auto max-w-3xl px-4 mb-6">
+          <div className="rounded-xl border border-red-500/40 bg-red-900/20 px-4 py-3 text-sm text-red-200">
             An error occurred while processing the payment. Please try again.
           </div>
         </div>

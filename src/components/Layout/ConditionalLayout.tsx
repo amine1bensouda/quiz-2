@@ -51,7 +51,11 @@ export default function ConditionalLayout({
       );
     }
     if (isCheckoutPage) {
-      return <>{children}</>;
+      return (
+        <div className="min-h-screen bg-[#080810] text-[#eeeaf4] checkout-page">
+          {children}
+        </div>
+      );
     }
     return <>{children}</>;
   }

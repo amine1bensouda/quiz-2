@@ -2013,8 +2013,13 @@ html.light .paywall-page select {
   color: #f87171 !important;
 }
 
+.checkout-shell {
+  color: #eeeaf4;
+}
+
 .checkout-title {
-  color: #2d8a4e;
+  color: #eeeaf4;
+  font-family: 'Instrument Serif', serif;
 }
 
 .checkout-label {
@@ -2022,34 +2027,84 @@ html.light .paywall-page select {
   margin-bottom: 0.5rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #374151;
+  color: rgba(238, 234, 244, 0.9);
 }
 
 .checkout-input {
   width: 100%;
-  border: 1px solid #cfd6dd;
-  border-radius: 4px;
-  background: #fff;
-  padding: 0.65rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: #0e0e1a;
+  padding: 0.75rem 1rem;
   font-size: 0.95rem;
-  color: #111827;
+  color: #eeeaf4;
 }
 
 .checkout-input:focus {
   outline: none;
-  border-color: #2d8a4e;
-  box-shadow: 0 0 0 2px rgba(45, 138, 78, 0.15);
+  border-color: rgba(245, 193, 74, 0.6);
+  box-shadow: 0 0 0 2px rgba(245, 193, 74, 0.2);
+}
+
+.checkout-input option {
+  background: #0e0e1a;
+  color: #eeeaf4;
 }
 
 .checkout-divider {
   border: 0;
-  border-top: 1px solid #d8dde3;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .checkout-complete-btn {
-  background: #2d8a4e;
+  background: #f5c14a;
+  color: #0c0a00;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .checkout-complete-btn:hover:not(:disabled) {
-  background: #257341;
+  background: #f9d06a;
+}
+
+.checkout-card {
+  background: rgba(18, 18, 31, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+}
+
+.checkout-section-title {
+  color: #eeeaf4;
+}
+
+.checkout-muted {
+  color: rgba(238, 234, 244, 0.65);
+}
+
+.checkout-summary {
+  background: rgba(14, 14, 26, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.checkout-price {
+  color: #f5c14a;
+}
+
+.checkout-payment-element {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.checkout-secondary-btn {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  color: #eeeaf4;
+  border-radius: 12px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.checkout-secondary-btn:hover:not(:disabled) {
+  border-color: rgba(245, 193, 74, 0.4);
+  background: rgba(245, 193, 74, 0.08);
 }
