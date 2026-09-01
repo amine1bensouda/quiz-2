@@ -1,6 +1,6 @@
 /**
  * Script one-shot pour créer les produits + prices Stripe associés
- * aux plans SINGLE_COURSE (7 USD/mois) et ALL_ACCESS (25 USD/mois).
+ * aux plans SINGLE_COURSE (15 USD/mois) et ALL_ACCESS (25 USD/mois).
  *
  * Usage :
  *   npx tsx scripts/stripe-setup-prices.ts

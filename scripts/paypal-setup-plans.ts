@@ -1,6 +1,6 @@
 /**
  * Script one-shot pour créer les produits + plans PayPal associés
- * aux plans SINGLE_COURSE (7 USD/mois) et ALL_ACCESS (25 USD/mois),
+ * aux plans SINGLE_COURSE (15 USD/mois) et ALL_ACCESS (25 USD/mois),
  * chacun avec un TRIAL de 2 jours gratuit.
  *
  * Usage :
@@ -26,7 +26,10 @@ loadEnv({ path: path.resolve(process.cwd(), '.env') });
 
 async function main() {
   const { createPaypalPlan, createPaypalProduct } = await import('../src/lib/paypal');
-  const { PLANS } = await import('../src/lib/plans');
+  const { PLANS, formatPlanPriceAmount } = await import('../src/lib/plans');
+
+  const singlePrice = formatPlanPriceAmount(PLANS.SINGLE_COURSE);
+  const allAccessPrice = formatPlanPriceAmount(PLANS.ALL_ACCESS);
 
   console.log('Creating PayPal product (catalog)...');
   const product = await createPaypalProduct({
@@ -39,15 +42,15 @@ async function main() {
   const defs: Array<{ key: keyof typeof PLANS; name: string; description: string }> = [
     {
       key: 'SINGLE_COURSE',
-      name: 'Single Course — 7 USD / month',
+      name: `Single Course — ${singlePrice} USD / month`,
       description:
-        'Accès complet à un cours au choix. 48h d\'essai gratuit. 7 USD par mois ensuite.',
+        `Accès complet à un cours au choix. 48h d'essai gratuit. ${singlePrice} USD par mois ensuite.`,
     },
     {
       key: 'ALL_ACCESS',
-      name: 'All Access — 25 USD / month',
+      name: `All Access — ${allAccessPrice} USD / month`,
       description:
-        'Accès à tous les cours du catalogue. 48h d\'essai gratuit. 25 USD par mois ensuite.',
+        `Accès à tous les cours du catalogue. 48h d'essai gratuit. ${allAccessPrice} USD par mois ensuite.`,
     },
   ];
 
