@@ -191,7 +191,7 @@ export default function CheckoutForm({
   };
 
   return (
-    <div className="checkout-page relative mx-auto max-w-3xl px-4">
+    <div className="checkout-page relative mx-auto w-full max-w-6xl px-4 lg:px-8">
       <div className="checkout-card rounded-2xl p-8 shadow-2xl md:p-10">
         <h1 className="checkout-title mb-8 text-3xl font-semibold leading-tight md:text-4xl">
           Purchase {productTitle}

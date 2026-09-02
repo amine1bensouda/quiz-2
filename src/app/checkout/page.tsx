@@ -74,14 +74,14 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
       <div className="pointer-events-none absolute right-[-2rem] bottom-12 h-64 w-64 rounded-full bg-[#b388ff]/10 blur-3xl" />
 
       {params.canceled && (
-        <div className="relative mx-auto max-w-3xl px-4 mb-6">
+        <div className="relative mx-auto w-full max-w-6xl px-4 lg:px-8 mb-6">
           <div className="rounded-xl border border-amber-500/35 bg-amber-950/35 px-4 py-3 text-sm text-amber-100">
             Payment canceled. No charge was made.
           </div>
         </div>
       )}
       {params.error && (
-        <div className="relative mx-auto max-w-3xl px-4 mb-6">
+        <div className="relative mx-auto w-full max-w-6xl px-4 lg:px-8 mb-6">
           <div className="rounded-xl border border-red-500/40 bg-red-900/20 px-4 py-3 text-sm text-red-200">
             An error occurred while processing the payment. Please try again.
           </div>
