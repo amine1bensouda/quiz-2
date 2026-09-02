@@ -91,19 +91,6 @@ export default function Header() {
             >
               Pricing
             </Link>
-            <Link
-              href="/blogs"
-              className={`px-5 py-2.5 text-sm font-medium text-[rgba(238,234,244,0.7)] transition-colors relative ${
-                isActive('/blogs') 
-                  ? 'text-[#eeeaf4]' 
-                  : 'hover:text-[#eeeaf4]'
-              }`}
-            >
-              Blog
-              {isActive('/blogs') && (
-                <span className="absolute bottom-0 left-3 right-3 h-px bg-[#f5c14a] rounded-full"></span>
-              )}
-            </Link>
           </nav>
 
           {/* User menu */}
@@ -181,17 +168,6 @@ export default function Header() {
                 className="px-4 py-3 font-medium text-[rgba(238,234,244,0.85)] transition-colors rounded-lg hover:bg-white/5"
               >
                 Pricing
-              </Link>
-              <Link
-                href="/blogs"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 font-medium text-[rgba(238,234,244,0.85)] transition-colors rounded-lg ${
-                  isActive('/blogs') 
-                    ? 'bg-white/10 text-[#eeeaf4]' 
-                    : 'hover:bg-white/5'
-                }`}
-              >
-                Blog
               </Link>
               <div className="border-t border-white/10 my-2"></div>
               {user ? (
