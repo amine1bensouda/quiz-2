@@ -347,7 +347,7 @@ async function trySendCheckoutConfirmationEmail(
 ): Promise<void> {
   if (!isEmailConfigured()) {
     console.error(
-      `[subscription-email] ${source}: email not configured — set RESEND_API_KEY on the server.`
+      `[subscription-email] ${source}: email not configured. Set RESEND_API_KEY on the server.`
     );
     return;
   }

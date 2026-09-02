@@ -46,7 +46,7 @@ export default function QuizSyncTable({ quizzes }: { quizzes: QuizSyncRow[] }) {
         ...f,
         [quiz.id]: data.alreadyUpToDate
           ? 'Already up to date'
-          : `OK — Free ID: ${data.freeQuizId}`,
+          : `OK. Free ID: ${data.freeQuizId}`,
       }));
       router.refresh();
     } catch (e) {

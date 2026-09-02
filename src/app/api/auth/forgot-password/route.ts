@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       message: SUCCESS_MESSAGE,
       devHint:
         process.env.NODE_ENV === 'development' && devResetUrl
-          ? 'Email not configured — use the reset link shown below or check the server console.'
+          ? 'Email not configured. Use the reset link shown below or check the server console.'
           : undefined,
       devResetUrl: process.env.NODE_ENV === 'development' ? devResetUrl : undefined,
     });

@@ -27,10 +27,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const description = `Quiz answer key: ${title}`;
 
   return {
-    title: `Answer key — ${title}`,
+    title: `Answer key: ${title}`,
     description,
     openGraph: {
-      title: `Answer key — ${title}`,
+      title: `Answer key: ${title}`,
       description,
       type: 'article',
       url: `${SITE_URL}/quiz/${params.slug}/correction`,

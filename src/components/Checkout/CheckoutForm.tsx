@@ -118,8 +118,8 @@ export default function CheckoutForm({
   const priceLabel = `$${formatPlanPriceAmount(plan)}`;
 
   const productTitle = selectedCourse
-    ? `${SITE_NAME} — ${selectedCourse.title}`
-    : `${SITE_NAME} — ${plan.label}`;
+    ? `${SITE_NAME}: ${selectedCourse.title}`
+    : `${SITE_NAME}: ${plan.label}`;
 
   const fetchClientSecret = useCallback(async () => {
     const res = await fetch('/api/subscriptions/stripe/intent', {
@@ -350,7 +350,7 @@ export default function CheckoutForm({
             <h3 className="text-lg font-bold text-[#eeeaf4]">{productTitle}</h3>
             {withTrial ? (
               <p className="checkout-muted mt-1 text-sm">
-                {getTrialLongLabel()} — first charge on {formatRenewalDate()}
+                {getTrialLongLabel()}. First charge on {formatRenewalDate()}
               </p>
             ) : (
               <p className="checkout-muted mt-1 text-sm">Billed immediately</p>

@@ -89,7 +89,7 @@ export function TrialCountdown({
 
   const title = canceled ? 'Trial access ends in' : 'Free trial ends in';
   const subtitle = canceled
-    ? `Canceled — no charge. Access until ${endLabel}.`
+    ? `Canceled. No charge. Access until ${endLabel}.`
     : `Cancel before ${endLabel} to avoid being charged.`;
 
   const units = (

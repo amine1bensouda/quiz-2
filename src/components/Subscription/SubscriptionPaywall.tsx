@@ -34,7 +34,7 @@ interface SubscriptionPaywallProps {
 }
 
 function defaultPaywallSubtitle(): string {
-  return `${formatPlanPrice(PLANS.SINGLE_COURSE)} per course — ${getTrialLongLabel()}, you only get charged if you continue.`;
+  return `${formatPlanPrice(PLANS.SINGLE_COURSE)} per course. ${getTrialLongLabel()}, you only get charged if you continue.`;
 }
 
 function buildCheckoutHref(courseId?: string): string {
@@ -111,12 +111,12 @@ export default function SubscriptionPaywall({
         </h1>
         <p className="text-lg text-[rgba(238,234,244,0.65)]">
           {trialChecked && !trialEligible
-            ? `${formatPlanPrice(PLANS.SINGLE_COURSE)} per course — subscribe now, billed immediately.`
+            ? `${formatPlanPrice(PLANS.SINGLE_COURSE)} per course. Subscribe now, billed immediately.`
             : subtitle}
         </p>
         {trialChecked && trialEligible && (
           <p className="text-sm text-[rgba(238,234,244,0.5)] mt-3">
-            One-time {trialShort} per account — first charge on{' '}
+            One-time {trialShort} per account. First charge on{' '}
             <strong className="text-[#f5c14a]">
               {getTrialMinutes() < 60
                 ? firstChargeDate.toLocaleString('en-US', {
@@ -137,7 +137,7 @@ export default function SubscriptionPaywall({
         {trialChecked && !trialEligible && (
           <p className="text-sm text-amber-200/90 mt-3">
             You have already used your free trial on this account. You will be
-            charged immediately — no new trial.
+            charged immediately. No new trial.
           </p>
         )}
       </header>

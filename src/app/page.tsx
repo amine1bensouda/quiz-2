@@ -79,8 +79,8 @@ export default async function HomePage() {
           Every student deserves to <em>crack</em> their exam.
         </h1>
         <p className="hero-sub">
-          <strong>{formatPlanPrice(singleCoursePlan)}</strong> per exam bank. 48h free trial —
-          no charge before billing.
+          <strong>{formatPlanPrice(singleCoursePlan)}</strong> per exam bank. 48h free trial.
+          No charge before billing.
         </p>
         <div className="actions">
           <Link href="/quiz" className="btn-hero">

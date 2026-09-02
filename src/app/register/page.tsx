@@ -124,7 +124,7 @@ function RegisterPageContent() {
           <h1 className="text-4xl font-bold text-[#eeeaf4] mb-2">Create Account</h1>
           <p className="text-[rgba(238,234,244,0.65)]">
             {step === 'form'
-              ? `Join ${SITE_NAME} — email confirmation required`
+              ? `Join ${SITE_NAME}. Email confirmation required`
               : 'Verify your email address'}
           </p>
         </div>

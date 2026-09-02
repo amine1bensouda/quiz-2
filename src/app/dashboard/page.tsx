@@ -491,7 +491,7 @@ function NotificationsSection() {
       title="Notifications"
       subtitle="Stay updated on your progress and account activity."
     >
-      <p className="dash-muted text-center py-4">You&apos;re all caught up — no new notifications.</p>
+      <p className="dash-muted text-center py-4">You&apos;re all caught up. No new notifications.</p>
     </DashboardPanel>
   );
 }

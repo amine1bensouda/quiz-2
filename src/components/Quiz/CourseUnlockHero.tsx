@@ -146,7 +146,7 @@ export default function CourseUnlockHero({
 
               <p className="mt-4 text-center text-xs leading-relaxed text-[#9d98ab] lg:text-left">
                 {trialEligible
-                  ? `${trialLongLabel} — no charge until the trial ends.`
+                  ? `${trialLongLabel}. No charge until the trial ends.`
                   : 'Billed immediately. Manage or cancel from your dashboard.'}
               </p>
             </div>

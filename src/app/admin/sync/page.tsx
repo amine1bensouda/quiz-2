@@ -127,7 +127,7 @@ export default async function AdminSyncPage() {
               {logs.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-[rgba(238,234,244,0.45)]">
-                    No sync attempts yet — use the Publish button above.
+                    No sync attempts yet. Use the Publish button above.
                   </td>
                 </tr>
               ) : (
@@ -161,11 +161,11 @@ export default async function AdminSyncPage() {
                           {log.freeQuizId}
                         </code>
                       ) : (
-                        '—'
+                        '-'
                       )}
                     </td>
                     <td className="max-w-xs truncate px-4 py-3 text-xs text-red-300">
-                      {log.errorMessage || '—'}
+                      {log.errorMessage || '-'}
                     </td>
                   </tr>
                 ))

@@ -93,7 +93,7 @@ export default function HomeUnderConstruction({ siteName }: Props) {
             <span className="text-gray-800">is getting an upgrade</span>
           </h1>
           <p className="text-base sm:text-lg text-gray-600 max-w-md mx-auto leading-relaxed mb-8">
-            We&apos;re crafting a faster, clearer experience. Check back soon — the new home for your math practice is on its way.
+            We&apos;re crafting a faster, clearer experience. Check back soon. The new home for your math practice is on its way.
           </p>
 
           {/* Status line (rotating) */}

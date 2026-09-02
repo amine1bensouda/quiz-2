@@ -21,7 +21,7 @@ const PLAN_OPTIONS = [
 ];
 
 function formatDate(date: Date | null | undefined): string {
-  if (!date) return '—';
+  if (!date) return '-';
   const d = new Date(date);
   return d.toLocaleDateString('en-US', {
     day: '2-digit',
@@ -86,7 +86,7 @@ export default async function AdminSubscriptionsPage({
             Subscriptions
           </h1>
           <p className="text-[rgba(238,234,244,0.55)]">
-            {totalAll} total subscriptions — {totalActive} active
+            {totalAll} total subscriptions. {totalActive} active
           </p>
         </div>
       </div>
@@ -186,10 +186,10 @@ export default async function AdminSubscriptionsPage({
                     <tr key={sub.id} className="transition-colors hover:bg-white/[0.03]">
                       <td className="px-4 py-3">
                         <div className="text-sm font-semibold text-[#eeeaf4]">
-                          {sub.user?.name || '—'}
+                          {sub.user?.name || '-'}
                         </div>
                         <div className="text-xs text-[rgba(238,234,244,0.45)]">
-                          {sub.user?.email || '—'}
+                          {sub.user?.email || '-'}
                         </div>
                       </td>
                       <td className="px-4 py-3">
@@ -213,7 +213,7 @@ export default async function AdminSubscriptionsPage({
                         ) : sub.plan === 'ALL_ACCESS' ? (
                           <span className="text-[rgba(238,234,244,0.45)]">All courses</span>
                         ) : (
-                          <span className="text-[rgba(238,234,244,0.35)]">—</span>
+                          <span className="text-[rgba(238,234,244,0.35)]">-</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-sm capitalize text-[rgba(238,234,244,0.75)]">

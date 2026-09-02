@@ -52,7 +52,7 @@ export default async function AdminModulesPage({
   if (dbError) {
     return (
       <div className="admin-app space-y-4 rounded-2xl border border-red-500/40 bg-red-500/10 p-8 text-[#eeeaf4]">
-        <h1 className="text-2xl font-bold text-red-200">Modules — database unavailable</h1>
+        <h1 className="text-2xl font-bold text-red-200">Modules: database unavailable</h1>
         <p className="text-red-100/90">{dbError}</p>
         <p className="text-sm text-[rgba(238,234,244,0.65)]">
           Fix the connection and reload. Locally, PostgreSQL (Docker or similar) with a valid URL also works.

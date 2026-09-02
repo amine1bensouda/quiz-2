@@ -72,7 +72,7 @@ export default function PdfUploadField({
               <>📄 Import a PDF</>
             )}
           </label>
-          <span className="text-xs text-gray-500">PDF — max 50 MB</span>
+          <span className="text-xs text-gray-500">PDF. Max 50 MB</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500">or</span>

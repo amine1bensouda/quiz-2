@@ -4,7 +4,7 @@ import { SITE_NAME } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: 'Under construction',
-  description: 'Temporary page — site is being updated.',
+  description: 'Temporary page. Site is being updated.',
   robots: { index: false, follow: false },
 };
 
@@ -21,7 +21,7 @@ export default function EnConstructionPage() {
           </h1>
           <p className="mt-3 text-gray-600 leading-relaxed">
             {SITE_NAME} is temporarily unavailable while we push an update.
-            Thanks for your patience — we'll be back soon.
+            Thanks for your patience. We'll be back soon.
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
@@ -34,7 +34,7 @@ export default function EnConstructionPage() {
           </span>
         </div>
         <p className="text-xs text-gray-400 pt-4 border-t border-gray-100">
-          Temporary page — remove or disable once the launch is complete.
+          Temporary page. Remove or disable once the launch is complete.
         </p>
         <Link
           href="/"

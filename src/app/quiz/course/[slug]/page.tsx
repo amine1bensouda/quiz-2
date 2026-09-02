@@ -159,8 +159,7 @@ export default async function CoursePage({ params }: PageProps) {
                   className="mb-4 rounded-xl border border-amber-500/35 bg-amber-500/10 px-4 py-3 text-sm text-amber-200"
                   role="status"
                 >
-                  <strong className="font-semibold">Preview (draft)</strong>
-                  {' — '}
+                  <strong className="font-semibold">Preview (draft).</strong>{' '}
                   This course is not published. Only administrators can view this page.
                 </div>
               )}

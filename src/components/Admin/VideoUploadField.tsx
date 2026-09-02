@@ -74,7 +74,7 @@ export default function VideoUploadField({
               <>📁 Import a video</>
             )}
           </label>
-          <span className="text-xs text-gray-500">MP4, WebM — max 200 MB</span>
+          <span className="text-xs text-gray-500">MP4, WebM. Max 200 MB</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500">or</span>

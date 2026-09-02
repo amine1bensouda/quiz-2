@@ -57,7 +57,7 @@ export default async function AdminBlogsPage() {
                           {blog.category}
                         </span>
                       ) : (
-                        <span className="text-sm text-[rgba(238,234,244,0.35)]">—</span>
+                        <span className="text-sm text-[rgba(238,234,244,0.35)]">-</span>
                       )}
                     </td>
                     <td className="px-6 py-4">

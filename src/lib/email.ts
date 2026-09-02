@@ -194,7 +194,7 @@ export async function sendTransactionalEmail(params: {
 
   if (!isEmailConfigured()) {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[email:dev] No provider — transactional email:', { to, subject, text });
+      console.log('[email:dev] No provider. Transactional email:', { to, subject, text });
       return;
     }
     throw new Error(
@@ -215,7 +215,7 @@ export async function sendVerificationCodeEmail(
   name: string,
   code: string
 ): Promise<void> {
-  const subject = `${SITE_NAME} — Verification code (${code})`;
+  const subject = `${SITE_NAME}: Verification code (${code})`;
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto;">
@@ -230,7 +230,7 @@ export async function sendVerificationCodeEmail(
     </div>
   `;
 
-  const text = `Hello ${name},\n\nYour verification code: ${code}\n\nIt expires in 15 minutes.\n\n— ${SITE_NAME}`;
+  const text = `Hello ${name},\n\nYour verification code: ${code}\n\nIt expires in 15 minutes.\n\n${SITE_NAME}`;
 
   await sendTransactionalEmail({ to, subject, html, text });
 }
@@ -240,7 +240,7 @@ export async function sendPasswordResetEmail(
   name: string,
   resetUrl: string
 ): Promise<void> {
-  const subject = `${SITE_NAME} — Reset your password`;
+  const subject = `${SITE_NAME}: Reset your password`;
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto;">
@@ -257,7 +257,7 @@ export async function sendPasswordResetEmail(
     </div>
   `;
 
-  const text = `Hello ${name},\n\nReset your password: ${resetUrl}\n\nThis link expires in 1 hour.\n\n— ${SITE_NAME}`;
+  const text = `Hello ${name},\n\nReset your password: ${resetUrl}\n\nThis link expires in 1 hour.\n\n${SITE_NAME}`;
 
   await sendTransactionalEmail({ to, subject, html, text });
 }

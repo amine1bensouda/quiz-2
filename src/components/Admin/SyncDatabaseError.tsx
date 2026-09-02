@@ -14,7 +14,7 @@ export default function SyncDatabaseError({ appLabel, errorInfo }: Props) {
   return (
     <div className="max-w-2xl space-y-4 rounded-2xl border border-red-500/40 bg-red-500/10 p-6 text-[#eeeaf4]">
       <h1 className="text-xl font-bold text-red-200">
-        {title} — {appLabel}
+        {title}: {appLabel}
       </h1>
       <p className="whitespace-pre-wrap text-sm text-red-100/90">
         {errorInfo.message}

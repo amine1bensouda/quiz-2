@@ -335,7 +335,7 @@ ${formData.html}
             />
             <p className="text-xs text-gray-500 mt-2">
               Paste any HTML. No need to write &lt;html&gt;, &lt;head&gt; or
-              &lt;body&gt; — they are added for you. CSS goes in the CSS tab.
+              &lt;body&gt;. They are added for you. CSS goes in the CSS tab.
             </p>
           </div>
         )}

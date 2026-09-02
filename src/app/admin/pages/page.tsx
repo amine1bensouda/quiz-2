@@ -27,7 +27,7 @@ export default async function AdminPagesListPage() {
               Pages
             </h1>
             <p className="text-[rgba(238,234,244,0.55)]">
-              {pages.length} page{pages.length !== 1 ? 's' : ''} — indexable on
+              {pages.length} page{pages.length !== 1 ? 's' : ''}. Indexable on
               Google when published
             </p>
           </div>

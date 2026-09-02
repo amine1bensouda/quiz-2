@@ -340,7 +340,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
                 {modules.map((module) => (
                   <option key={module.id} value={module.id}>
                     {module.course.title}
-                    {module.course.status !== 'published' ? ' (draft)' : ''} — {module.title}
+                    {module.course.status !== 'published' ? ' (draft)' : ''}: {module.title}
                   </option>
                 ))}
               </select>

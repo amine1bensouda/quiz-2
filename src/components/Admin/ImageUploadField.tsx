@@ -75,7 +75,7 @@ export default function ImageUploadField({
               <>📁 Upload an image</>
             )}
           </label>
-          <span className="text-xs text-gray-500">JPEG, PNG, GIF, WebP — max 5 MB</span>
+          <span className="text-xs text-gray-500">JPEG, PNG, GIF, WebP. Max 5 MB</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500">or</span>

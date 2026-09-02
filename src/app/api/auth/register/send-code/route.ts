@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       expiresAt: expiresAt.toISOString(),
       devHint:
         process.env.NODE_ENV === 'development' && !isEmailConfigured()
-          ? 'Email not configured — check the server console for the code.'
+          ? 'Email not configured. Check the server console for the code.'
           : undefined,
     });
   } catch (error: unknown) {

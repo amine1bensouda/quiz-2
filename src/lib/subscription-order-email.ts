@@ -60,7 +60,7 @@ function formatMoney(amountCents: number, currency: string): string {
 }
 
 function formatDate(date: Date | null | undefined): string {
-  if (!date) return '—';
+  if (!date) return '-';
   return date.toLocaleDateString('en-US', {
     day: 'numeric',
     month: 'long',
@@ -74,7 +74,7 @@ function planLabel(planId: string): string {
 
 function planPriceLabel(planId: string): string {
   const plan = getPlan(planId);
-  return plan ? formatPlanPrice(plan) : '—';
+  return plan ? formatPlanPrice(plan) : '-';
 }
 
 function orderDetailsHtml(sub: SubscriptionWithUser): string {
@@ -165,7 +165,7 @@ export async function sendSubscriptionCheckoutEmail(params: {
   try {
     await sendTransactionalEmail({
       to: sub.user.email,
-      subject: `${SITE_NAME} — Order confirmation`,
+      subject: `${SITE_NAME}: Order confirmation`,
       html,
       text,
     });
@@ -235,7 +235,7 @@ export async function sendSubscriptionInvoiceEmail(params: {
   try {
     await sendTransactionalEmail({
       to: sub.user.email,
-      subject: `${SITE_NAME} — Payment receipt (${params.invoiceNumber})`,
+      subject: `${SITE_NAME}: Payment receipt (${params.invoiceNumber})`,
       html,
       text,
     });
