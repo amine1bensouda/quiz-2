@@ -168,7 +168,6 @@ export async function POST(request: NextRequest) {
         courseId: courseId ?? '',
       },
       return_url: `${appUrl}/dashboard?subscription=success&session_id={CHECKOUT_SESSION_ID}`,
-      redirect_on_completion: 'if_required',
       allow_promotion_codes: !promoCode,
       payment_method_collection: 'always',
     };
