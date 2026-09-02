@@ -131,7 +131,7 @@ export default async function HomePage() {
       <section className="mission">
         <div className="mission-inner">
           <div className="mission-quote">
-            Practice is a <em style={{ color: 'var(--amber)' }}>right</em>, not a privilege.
+            Practice is a <em>right</em>, not a privilege.
           </div>
           <div>
             <p className="section-desc">
