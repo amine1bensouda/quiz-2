@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
     }
 
     const sessionParams: Record<string, unknown> = {
-      ui_mode: 'embedded_page',
+      ui_mode: 'form',
       mode: 'subscription',
       locale: 'en',
       customer: customerId,
@@ -211,7 +211,7 @@ export async function POST(request: NextRequest) {
     return addResponseObservability(
       NextResponse.json({
         clientSecret: session.client_secret,
-        checkoutMode: 'embedded',
+        checkoutMode: 'form',
         sessionId: session.id,
         subscriptionId: subscription.id,
         withTrial,

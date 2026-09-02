@@ -3,7 +3,12 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
-import { EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js';
+import type { StripeCheckoutFormConfirmEvent } from '@stripe/stripe-js';
+import {
+  CheckoutForm as StripeCheckoutForm,
+  CheckoutFormProvider,
+  useCheckoutForm,
+} from '@stripe/react-stripe-js/checkout';
 import {
   PLANS,
   formatPlanPrice,
@@ -13,6 +18,7 @@ import {
   planHighlightsForTrial,
 } from '@/lib/plans';
 import { SITE_NAME } from '@/lib/constants';
+import { getStripeCheckoutAppearance } from '@/lib/stripe-checkout-branding';
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
@@ -44,6 +50,43 @@ function formatRenewalDate(): string {
     day: 'numeric',
     year: 'numeric',
   });
+}
+
+function StripePaymentForm() {
+  const checkoutState = useCheckoutForm();
+
+  const onConfirm = useCallback(
+    async (event: StripeCheckoutFormConfirmEvent) => {
+      if (checkoutState.type !== 'success') return;
+      try {
+        await checkoutState.checkout.confirm({
+          formConfirmEvent: event,
+          redirect: 'if_required',
+        });
+      } catch (err: unknown) {
+        console.error('Stripe payment confirmation error:', err);
+      }
+    },
+    [checkoutState]
+  );
+
+  if (checkoutState.type === 'error') {
+    return (
+      <div className="rounded-xl border border-red-500/40 bg-red-900/20 px-4 py-3 text-sm text-red-200">
+        {checkoutState.error.message}
+      </div>
+    );
+  }
+
+  if (checkoutState.type === 'loading') {
+    return (
+      <div className="checkout-muted py-8 text-center text-sm">
+        Loading secure payment…
+      </div>
+    );
+  }
+
+  return <StripeCheckoutForm onConfirm={onConfirm} />;
 }
 
 export default function CheckoutForm({
@@ -99,8 +142,11 @@ export default function CheckoutForm({
     return data.clientSecret as string;
   }, [selectedCourseId, appliedPromo]);
 
-  const embeddedCheckoutOptions = useMemo(
-    () => ({ fetchClientSecret }),
+  const stripeCheckoutOptions = useMemo(
+    () => ({
+      clientSecret: fetchClientSecret(),
+      appearance: getStripeCheckoutAppearance(),
+    }),
     [fetchClientSecret]
   );
 
@@ -282,13 +328,13 @@ export default function CheckoutForm({
             </button>
           ) : (
             <div className="checkout-payment-element">
-              <EmbeddedCheckoutProvider
+              <CheckoutFormProvider
                 key={`${checkoutKey}-${selectedCourseId}-${appliedPromo}`}
                 stripe={stripePromise}
-                options={embeddedCheckoutOptions}
+                options={stripeCheckoutOptions}
               >
-                <EmbeddedCheckout />
-              </EmbeddedCheckoutProvider>
+                <StripePaymentForm />
+              </CheckoutFormProvider>
             </div>
           )}
         </section>
