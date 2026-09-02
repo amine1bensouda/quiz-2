@@ -6,7 +6,6 @@ import { getPurchasablePlan, getTrialSeconds, type PlanId } from '@/lib/plans';
 import { getUserActiveSubscription } from '@/lib/subscription-access';
 import { canUserStartFreeTrial } from '@/lib/trial-eligibility';
 import { addResponseObservability } from '@/lib/traffic-guard';
-import { getStripeCheckoutBrandingSettings } from '@/lib/stripe-checkout-branding';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -158,7 +157,6 @@ export async function POST(request: NextRequest) {
       mode: 'subscription',
       locale: 'en',
       customer: customerId,
-      branding_settings: getStripeCheckoutBrandingSettings(),
       line_items: [{ price: plan.stripePriceId, quantity: 1 }],
       subscription_data: subscriptionData,
       metadata: {
