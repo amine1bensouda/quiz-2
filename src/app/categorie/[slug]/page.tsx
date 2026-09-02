@@ -87,7 +87,6 @@ export default async function CategoryPage({ params }: PageProps) {
             {courses.map((course) => (
               <CourseCard
                 key={course.id}
-                id={course.id}
                 title={course.title}
                 description={course.description}
                 moduleCount={course.moduleCount}

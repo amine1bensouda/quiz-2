@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { excerptFromHtml } from '@/lib/utils';
 
 interface CourseCardProps {
-  id: string;
   title: string;
   description?: string | null;
   moduleCount: number;
@@ -14,7 +13,6 @@ interface CourseCardProps {
 }
 
 export default function CourseCard({
-  id,
   title,
   description,
   moduleCount,
@@ -22,7 +20,7 @@ export default function CourseCard({
   slug,
   locked = false,
 }: CourseCardProps) {
-  const href = locked ? `/checkout?courseId=${id}` : `/quiz/course/${slug}`;
+  const href = `/quiz/course/${slug}`;
 
   return (
     <Link

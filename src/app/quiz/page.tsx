@@ -220,7 +220,6 @@ export default function QuizListPage() {
               {displayedCourses.map((course) => (
                 <CourseCard
                   key={course.id}
-                  id={course.id}
                   title={course.title}
                   description={course.description}
                   moduleCount={course.moduleCount}

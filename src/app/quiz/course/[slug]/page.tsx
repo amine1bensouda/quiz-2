@@ -10,12 +10,13 @@ import QuizCard from '@/components/Quiz/QuizCard';
 import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
 import CourseSchema from '@/components/SEO/CourseSchema';
 import { getCourseBySlug } from '@/lib/course-service';
-import { formatPlanPrice, PLANS } from '@/lib/plans';
+import { formatPlanPrice, PLANS, getTrialLongLabel, getTrialShortLabel, planHighlightsForTrial } from '@/lib/plans';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
 import { excerptFromHtml, stripHtml } from '@/lib/utils';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { canUserAccessCourse } from '@/lib/subscription-access';
+import { canUserStartFreeTrial } from '@/lib/trial-eligibility';
 
 // L'affichage dépend de l'état d'abonnement de l'utilisateur (lock banner).
 export const dynamic = 'force-dynamic';
@@ -117,10 +118,11 @@ export default async function CoursePage({ params }: PageProps) {
   const currentUser = await getCurrentUserFromSession();
   const hasAccess = await canUserAccessCourse(currentUser?.id ?? null, course.id, isAdmin);
   const isDraftCourse = course.status === 'draft';
-
-  if (currentUser && !hasAccess && !isAdmin) {
-    redirect(`/checkout?courseId=${encodeURIComponent(course.id)}`);
-  }
+  const trialEligible = currentUser
+    ? await canUserStartFreeTrial(currentUser.id)
+    : true;
+  const plan = PLANS.SINGLE_COURSE;
+  const showLockedLanding = !hasAccess && !isAdmin;
 
   return (
     <div className="quiz-page relative min-h-screen overflow-hidden bg-[#080810] text-[#eeeaf4]">
@@ -191,37 +193,41 @@ export default async function CoursePage({ params }: PageProps) {
                   <SafeHtmlRenderer html={course.description} className="leading-relaxed text-[#a29cb0]" />
                 </div>
               )}
+
+              {showLockedLanding && (
+                <div className="mt-8 rounded-2xl border border-[#f5c14a]/30 bg-[#0e0e1a]/80 p-6 sm:p-8">
+                  <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-[#f5c14a]">
+                    {trialEligible ? getTrialShortLabel() : 'Subscribe now'}
+                  </p>
+                  <p className="mb-4 text-2xl font-bold text-[#eeeaf4] sm:text-3xl">
+                    {formatPlanPrice(plan)}
+                    <span className="ml-2 text-base font-medium text-[#a29cb0]">for this course</span>
+                  </p>
+                  <ul className="mb-6 space-y-2 text-sm text-[#a29cb0]">
+                    {planHighlightsForTrial(plan, trialEligible).map((item) => (
+                      <li key={item} className="flex items-start gap-2">
+                        <span className="mt-0.5 text-[#f5c14a]">✓</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    href={`/checkout?courseId=${course.id}`}
+                    className="inline-flex w-full items-center justify-center rounded-xl bg-[#f5c14a] px-6 py-3.5 text-base font-semibold text-[#080810] shadow-lg shadow-[#f5c14a]/20 transition hover:bg-[#f9d06a] sm:w-auto"
+                  >
+                    {trialEligible ? `Start ${getTrialShortLabel()}` : 'Continue to checkout'}
+                  </Link>
+                  <p className="mt-4 text-center text-xs text-[#9d98ab] sm:text-left">
+                    {trialEligible
+                      ? `${getTrialLongLabel()} — no charge until the trial ends.`
+                      : 'Billed immediately. Cancel anytime from your dashboard.'}
+                  </p>
+                </div>
+              )}
             </div>
           </header>
 
-          {!hasAccess && (
-            <div className="course-unlock-banner animate-fade-in mb-8 rounded-2xl border border-[#f5c14a]/35 bg-[#111121]/90 p-6 shadow-lg shadow-black/30 sm:p-8">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-[#f5c14a]/15 text-[#f5c14a]">
-                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <h2 className="mb-1 text-lg font-bold text-[#eeeaf4] sm:text-xl">
-                    Unlock this course
-                  </h2>
-                  <p className="text-sm text-[#a29cb0] sm:text-base">
-                    {formatPlanPrice(PLANS.SINGLE_COURSE)} for this course. 48h free trial — no charge before.
-                  </p>
-                </div>
-                <Link
-                  href={`/checkout?courseId=${course.id}`}
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-xl bg-[#f5c14a] px-5 py-3 font-semibold text-[#080810] shadow-sm transition hover:bg-[#e5b443]"
-                >
-                  Start 48h trial
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* Liste des modules */}
-          {course.modules.length > 0 ? (
+          {hasAccess && course.modules.length > 0 ? (
             <section className="space-y-4 sm:space-y-5 animate-fade-in" aria-label="Course modules">
               {course.modules.map((module) => {
                 const hasQuizzes = (module._count.quizzes ?? 0) > 0;
@@ -290,11 +296,11 @@ export default async function CoursePage({ params }: PageProps) {
                 );
               })}
             </section>
-          ) : (
+          ) : hasAccess ? (
             <div className="course-empty rounded-2xl border border-white/10 bg-[#111121]/80 px-4 py-12 text-center shadow-lg backdrop-blur-sm sm:py-16">
               <p className="text-[#a29cb0]">This course has no modules yet.</p>
             </div>
-          )}
+          ) : null}
 
         </main>
       </div>
