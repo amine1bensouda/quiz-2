@@ -142,7 +142,7 @@ export default async function CoursePage({ params }: PageProps) {
       <div className="pointer-events-none absolute right-[-3rem] top-40 h-80 w-80 rounded-full bg-[#b388ff]/15 blur-3xl" />
       <div className="pointer-events-none absolute bottom-20 left-1/3 h-72 w-72 rounded-full bg-[#2be4c8]/10 blur-3xl" />
       <Navigation />
-      <div className="relative z-10 mx-auto w-full max-w-4xl overflow-x-hidden px-4 py-6 sm:px-5 sm:py-8 md:px-6 md:py-10 lg:py-12">
+      <div className="relative z-10 mx-auto w-full max-w-6xl overflow-x-hidden px-4 py-6 sm:px-5 sm:py-8 md:px-6 md:py-10 lg:px-8 lg:py-12">
         <main className="w-full min-w-0">
           <nav className="scrollbar-hide mb-4 overflow-x-auto whitespace-nowrap pt-0.5 text-xs text-[#9d98ab] sm:mb-6 sm:text-sm">
             <Link href="/" className="transition-colors hover:text-[#f5c14a]">Home</Link>
