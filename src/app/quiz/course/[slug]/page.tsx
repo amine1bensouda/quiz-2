@@ -6,6 +6,7 @@ import Navigation from '@/components/Layout/Navigation';
 import AnimatedShapes from '@/components/Layout/AnimatedShapesClient';
 import BackgroundPattern from '@/components/Layout/BackgroundPatternClient';
 import Accordion from '@/components/Layout/Accordion';
+import CourseUnlockHero from '@/components/Quiz/CourseUnlockHero';
 import QuizCard from '@/components/Quiz/QuizCard';
 import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
 import CourseSchema from '@/components/SEO/CourseSchema';
@@ -195,34 +196,17 @@ export default async function CoursePage({ params }: PageProps) {
               )}
 
               {showLockedLanding && (
-                <div className="mt-8 rounded-2xl border border-[#f5c14a]/30 bg-[#0e0e1a]/80 p-6 sm:p-8">
-                  <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-[#f5c14a]">
-                    {trialEligible ? getTrialShortLabel() : 'Subscribe now'}
-                  </p>
-                  <p className="mb-4 text-2xl font-bold text-[#eeeaf4] sm:text-3xl">
-                    {formatPlanPrice(plan)}
-                    <span className="ml-2 text-base font-medium text-[#a29cb0]">for this course</span>
-                  </p>
-                  <ul className="mb-6 space-y-2 text-sm text-[#a29cb0]">
-                    {planHighlightsForTrial(plan, trialEligible).map((item) => (
-                      <li key={item} className="flex items-start gap-2">
-                        <span className="mt-0.5 text-[#f5c14a]">✓</span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Link
-                    href={`/checkout?courseId=${course.id}`}
-                    className="inline-flex w-full items-center justify-center rounded-xl bg-[#f5c14a] px-6 py-3.5 text-base font-semibold text-[#080810] shadow-lg shadow-[#f5c14a]/20 transition hover:bg-[#f9d06a] sm:w-auto"
-                  >
-                    {trialEligible ? `Start ${getTrialShortLabel()}` : 'Continue to checkout'}
-                  </Link>
-                  <p className="mt-4 text-center text-xs text-[#9d98ab] sm:text-left">
-                    {trialEligible
-                      ? `${getTrialLongLabel()} — no charge until the trial ends.`
-                      : 'Billed immediately. Cancel anytime from your dashboard.'}
-                  </p>
-                </div>
+                <CourseUnlockHero
+                  courseId={course.id}
+                  priceLabel={formatPlanPrice(plan)}
+                  trialEligible={trialEligible}
+                  trialShortLabel={getTrialShortLabel()}
+                  trialLongLabel={getTrialLongLabel()}
+                  highlights={planHighlightsForTrial(plan, trialEligible)}
+                  moduleCount={course.modules.length}
+                  totalQuizzes={totalQuizzes}
+                  totalLessons={totalLessons}
+                />
               )}
             </div>
           </header>
