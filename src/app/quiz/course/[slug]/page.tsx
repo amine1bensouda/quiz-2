@@ -227,7 +227,7 @@ export default async function CoursePage({ params }: PageProps) {
             </div>
           </header>
 
-          {hasAccess && course.modules.length > 0 ? (
+          {course.modules.length > 0 ? (
             <section className="space-y-4 sm:space-y-5 animate-fade-in" aria-label="Course modules">
               {course.modules.map((module) => {
                 const hasQuizzes = (module._count.quizzes ?? 0) > 0;
@@ -296,11 +296,11 @@ export default async function CoursePage({ params }: PageProps) {
                 );
               })}
             </section>
-          ) : hasAccess ? (
+          ) : (
             <div className="course-empty rounded-2xl border border-white/10 bg-[#111121]/80 px-4 py-12 text-center shadow-lg backdrop-blur-sm sm:py-16">
               <p className="text-[#a29cb0]">This course has no modules yet.</p>
             </div>
-          ) : null}
+          )}
 
         </main>
       </div>
