@@ -1,9 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { createCoursePreviewToken } from '@/lib/course-preview-token';
+import { SITE_URL } from '@/lib/constants';
 import { prisma } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
+
+/**
+ * Public site origin for redirects.
+ * Prefer NEXT_PUBLIC_SITE_URL — behind nginx/pm2, request.nextUrl.origin is often http://0.0.0.0:3000.
+ */
+function getPublicOrigin(request: NextRequest): string {
+  const configured = SITE_URL?.trim().replace(/\/$/, '');
+  if (configured && !/0\.0\.0\.0|127\.0\.0\.1|localhost/i.test(configured)) {
+    return configured;
+  }
+
+  const forwardedHost =
+    request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() ||
+    request.headers.get('host')?.split(',')[0]?.trim();
+  const forwardedProto =
+    request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim() || 'https';
+
+  if (forwardedHost && !/^0\.0\.0\.0(?::|$)/i.test(forwardedHost)) {
+    return `${forwardedProto}://${forwardedHost}`;
+  }
+
+  return configured || 'https://crackthecurve.com';
+}
 
 /**
  * GET /api/admin/courses/[id]/preview
@@ -13,7 +37,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
-  const origin = request.nextUrl.origin;
+  const origin = getPublicOrigin(request);
 
   try {
     await requireAdmin();
