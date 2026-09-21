@@ -1,10 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import QuestionEditor from './QuestionEditor';
 import RichTextEditor from './RichTextEditor';
 import ImageUploadField from './ImageUploadField';
+import {
+  htmlContainsDataImages,
+  replaceDataImagesInQuizPayload,
+} from '@/lib/html-data-images';
 
 interface Course {
   id: string;
@@ -66,6 +70,7 @@ interface QuizFormProps {
 export default function QuizForm({ initialData }: QuizFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [modules, setModules] = useState<Module[]>([]);
   const [showCreateCourse, setShowCreateCourse] = useState(false);
@@ -87,6 +92,8 @@ export default function QuizForm({ initialData }: QuizFormProps) {
     questions: [],
     ...initialData,
   });
+  const formDataRef = useRef(formData);
+  formDataRef.current = formData;
 
   useEffect(() => {
     fetchCourses();
@@ -231,8 +238,64 @@ export default function QuizForm({ initialData }: QuizFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setStatusMessage(null);
 
     try {
+      // Flush debounced RichTextEditor values into React state
+      window.dispatchEvent(new Event('richtext-flush'));
+      await new Promise((resolve) => setTimeout(resolve, 80));
+
+      const latest = formDataRef.current;
+      let payload = {
+        ...latest,
+        moduleId: latest.moduleId || null,
+        duration: latest.duration || null,
+        difficulty: latest.difficulty ?? '',
+        passingGrade: latest.passingGrade || null,
+        maxQuestions: latest.maxQuestions || null,
+        questions: latest.questions.map((q, qIndex) => ({
+          ...q,
+          order: qIndex,
+          answers: q.answers.map((a, aIndex) => ({
+            ...a,
+            order: aIndex,
+          })),
+        })),
+      };
+
+      const hasEmbeddedPhotos =
+        htmlContainsDataImages(payload.description) ||
+        htmlContainsDataImages(payload.excerpt) ||
+        payload.questions.some(
+          (q) =>
+            htmlContainsDataImages(q.text) ||
+            htmlContainsDataImages(q.explanation) ||
+            q.answers.some(
+              (a) => htmlContainsDataImages(a.text) || htmlContainsDataImages(a.explanation)
+            )
+        );
+
+      if (hasEmbeddedPhotos) {
+        setStatusMessage('Uploading embedded photos to storage…');
+        payload = await replaceDataImagesInQuizPayload(payload, setStatusMessage);
+        setFormData((prev) => ({
+          ...prev,
+          description: payload.description || '',
+          excerpt: payload.excerpt || '',
+          questions: payload.questions || prev.questions,
+        }));
+      }
+
+      const body = JSON.stringify(payload);
+      const bodyMb = body.length / (1024 * 1024);
+      if (bodyMb > 4) {
+        setStatusMessage(
+          `Payload still large (${bodyMb.toFixed(1)} MB). Saving may fail if the server limit is low.`
+        );
+      } else {
+        setStatusMessage('Saving quiz…');
+      }
+
       const url = initialData
         ? `/api/admin/quizzes/${initialData.id}`
         : '/api/admin/quizzes';
@@ -241,37 +304,36 @@ export default function QuizForm({ initialData }: QuizFormProps) {
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          moduleId: formData.moduleId || null,
-          duration: formData.duration || null,
-          difficulty: formData.difficulty ?? '',
-          passingGrade: formData.passingGrade || null,
-          maxQuestions: formData.maxQuestions || null,
-          questions: formData.questions.map((q, qIndex) => ({
-            ...q,
-            order: qIndex,
-            answers: q.answers.map((a, aIndex) => ({
-              ...a,
-              order: aIndex,
-            })),
-          })),
-        }),
+        body,
       });
 
       if (response.ok) {
         router.push('/admin/quizzes');
         router.refresh();
-      } else {
-        const data = await response.json().catch(() => ({}));
-        const message = data.details ? `${data.error || 'Error saving'}: ${data.details}` : (data.error || 'Error saving');
-        alert(message);
+        return;
       }
+
+      const contentType = response.headers.get('content-type') || '';
+      if (response.status === 413 || !contentType.includes('application/json')) {
+        alert(
+          `Save failed (HTTP ${response.status}). The quiz payload is too large for the server.\n` +
+            `Payload size: ${bodyMb.toFixed(1)} MB.\n` +
+            `Tip: photos must be uploaded as CDN URLs (not base64). Try again after photos finish uploading.`
+        );
+        return;
+      }
+
+      const data = await response.json().catch(() => ({}));
+      const message = data.details
+        ? `${data.error || 'Error saving'}: ${data.details}`
+        : data.error || `Error saving (HTTP ${response.status})`;
+      alert(message);
     } catch (error) {
       console.error('Erreur sauvegarde:', error);
-      alert('Error saving');
+      alert(error instanceof Error ? error.message : 'Error saving');
     } finally {
       setLoading(false);
+      setStatusMessage(null);
     }
   };
 
@@ -601,21 +663,26 @@ export default function QuizForm({ initialData }: QuizFormProps) {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center justify-end space-x-4">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={loading || !formData.title || !formData.slug}
-          className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? 'Saving...' : initialData ? 'Update' : 'Create Quiz'}
-        </button>
+      <div className="flex flex-col items-end gap-3">
+        {statusMessage && (
+          <p className="text-sm font-medium text-amber-200">{statusMessage}</p>
+        )}
+        <div className="flex items-center justify-end space-x-4">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading || !formData.title || !formData.slug}
+            className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? statusMessage || 'Saving...' : initialData ? 'Update' : 'Create Quiz'}
+          </button>
+        </div>
       </div>
     </form>
   );

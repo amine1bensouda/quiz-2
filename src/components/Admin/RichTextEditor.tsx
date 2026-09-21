@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 
 // Import dynamique pour éviter les erreurs SSR
@@ -15,6 +15,20 @@ interface RichTextEditorProps {
   compact?: boolean;
 }
 
+async function uploadImageFile(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append('image', file);
+  const res = await fetch('/api/admin/upload/image', {
+    method: 'POST',
+    body: formData,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.url) {
+    throw new Error(data.error || 'Image upload failed');
+  }
+  return data.url as string;
+}
+
 export default function RichTextEditor({
   value,
   onChange,
@@ -23,29 +37,27 @@ export default function RichTextEditor({
   compact = false,
 }: RichTextEditorProps) {
   const [localValue, setLocalValue] = useState(value);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const uploadingRef = useRef(setUploading);
+  uploadingRef.current = setUploading;
 
-  // Synchroniser localValue avec la prop value si elle change de l'extérieur
   useEffect(() => {
     setLocalValue(value);
   }, [value]);
 
-  // Debounce onChange pour éviter trop d'appels
   const handleChange = (newValue: string) => {
     setLocalValue(newValue);
-    
-    // Annuler le timeout précédent
+
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    
-    // Appeler onChange après 300ms de délai
+
     timeoutRef.current = setTimeout(() => {
       onChange(newValue);
     }, 300);
   };
 
-  // Nettoyer le timeout au démontage
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -54,23 +66,73 @@ export default function RichTextEditor({
     };
   }, []);
 
-  // Configuration des modules Quill
-  const modules = {
-    toolbar: [
-      [{ header: [1, 2, 3, 4, 5, 6, false] }],
-      [{ font: [] }],
-      [{ size: [] }],
-      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-      [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
-      [{ color: [] }, { background: [] }],
-      [{ align: [] }],
-      ['link', 'image', 'video'],
-      ['clean'],
-    ],
-    clipboard: {
-      matchVisual: false,
-    },
-  };
+  // Flush pending debounce so parent state is current before form submit
+  useEffect(() => {
+    const flush = () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+        onChange(localValue);
+      }
+    };
+    window.addEventListener('richtext-flush', flush);
+    return () => window.removeEventListener('richtext-flush', flush);
+  }, [localValue, onChange]);
+
+  const modules = useMemo(
+    () => ({
+      toolbar: {
+        container: [
+          [{ header: [1, 2, 3, 4, 5, 6, false] }],
+          [{ font: [] }],
+          [{ size: [] }],
+          ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+          [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+          [{ color: [] }, { background: [] }],
+          [{ align: [] }],
+          ['link', 'image', 'video'],
+          ['clean'],
+        ],
+        handlers: {
+          // Classic function: Quill binds `this` to the toolbar (has `.quill`)
+          image: function (this: { quill: {
+            getSelection: (focus?: boolean) => { index: number } | null;
+            insertEmbed: (index: number, type: string, value: string, source?: string) => void;
+            setSelection: (index: number) => void;
+          } }) {
+            const quill = this.quill;
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/jpeg,image/png,image/gif,image/webp';
+            input.click();
+
+            input.onchange = async () => {
+              const file = input.files?.[0];
+              if (!file) return;
+
+              uploadingRef.current(true);
+              try {
+                const url = await uploadImageFile(file);
+                const range = quill.getSelection(true);
+                const index = range?.index ?? 0;
+                quill.insertEmbed(index, 'image', url, 'user');
+                quill.setSelection(index + 1);
+              } catch (err) {
+                console.error('Rich text image upload failed:', err);
+                alert(err instanceof Error ? err.message : 'Image upload failed');
+              } finally {
+                uploadingRef.current(false);
+              }
+            };
+          },
+        },
+      },
+      clipboard: {
+        matchVisual: false,
+      },
+    }),
+    []
+  );
 
   const formats = [
     'header',
@@ -95,6 +157,9 @@ export default function RichTextEditor({
   const minHeight = compact ? 100 : 200;
   return (
     <div className={`rich-text-editor ${compact ? 'rich-text-editor-compact' : ''} ${className}`}>
+      {uploading && (
+        <p className="mb-2 text-xs font-medium text-amber-200">Uploading image…</p>
+      )}
       <style jsx global>{`
         .rich-text-editor .ql-container {
           min-height: ${minHeight}px;
@@ -138,7 +203,6 @@ export default function RichTextEditor({
         .rich-text-editor .ql-picker-label {
           color: rgba(238, 234, 244, 0.75);
         }
-        /* Quill + préflight Tailwind : forcer gras et souligné même combinés */
         .rich-text-editor .ql-editor strong,
         .rich-text-editor .ql-editor b {
           font-weight: 700 !important;
@@ -152,6 +216,10 @@ export default function RichTextEditor({
         .rich-text-editor .ql-editor b u {
           font-weight: 700 !important;
           text-decoration: underline;
+        }
+        .rich-text-editor .ql-editor img {
+          max-width: 100%;
+          height: auto;
         }
       `}</style>
       <ReactQuill
