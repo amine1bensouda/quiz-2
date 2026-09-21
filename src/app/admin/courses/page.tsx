@@ -140,9 +140,9 @@ export default async function AdminCoursesPage({
                       </code>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      {course.status !== 'published' && (
+                      {course.status !== 'published' && course.slug && (
                         <Link
-                          href={`/quiz/course/${encodeURIComponent(course.slug)}`}
+                          href={`/api/admin/courses/${course.id}/preview`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm font-medium text-amber-200 transition-colors hover:bg-amber-500/20"

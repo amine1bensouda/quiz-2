@@ -18,16 +18,27 @@ import { getCurrentUserFromSession } from '@/lib/auth-server';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { canUserAccessCourse } from '@/lib/subscription-access';
 import { canUserStartFreeTrial } from '@/lib/trial-eligibility';
+import { verifyCoursePreviewToken } from '@/lib/course-preview-token';
 
 // L'affichage dépend de l'état d'abonnement de l'utilisateur (lock banner).
 export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ slug: string }> | { slug: string };
+  searchParams?: Promise<{ preview?: string }> | { preview?: string };
+}
+
+function normalizeSlug(raw: string): string {
+  try {
+    return decodeURIComponent(raw).trim();
+  } catch {
+    return raw.trim();
+  }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await Promise.resolve(params);
+  const { slug: rawSlug } = await Promise.resolve(params);
+  const slug = normalizeSlug(rawSlug);
   let course = null;
   try {
     course = await getCourseBySlug(slug);
@@ -69,17 +80,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function CoursePage({ params }: PageProps) {
+export default async function CoursePage({ params, searchParams }: PageProps) {
   noStore();
-  const { slug } = await Promise.resolve(params);
+  const { slug: rawSlug } = await Promise.resolve(params);
+  const slug = normalizeSlug(rawSlug);
+  const sp = (await Promise.resolve(searchParams)) ?? {};
+  const previewToken = typeof sp.preview === 'string' ? sp.preview : null;
+
   let course = null;
   let hasDatabaseError = false;
   const isAdmin = await isAdminAuthenticated();
+  const hasPreviewToken = await verifyCoursePreviewToken(slug, previewToken);
+  const canViewDraft = isAdmin || hasPreviewToken;
+
   try {
-    course = await getCourseBySlug(slug);
-    if (!course && isAdmin) {
-      course = await getCourseBySlug(slug, { allowUnpublished: true });
-    }
+    course = await getCourseBySlug(slug, { allowUnpublished: canViewDraft });
   } catch (error) {
     console.error(`Failed to load course (${slug}):`, error);
     hasDatabaseError = true;
@@ -110,6 +125,33 @@ export default async function CoursePage({ params }: PageProps) {
   }
 
   if (!course) {
+    // Draft exists but viewer has no preview rights → clear message instead of /quiz dump
+    if (!canViewDraft) {
+      const draftOnly = await getCourseBySlug(slug, { allowUnpublished: true });
+      if (draftOnly && draftOnly.status !== 'published') {
+        return (
+          <div className="relative min-h-screen bg-[#080810] text-[#eeeaf4]">
+            <AnimatedShapes variant="hero" count={4} intensity="low" />
+            <BackgroundPattern variant="luxury" opacity={0.05} />
+            <Navigation />
+            <div className="container relative z-10 mx-auto px-4 py-16">
+              <div className="mx-auto max-w-2xl rounded-2xl border border-amber-500/35 bg-[#111121]/90 p-8 shadow-2xl shadow-black/40">
+                <h1 className="mb-3 text-2xl font-bold text-amber-200">Draft course</h1>
+                <p className="mb-6 text-[#d4d0dc]">
+                  This course is not published yet. Open Preview from the admin panel to view it.
+                </p>
+                <Link
+                  href="/admin/courses"
+                  className="inline-flex items-center rounded-full border border-amber-500/40 bg-amber-500/10 px-5 py-2.5 text-sm font-semibold text-amber-200 transition hover:bg-amber-500/20"
+                >
+                  Back to Course Management
+                </Link>
+              </div>
+            </div>
+          </div>
+        );
+      }
+    }
     redirect('/quiz');
   }
 
@@ -117,13 +159,13 @@ export default async function CoursePage({ params }: PageProps) {
   const totalLessons = course.modules.reduce((sum, module) => sum + (module._count.lessons ?? 0), 0);
 
   const currentUser = await getCurrentUserFromSession();
-  const hasAccess = await canUserAccessCourse(currentUser?.id ?? null, course.id, isAdmin);
+  const hasAccess = await canUserAccessCourse(currentUser?.id ?? null, course.id, isAdmin || hasPreviewToken);
   const isDraftCourse = course.status === 'draft';
   const trialEligible = currentUser
     ? await canUserStartFreeTrial(currentUser.id)
     : true;
   const plan = PLANS.SINGLE_COURSE;
-  const showLockedLanding = !hasAccess && !isAdmin;
+  const showLockedLanding = !hasAccess && !(isAdmin || hasPreviewToken);
 
   return (
     <div className="quiz-page relative min-h-screen overflow-hidden bg-[#080810] text-[#eeeaf4]">
@@ -154,7 +196,7 @@ export default async function CoursePage({ params }: PageProps) {
 
           <header className="animate-fade-in mb-8 sm:mb-10 md:mb-12">
             <div className="course-hero rounded-2xl border border-white/10 bg-[#111121]/85 p-6 shadow-xl shadow-black/30 backdrop-blur-sm sm:rounded-3xl sm:p-8 md:p-10">
-              {isDraftCourse && isAdmin && (
+              {isDraftCourse && (isAdmin || hasPreviewToken) && (
                 <div
                   className="mb-4 rounded-xl border border-amber-500/35 bg-amber-500/10 px-4 py-3 text-sm text-amber-200"
                   role="status"
