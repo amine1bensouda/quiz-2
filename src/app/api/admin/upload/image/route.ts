@@ -1,28 +1,75 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { randomUUID } from 'crypto';
-
 
 export const dynamic = 'force-dynamic';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
 
-function getR2Client(): S3Client {
-  const accountId = process.env.R2_ACCOUNT_ID;
-  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+function hasR2Config(): boolean {
+  return Boolean(
+    process.env.R2_ACCOUNT_ID &&
+      process.env.R2_ACCESS_KEY_ID &&
+      process.env.R2_SECRET_ACCESS_KEY &&
+      process.env.R2_BUCKET_NAME &&
+      process.env.R2_PUBLIC_BASE_URL
+  );
+}
 
-  if (!accountId || !accessKeyId || !secretAccessKey) {
-    throw new Error('Missing Cloudflare R2 credentials in environment variables.');
-  }
+function getR2Client(): S3Client {
+  const accountId = process.env.R2_ACCOUNT_ID!;
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID!;
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY!;
 
   return new S3Client({
     region: 'auto',
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
     credentials: { accessKeyId, secretAccessKey },
   });
+}
+
+function extensionFor(file: File): string {
+  const fromName = path.extname(file.name);
+  if (fromName) return fromName.toLowerCase();
+  if (file.type === 'image/jpeg') return '.jpg';
+  if (file.type === 'image/png') return '.png';
+  if (file.type === 'image/gif') return '.gif';
+  return '.webp';
+}
+
+async function uploadToLocal(file: File, bytes: ArrayBuffer): Promise<string> {
+  const filename = `${randomUUID()}${extensionFor(file)}`;
+  const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'images');
+  await mkdir(uploadDir, { recursive: true });
+  await writeFile(path.join(uploadDir, filename), Buffer.from(bytes));
+
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/+$/, '');
+  return baseUrl ? `${baseUrl}/uploads/images/${filename}` : `/uploads/images/${filename}`;
+}
+
+async function uploadToR2(file: File, bytes: ArrayBuffer): Promise<string> {
+  const bucket = process.env.R2_BUCKET_NAME!;
+  const cdnBaseUrl = process.env.R2_PUBLIC_BASE_URL!.replace(/\/+$/, '');
+  const now = new Date();
+  const year = String(now.getUTCFullYear());
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const key = `images/${year}/${month}/${randomUUID()}${extensionFor(file)}`;
+
+  const r2 = getR2Client();
+  await r2.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: Buffer.from(bytes),
+      ContentType: file.type,
+      CacheControl: 'public, max-age=31536000, immutable',
+    })
+  );
+
+  return `${cdnBaseUrl}/${key}`;
 }
 
 export async function POST(request: NextRequest) {
@@ -48,36 +95,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const bucket = process.env.R2_BUCKET_NAME;
-    const cdnBaseUrl = process.env.R2_PUBLIC_BASE_URL;
-    if (!bucket || !cdnBaseUrl) {
-      return NextResponse.json(
-        { error: 'Missing R2_BUCKET_NAME or R2_PUBLIC_BASE_URL in environment variables.' },
-        { status: 500 }
-      );
-    }
-
-    const ext = path.extname(file.name) || (file.type === 'image/jpeg' ? '.jpg' : file.type === 'image/png' ? '.png' : file.type === 'image/gif' ? '.gif' : '.webp');
-    const now = new Date();
-    const year = String(now.getUTCFullYear());
-    const month = String(now.getUTCMonth() + 1).padStart(2, '0');
-    const key = `images/${year}/${month}/${randomUUID()}${ext.toLowerCase()}`;
     const bytes = await file.arrayBuffer();
 
-    const r2 = getR2Client();
-    await r2.send(
-      new PutObjectCommand({
-        Bucket: bucket,
-        Key: key,
-        Body: Buffer.from(bytes),
-        ContentType: file.type,
-        CacheControl: 'public, max-age=31536000, immutable',
-      })
-    );
+    // Prefer R2 when configured; otherwise store on the VPS like PDF/video uploads.
+    const url = hasR2Config()
+      ? await uploadToR2(file, bytes)
+      : await uploadToLocal(file, bytes);
 
-    const normalizedBaseUrl = cdnBaseUrl.replace(/\/+$/, '');
-    const url = `${normalizedBaseUrl}/${key}`;
-    return NextResponse.json({ url });
+    return NextResponse.json({
+      url,
+      storage: hasR2Config() ? 'r2' : 'local',
+    });
   } catch (error: unknown) {
     console.error('Upload image error:', error);
     return NextResponse.json(
