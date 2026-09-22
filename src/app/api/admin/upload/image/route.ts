@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { writeFile, mkdir } from 'fs/promises';
+import { writeFile } from 'fs/promises';
 import path from 'path';
 import { randomUUID } from 'crypto';
+import {
+  ensureImagesUploadDir,
+  localImagePublicUrl,
+} from '@/lib/local-uploads';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,12 +46,10 @@ function extensionFor(file: File): string {
 
 async function uploadToLocal(file: File, bytes: ArrayBuffer): Promise<string> {
   const filename = `${randomUUID()}${extensionFor(file)}`;
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'images');
-  await mkdir(uploadDir, { recursive: true });
+  const uploadDir = await ensureImagesUploadDir();
   await writeFile(path.join(uploadDir, filename), Buffer.from(bytes));
-
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/+$/, '');
-  return baseUrl ? `${baseUrl}/uploads/images/${filename}` : `/uploads/images/${filename}`;
+  // Relative API URL — works behind nginx/pm2 without R2 or public/ static quirks
+  return localImagePublicUrl(filename);
 }
 
 async function uploadToR2(file: File, bytes: ArrayBuffer): Promise<string> {
@@ -96,15 +98,12 @@ export async function POST(request: NextRequest) {
     }
 
     const bytes = await file.arrayBuffer();
-
-    // Prefer R2 when configured; otherwise store on the VPS like PDF/video uploads.
-    const url = hasR2Config()
-      ? await uploadToR2(file, bytes)
-      : await uploadToLocal(file, bytes);
+    const useR2 = hasR2Config();
+    const url = useR2 ? await uploadToR2(file, bytes) : await uploadToLocal(file, bytes);
 
     return NextResponse.json({
       url,
-      storage: hasR2Config() ? 'r2' : 'local',
+      storage: useR2 ? 'r2' : 'local',
     });
   } catch (error: unknown) {
     console.error('Upload image error:', error);

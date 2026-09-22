@@ -97,6 +97,12 @@ const nextConfig = {
         source: '/categorie',
         destination: '/quiz',
         permanent: true
+      },
+      {
+        // Local uploads saved before API media route
+        source: '/uploads/images/:filename',
+        destination: '/api/media/images/:filename',
+        permanent: false
       }
     ];
   },
