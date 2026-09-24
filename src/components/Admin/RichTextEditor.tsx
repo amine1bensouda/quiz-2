@@ -21,6 +21,7 @@ async function uploadImageFile(file: File): Promise<string> {
   const res = await fetch('/api/admin/upload/image', {
     method: 'POST',
     body: formData,
+    credentials: 'include',
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.url) {

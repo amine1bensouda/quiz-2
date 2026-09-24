@@ -2,15 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { randomUUID } from 'crypto';
+import { isAdminAuthenticated } from '@/lib/admin-auth';
 
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 const ALLOWED_TYPES = ['video/mp4', 'video/webm'];
 const MAX_SIZE = 200 * 1024 * 1024; // 200 MB
 
 export async function POST(request: NextRequest) {
   try {
+    const authenticated = await isAdminAuthenticated();
+    if (!authenticated) {
+      return NextResponse.json(
+        { error: 'Admin session expired. Please sign in again.' },
+        { status: 401 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('video') as File | null;
     if (!file || !(file instanceof File)) {

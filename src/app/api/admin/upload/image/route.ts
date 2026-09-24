@@ -7,8 +7,10 @@ import {
   ensureImagesUploadDir,
   localImagePublicUrl,
 } from '@/lib/local-uploads';
+import { isAdminAuthenticated } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -76,6 +78,14 @@ async function uploadToR2(file: File, bytes: ArrayBuffer): Promise<string> {
 
 export async function POST(request: NextRequest) {
   try {
+    const authenticated = await isAdminAuthenticated();
+    if (!authenticated) {
+      return NextResponse.json(
+        { error: 'Admin session expired. Please sign in again.' },
+        { status: 401 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('image') as File | null;
     if (!file || !(file instanceof File)) {
@@ -84,7 +94,19 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    const mime =
+      file.type && ALLOWED_TYPES.includes(file.type)
+        ? file.type
+        : file.name.toLowerCase().endsWith('.png')
+          ? 'image/png'
+          : file.name.toLowerCase().endsWith('.gif')
+            ? 'image/gif'
+            : file.name.toLowerCase().endsWith('.webp')
+              ? 'image/webp'
+              : file.name.toLowerCase().endsWith('.jpg') || file.name.toLowerCase().endsWith('.jpeg')
+                ? 'image/jpeg'
+                : file.type;
+    if (!ALLOWED_TYPES.includes(mime)) {
       return NextResponse.json(
         { error: 'Invalid file type. Use JPEG, PNG, GIF or WebP.' },
         { status: 400 }

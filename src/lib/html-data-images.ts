@@ -11,32 +11,42 @@ export function htmlContainsDataImages(html: string | null | undefined): boolean
 }
 
 async function uploadDataUrlAsImage(dataUrl: string): Promise<string> {
-  const blobRes = await fetch(dataUrl);
+  const compact = dataUrl.replace(/\s+/g, '');
+  const mimeMatch = compact.match(/^data:(image\/[a-zA-Z0-9+.-]+);base64,/i);
+  const mime = mimeMatch?.[1]?.toLowerCase() || 'image/png';
+
+  const blobRes = await fetch(compact);
   const blob = await blobRes.blob();
-  if (!blob.type.startsWith('image/')) {
+  const typedBlob =
+    blob.type && blob.type.startsWith('image/')
+      ? blob
+      : new Blob([blob], { type: mime });
+
+  if (!typedBlob.type.startsWith('image/')) {
     throw new Error('Invalid embedded image type');
   }
-  if (blob.size > 5 * 1024 * 1024) {
+  if (typedBlob.size > 5 * 1024 * 1024) {
     throw new Error('Embedded image exceeds 5 MB');
   }
 
   const ext =
-    blob.type === 'image/jpeg'
+    typedBlob.type === 'image/jpeg'
       ? 'jpg'
-      : blob.type === 'image/png'
+      : typedBlob.type === 'image/png'
         ? 'png'
-        : blob.type === 'image/gif'
+        : typedBlob.type === 'image/gif'
           ? 'gif'
-          : blob.type === 'image/webp'
+          : typedBlob.type === 'image/webp'
             ? 'webp'
             : 'png';
 
   const formData = new FormData();
-  formData.append('image', blob, `embedded.${ext}`);
+  formData.append('image', typedBlob, `embedded.${ext}`);
 
   const uploadRes = await fetch('/api/admin/upload/image', {
     method: 'POST',
     body: formData,
+    credentials: 'include',
   });
   const data = await uploadRes.json().catch(() => ({}));
   if (!uploadRes.ok || !data.url) {

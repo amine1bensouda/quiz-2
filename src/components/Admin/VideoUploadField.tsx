@@ -32,6 +32,7 @@ export default function VideoUploadField({
       const res = await fetch('/api/admin/upload/video', {
         method: 'POST',
         body: formData,
+        credentials: 'include',
       });
       const data = await res.json();
       if (!res.ok) {

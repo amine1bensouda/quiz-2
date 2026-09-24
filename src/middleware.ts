@@ -79,6 +79,11 @@ function isPublicAdminApi(pathname: string): boolean {
   return pathname.startsWith('/api/admin/auth/');
 }
 
+/** Multipart uploads: Edge middleware often misses cookies on FormData POST. Auth is checked in the Node route. */
+function isAdminUploadApi(pathname: string): boolean {
+  return pathname.startsWith('/api/admin/upload/');
+}
+
 function isAdminApiRequest(pathname: string): boolean {
   return pathname.startsWith('/api/admin/');
 }
@@ -141,7 +146,11 @@ export async function middleware(request: NextRequest) {
 
   // Protection auth: bloquer les accès non-authentifiés aux routes /api/admin/*
   // sauf l'endpoint de login.
-  if (isAdminApiRequest(pathname) && !isPublicAdminApi(pathname)) {
+  if (
+    isAdminApiRequest(pathname) &&
+    !isPublicAdminApi(pathname) &&
+    !isAdminUploadApi(pathname)
+  ) {
     const token = request.cookies.get('admin_token')?.value;
     const valid = await verifyAdminSessionToken(token);
     if (!valid) {

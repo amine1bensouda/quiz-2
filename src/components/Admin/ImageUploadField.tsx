@@ -33,6 +33,7 @@ export default function ImageUploadField({
       const res = await fetch('/api/admin/upload/image', {
         method: 'POST',
         body: formData,
+        credentials: 'include',
       });
       const data = await res.json();
       if (!res.ok) {
