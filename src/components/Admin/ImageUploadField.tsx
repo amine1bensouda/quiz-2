@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import Image from 'next/image';
+import { checkAdminResponse } from '@/lib/admin-session-client';
 
 interface ImageUploadFieldProps {
   label?: string;
@@ -35,6 +36,7 @@ export default function ImageUploadField({
         body: formData,
         credentials: 'include',
       });
+      checkAdminResponse(res);
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || 'Upload failed');

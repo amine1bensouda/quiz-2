@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import dynamic from 'next/dynamic';
+import { checkAdminResponse } from '@/lib/admin-session-client';
 
 // Import dynamique pour éviter les erreurs SSR
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
@@ -23,6 +24,7 @@ async function uploadImageFile(file: File): Promise<string> {
     body: formData,
     credentials: 'include',
   });
+  checkAdminResponse(res);
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.url) {
     throw new Error(data.error || 'Image upload failed');

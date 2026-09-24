@@ -10,6 +10,8 @@ export function htmlContainsDataImages(html: string | null | undefined): boolean
   return /data:image\/[a-zA-Z0-9+.-]+;base64,/i.test(html);
 }
 
+import { checkAdminResponse } from './admin-session-client';
+
 async function uploadDataUrlAsImage(dataUrl: string): Promise<string> {
   const compact = dataUrl.replace(/\s+/g, '');
   const mimeMatch = compact.match(/^data:(image\/[a-zA-Z0-9+.-]+);base64,/i);
@@ -48,6 +50,7 @@ async function uploadDataUrlAsImage(dataUrl: string): Promise<string> {
     body: formData,
     credentials: 'include',
   });
+  checkAdminResponse(uploadRes);
   const data = await uploadRes.json().catch(() => ({}));
   if (!uploadRes.ok || !data.url) {
     throw new Error(data.error || 'Failed to upload embedded image');

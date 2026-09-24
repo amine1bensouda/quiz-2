@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import QuestionEditor from './QuestionEditor';
 import RichTextEditor from './RichTextEditor';
 import ImageUploadField from './ImageUploadField';
+import { AdminSessionExpiredError, ensureAdminSession, checkAdminResponse } from '@/lib/admin-session-client';
 import {
   htmlContainsDataImages,
   replaceDataImagesInQuizPayload,
@@ -70,6 +71,7 @@ interface QuizFormProps {
 export default function QuizForm({ initialData }: QuizFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [sessionError, setSessionError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [modules, setModules] = useState<Module[]>([]);
@@ -238,12 +240,14 @@ export default function QuizForm({ initialData }: QuizFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setSessionError(null);
     setStatusMessage(null);
 
     try {
       // Flush debounced RichTextEditor values into React state
       window.dispatchEvent(new Event('richtext-flush'));
       await new Promise((resolve) => setTimeout(resolve, 80));
+      await ensureAdminSession();
 
       const latest = formDataRef.current;
       let payload = {
@@ -307,6 +311,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
         body,
       });
 
+      checkAdminResponse(response);
       if (response.ok) {
         router.push('/admin/quizzes');
         router.refresh();
@@ -330,7 +335,11 @@ export default function QuizForm({ initialData }: QuizFormProps) {
       alert(message);
     } catch (error) {
       console.error('Erreur sauvegarde:', error);
-      alert(error instanceof Error ? error.message : 'Error saving');
+      if (error instanceof AdminSessionExpiredError) {
+        setSessionError(error.message);
+      } else {
+        alert(error instanceof Error ? error.message : 'Error saving');
+      }
     } finally {
       setLoading(false);
       setStatusMessage(null);
@@ -339,6 +348,14 @@ export default function QuizForm({ initialData }: QuizFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {sessionError && (
+        <div role="alert" className="sticky top-4 z-50 rounded-lg border border-amber-400 bg-[#12121f] p-4 text-amber-200">
+          <p>{sessionError}</p>
+          <a href="/admin/login" target="_blank" rel="noopener noreferrer" className="mt-2 inline-block font-semibold underline">
+            Sign in in a new tab
+          </a>
+        </div>
+      )}
       <div className="admin-surface rounded-2xl border border-white/10 bg-[#12121f] shadow-lg p-6 space-y-6">
         {/* Informations de base */}
         <div>
