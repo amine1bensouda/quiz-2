@@ -9,7 +9,7 @@ interface CourseUnlockHeroProps {
   trialShortLabel: string;
   trialLongLabel: string;
   highlights: string[];
-  moduleCount: number;
+  questionCount: number;
   totalQuizzes: number;
   totalLessons: number;
 }
@@ -21,14 +21,14 @@ export default function CourseUnlockHero({
   trialShortLabel,
   trialLongLabel,
   highlights,
-  moduleCount,
+  questionCount,
   totalQuizzes,
   totalLessons,
 }: CourseUnlockHeroProps) {
   const stats = [
     {
-      label: 'Modules',
-      value: moduleCount,
+      label: 'Questions',
+      value: questionCount,
       color: 'text-[#b388ff]',
       bg: 'from-[#b388ff]/20 to-[#b388ff]/5',
       border: 'border-[#b388ff]/25',

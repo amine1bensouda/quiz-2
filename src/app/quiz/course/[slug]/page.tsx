@@ -157,6 +157,15 @@ export default async function CoursePage({ params, searchParams }: PageProps) {
 
   const totalQuizzes = course.modules.reduce((sum, module) => sum + module._count.quizzes, 0);
   const totalLessons = course.modules.reduce((sum, module) => sum + (module._count.lessons ?? 0), 0);
+  const totalQuestions = course.modules.reduce(
+    (sum, module) =>
+      sum +
+      module.quizzes.reduce(
+        (quizSum, quiz) => quizSum + (quiz.acf?.nombre_questions ?? 0),
+        0
+      ),
+    0
+  );
 
   const currentUser = await getCurrentUserFromSession();
   const hasAccess = await canUserAccessCourse(currentUser?.id ?? null, course.id, isAdmin || hasPreviewToken);
@@ -244,7 +253,7 @@ export default async function CoursePage({ params, searchParams }: PageProps) {
                   trialShortLabel={getTrialShortLabel()}
                   trialLongLabel={getTrialLongLabel()}
                   highlights={planHighlightsForTrial(plan, trialEligible)}
-                  moduleCount={course.modules.length}
+                  questionCount={totalQuestions}
                   totalQuizzes={totalQuizzes}
                   totalLessons={totalLessons}
                 />
