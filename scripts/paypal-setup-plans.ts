@@ -1,6 +1,6 @@
 /**
  * Script one-shot pour créer les produits + plans PayPal associés
- * aux plans SINGLE_COURSE (15 USD/mois) et ALL_ACCESS (25 USD/mois),
+ * aux plans SINGLE_COURSE (10 USD/mois) et ALL_ACCESS (25 USD/mois),
  * chacun avec un TRIAL de 2 jours gratuit.
  *
  * Usage :

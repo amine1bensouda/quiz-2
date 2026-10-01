@@ -2,7 +2,7 @@
  * Central subscription plan configuration.
  *
  * Fixed price:
- *  - SINGLE_COURSE: $15/month — access to one course of your choice.
+ *  - SINGLE_COURSE: $10/month — access to one course of your choice.
  *
  * `ALL_ACCESS` is kept for legacy subscriptions already in the database.
  *
@@ -40,7 +40,7 @@ export function getTrialWindowMaxMs(): number {
 export function getTrialShortLabel(): string {
   const minutes = getTrialMinutes();
   if (minutes < 60) return `${minutes} min free trial`;
-  if (minutes < 24 * 60) {
+  if (minutes <= 48 * 60) {
     const hours = Math.round(minutes / 60);
     return `${hours}h free trial`;
   }
@@ -51,8 +51,9 @@ export function getTrialShortLabel(): string {
 export function getTrialLongLabel(): string {
   const minutes = getTrialMinutes();
   if (minutes < 60) return `${minutes}-minute free trial`;
-  if (minutes < 24 * 60) {
+  if (minutes <= 48 * 60) {
     const hours = Math.round(minutes / 60);
+    if (hours >= 24) return `${hours}h free trial`;
     return `${hours}-hour free trial`;
   }
   const days = Math.round(minutes / (24 * 60));
@@ -62,7 +63,7 @@ export function getTrialLongLabel(): string {
 export function getTrialBadgeLabel(): string {
   const minutes = getTrialMinutes();
   if (minutes < 60) return `${minutes} min trial`;
-  if (minutes < 24 * 60) return `${Math.round(minutes / 60)}h trial`;
+  if (minutes <= 48 * 60) return `${Math.round(minutes / 60)}h trial`;
   return `${Math.round(minutes / (24 * 60))}d trial`;
 }
 
@@ -98,7 +99,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
   SINGLE_COURSE: {
     id: 'SINGLE_COURSE',
     label: 'Single Course',
-    priceCents: 1500,
+    priceCents: 1000,
     requiresCourseId: true,
     stripePriceId: process.env.STRIPE_PRICE_SINGLE_COURSE_ID,
     paypalPlanId: process.env.PAYPAL_PLAN_SINGLE_COURSE_ID,
