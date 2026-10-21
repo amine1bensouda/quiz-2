@@ -167,14 +167,14 @@ export default function Question({
         {/* Texte de la question */}
         <div className="mb-8">
           {needsHtmlStemRenderer ? (
-            <div className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-[#f5f2ff] leading-relaxed">
+            <div className="quiz-text text-lg md:text-xl font-normal text-gray-900 dark:text-[#f5f2ff] leading-relaxed">
               <HtmlWithMathRenderer
                 html={questionText || ''}
                 className="prose prose-lg prose-invert max-w-none dark:prose-invert"
               />
             </div>
           ) : (
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-[#f5f2ff] leading-relaxed">
+            <h2 className="quiz-text text-lg md:text-xl font-normal text-gray-900 dark:text-[#f5f2ff] leading-relaxed">
               <MathRenderer text={cleanedQuestionText || ''} />
             </h2>
           )}
@@ -183,7 +183,7 @@ export default function Question({
         {/* Description si présente */}
         {questionContent && (
           <div
-            className="quiz-rich-html prose prose-sm prose-invert mb-8 max-w-none leading-relaxed text-gray-700 dark:text-[#d4d0dc] dark:prose-invert"
+            className="quiz-text quiz-rich-html prose prose-sm prose-invert mb-8 max-w-none leading-relaxed text-gray-700 dark:text-[#d4d0dc] dark:prose-invert"
             dangerouslySetInnerHTML={{ __html: stripInlineBackgroundStyles(questionContent) }}
           />
         )}
@@ -202,7 +202,7 @@ export default function Question({
                 disabled={showResult}
                 rows={4}
                 className={`
-                  w-full px-4 py-3 border-2 rounded-xl transition-all duration-300
+                  w-full px-4 py-3 border-2 rounded-xl transition-all duration-300 quiz-text
                   ${showResult 
                     ? 'border-gray-300 bg-gray-50 cursor-not-allowed dark:border-white/15 dark:bg-white/5' 
                     : 'border-gray-300 bg-white focus:border-gray-900 focus:ring-2 focus:ring-gray-900 focus:outline-none dark:border-white/15 dark:bg-[#0f0f1f] dark:text-[#eeeaf4] dark:focus:border-indigo-400 dark:focus:ring-indigo-400'
@@ -221,7 +221,7 @@ export default function Question({
                         : 'bg-gray-50 border-gray-900 dark:bg-white/5 dark:border-white/20'
                     }`}>
                       <p className="text-sm font-semibold text-gray-900 dark:text-[#f5f2ff] mb-2">Expected Answer:</p>
-                      <div className="text-sm text-gray-700 dark:text-[#d4d0dc]">
+                      <div className="quiz-text text-sm text-gray-700 dark:text-[#d4d0dc]">
                         <HtmlWithMathRenderer html={answers[0].texte} />
                       </div>
                     </div>
@@ -229,7 +229,7 @@ export default function Question({
                   {explication && (
                     <div className="p-4 rounded-xl bg-gray-50 border-l-4 border-gray-900 dark:bg-white/5 dark:border-indigo-400">
                       <p className="text-sm font-semibold text-gray-900 dark:text-[#f5f2ff] mb-2">Explanation:</p>
-                      <div className="text-sm text-gray-700 dark:text-[#d4d0dc] prose prose-sm max-w-none dark:prose-invert leading-relaxed">
+                      <div className="quiz-text text-sm text-gray-700 dark:text-[#d4d0dc] prose prose-sm max-w-none dark:prose-invert leading-relaxed">
                         <HtmlWithMathRenderer html={explication} />
                       </div>
                     </div>
@@ -313,11 +313,11 @@ export default function Question({
                         />
                       </div>
                     )}
-                    <div className="text-gray-900 dark:text-[#eeeaf4] text-lg font-normal leading-relaxed [&_.ql-editor]:p-0">
+                    <div className="quiz-text text-gray-900 dark:text-[#eeeaf4] text-lg font-normal leading-relaxed [&_.ql-editor]:p-0">
                       <HtmlWithMathRenderer html={answer.texte || ''} />
                     </div>
                     {showResult && answer.explication && (
-                      <div className="text-sm text-gray-600 dark:text-[#c8c3d2] mt-3 italic leading-relaxed bg-gray-50 dark:bg-white/5 p-3 rounded-lg">
+                      <div className="quiz-text text-sm text-gray-600 dark:text-[#c8c3d2] mt-3 italic leading-relaxed bg-gray-50 dark:bg-white/5 p-3 rounded-lg">
                         💡 <HtmlWithMathRenderer html={answer.explication || ''} />
                       </div>
                     )}
@@ -345,7 +345,7 @@ export default function Question({
               <span className="text-lg">💡</span>
               Detailed Explanation:
             </p>
-            <div className="text-sm text-gray-700 dark:text-[#d4d0dc] prose prose-sm max-w-none dark:prose-invert leading-relaxed">
+            <div className="quiz-text text-sm text-gray-700 dark:text-[#d4d0dc] prose prose-sm max-w-none dark:prose-invert leading-relaxed">
               <HtmlWithMathRenderer html={explication || ''} />
             </div>
           </div>

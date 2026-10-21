@@ -135,7 +135,7 @@ export default function QuestionEditor({
           {!isExpanded && (
             <div className="mt-2 text-sm text-[#eeeaf4]">
               {localQuestion.text?.trim() ? (
-                <HtmlWithMathRenderer html={previewHtml} className="line-clamp-3" />
+                <HtmlWithMathRenderer html={previewHtml} className="quiz-text line-clamp-3" />
               ) : (
                 <span className="italic text-gray-500">Question vide</span>
               )}
@@ -158,7 +158,7 @@ export default function QuestionEditor({
               Aperçu (comme l’élève le voit)
             </p>
             {localQuestion.text?.trim() ? (
-              <HtmlWithMathRenderer html={previewHtml} />
+              <HtmlWithMathRenderer html={previewHtml} className="quiz-text text-lg leading-relaxed" />
             ) : (
               <p className="text-sm italic text-gray-500">Question vide</p>
             )}
@@ -174,7 +174,7 @@ export default function QuestionEditor({
                     }`}
                   >
                     {answer.text?.trim() ? (
-                      <HtmlWithMathRenderer html={restoreQuestionMarkup(answer.text)} />
+                      <HtmlWithMathRenderer html={restoreQuestionMarkup(answer.text)} className="quiz-text" />
                     ) : (
                       <span className="italic opacity-60">Réponse vide</span>
                     )}

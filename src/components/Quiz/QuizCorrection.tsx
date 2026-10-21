@@ -148,21 +148,21 @@ export default function QuizCorrection({ quiz }: QuizCorrectionProps) {
 
           <div className="mb-8">
             {needsHtmlStemRenderer ? (
-              <div className="text-2xl font-bold leading-relaxed text-[#f5f2ff] md:text-3xl">
+              <div className="quiz-text text-lg font-normal leading-relaxed text-[#f5f2ff] md:text-xl">
                 <HtmlWithMathRenderer
                   html={questionText || ''}
                   className="prose prose-lg prose-invert max-w-none"
                 />
               </div>
             ) : (
-              <h2 className="text-2xl font-bold leading-relaxed text-[#f5f2ff] md:text-3xl">
+              <h2 className="quiz-text text-lg font-normal leading-relaxed text-[#f5f2ff] md:text-xl">
                 <MathRenderer text={cleanedQuestionText || ''} />
               </h2>
             )}
           </div>
 
           {questionContent && (
-            <div className="prose prose-sm prose-invert mb-8 max-w-none leading-relaxed text-[#d4d0dc]">
+            <div className="quiz-text prose prose-sm prose-invert mb-8 max-w-none leading-relaxed text-[#d4d0dc]">
               <HtmlWithMathRenderer html={questionContent} />
             </div>
           )}
@@ -192,11 +192,11 @@ export default function QuizCorrection({ quiz }: QuizCorrectionProps) {
                         />
                       </div>
                     )}
-                    <div className="text-lg font-medium text-emerald-200">
+                    <div className="quiz-text text-lg font-normal text-emerald-200">
                       <HtmlWithMathRenderer html={correctAnswer.texte || ''} />
                     </div>
                     {correctAnswer.explication && (
-                      <div className="mt-3 text-sm italic text-emerald-300/80">
+                      <div className="quiz-text mt-3 text-sm italic text-emerald-300/80">
                         <HtmlWithMathRenderer html={correctAnswer.explication} />
                       </div>
                     )}
@@ -207,7 +207,7 @@ export default function QuizCorrection({ quiz }: QuizCorrectionProps) {
           ) : isTextInput ? (
             <div className="mb-6">
               <div className="rounded-xl border-2 border-[#b388ff]/40 bg-[#b388ff]/10 p-6">
-                <p className="font-medium text-[#d4d0dc]">
+                <p className="quiz-text font-normal text-[#d4d0dc]">
                   {answers.length > 0 && answers[0]?.texte ? (
                     <>
                       <span className="font-bold text-[#f5f2ff]">Expected Answer:</span>{' '}
@@ -271,11 +271,11 @@ export default function QuizCorrection({ quiz }: QuizCorrectionProps) {
                               />
                             </div>
                           )}
-                          <div className={`font-medium ${isCorrect ? 'text-emerald-200' : 'text-[#eeeaf4]'}`}>
+                          <div className={`quiz-text font-normal ${isCorrect ? 'text-emerald-200' : 'text-[#eeeaf4]'}`}>
                             <HtmlWithMathRenderer html={answer.texte || ''} />
                           </div>
                           {answer.explication && (
-                            <div className="mt-2 text-sm italic text-[#9d98ab]">
+                            <div className="quiz-text mt-2 text-sm italic text-[#9d98ab]">
                               <HtmlWithMathRenderer html={answer.explication} />
                             </div>
                           )}
@@ -303,7 +303,7 @@ export default function QuizCorrection({ quiz }: QuizCorrectionProps) {
                 <span className="text-lg">💡</span>
                 Detailed Explanation:
               </p>
-              <div className="text-sm leading-relaxed text-[#d4d0dc]">
+              <div className="quiz-text text-sm leading-relaxed text-[#d4d0dc]">
                 <HtmlWithMathRenderer html={explication} />
               </div>
             </div>

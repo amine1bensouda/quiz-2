@@ -709,6 +709,36 @@ html.light .admin-app .admin-theme-toggle:hover {
   text-align: left;
 }
 
+/* Texte des quiz : serif type Times, comme une copie d'examen */
+.quiz-text {
+  font-family: "Times New Roman", Times, "Liberation Serif", serif;
+}
+
+.quiz-text .katex {
+  font-size: 1em;
+}
+
+.quiz-text .katex .mathnormal,
+.quiz-text .katex .mathit,
+.quiz-text .katex .textit {
+  font-family: "Times New Roman", Times, "Liberation Serif", serif;
+  font-style: italic;
+}
+
+.quiz-text .katex .mathrm,
+.quiz-text .katex .textrm,
+.quiz-text .katex .text {
+  font-family: "Times New Roman", Times, "Liberation Serif", serif;
+  font-style: normal;
+}
+
+.quiz-text .katex .mathbf,
+.quiz-text .katex .textbf {
+  font-family: "Times New Roman", Times, "Liberation Serif", serif;
+  font-style: normal;
+  font-weight: 700;
+}
+
 /* Home page design: Crack the Curve */
 .ctc-home,
 .ctc-home * {

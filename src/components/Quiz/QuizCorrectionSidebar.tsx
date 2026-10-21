@@ -90,9 +90,9 @@ export default function QuizCorrectionSidebar({
                       }}
                     >
                       {questionStemNeedsHtmlRenderer(questionText) ? (
-                        <HtmlWithMathRenderer html={questionText} className="text-xs text-inherit" />
+                        <HtmlWithMathRenderer html={questionText} className="quiz-text text-xs text-inherit" />
                       ) : (
-                        <MathRenderer text={questionText} className="text-xs text-inherit" />
+                        <MathRenderer text={questionText} className="quiz-text text-xs text-inherit" />
                       )}
                     </div>
                     {!hasCorrectAnswer && (

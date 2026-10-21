@@ -165,9 +165,9 @@ export default function QuizSidebar({
                         }}
                       >
                         {questionStemNeedsHtmlRenderer(questionText) ? (
-                          <HtmlWithMathRenderer html={questionText} className="text-sm text-inherit" />
+                          <HtmlWithMathRenderer html={questionText} className="quiz-text text-sm text-inherit" />
                         ) : (
-                          <MathRenderer text={questionText} className="text-sm text-inherit" />
+                          <MathRenderer text={questionText} className="quiz-text text-sm text-inherit" />
                         )}
                       </div>
                     </div>
