@@ -10,6 +10,7 @@ import {
   htmlContainsDataImages,
   replaceDataImagesInQuizPayload,
 } from '@/lib/html-data-images';
+import { restoreQuestionMarkup, stripHtml } from '@/lib/utils';
 
 interface Course {
   id: string;
@@ -68,6 +69,19 @@ interface QuizFormProps {
   initialData?: QuizFormData;
 }
 
+function normalizeQuestion(question: Question): Question {
+  return {
+    ...question,
+    text: restoreQuestionMarkup(question.text || ''),
+    explanation: restoreQuestionMarkup(question.explanation || ''),
+    answers: (question.answers || []).map((answer) => ({
+      ...answer,
+      text: restoreQuestionMarkup(answer.text || ''),
+      explanation: restoreQuestionMarkup(answer.explanation || ''),
+    })),
+  };
+}
+
 export default function QuizForm({ initialData }: QuizFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -93,7 +107,12 @@ export default function QuizForm({ initialData }: QuizFormProps) {
     featuredImageUrl: '',
     questions: [],
     ...initialData,
+    questions: (initialData?.questions ?? []).map(normalizeQuestion),
   });
+  const [questionQuery, setQuestionQuery] = useState('');
+  const [openQuestionIndex, setOpenQuestionIndex] = useState<number | null>(null);
+  const [scrollNonce, setScrollNonce] = useState(0);
+  const scrollTargetRef = useRef<number | null>(null);
   const formDataRef = useRef(formData);
   formDataRef.current = formData;
 
@@ -197,7 +216,27 @@ export default function QuizForm({ initialData }: QuizFormProps) {
     }));
   };
 
+  const jumpToQuestion = (index: number) => {
+    scrollTargetRef.current = index;
+    setQuestionQuery('');
+    setOpenQuestionIndex(index);
+    setScrollNonce((nonce) => nonce + 1);
+  };
+
+  useEffect(() => {
+    if (scrollTargetRef.current == null) return;
+    const index = scrollTargetRef.current;
+    const node = document.getElementById(`admin-question-${index}`);
+    if (!node) return;
+    scrollTargetRef.current = null;
+    const nav = document.querySelector('.admin-nav');
+    const navHeight = nav instanceof HTMLElement ? nav.getBoundingClientRect().height : 0;
+    const top = node.getBoundingClientRect().top + window.scrollY - navHeight - 16;
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  }, [scrollNonce]);
+
   const handleAddQuestion = () => {
+    const nextIndex = formData.questions.length;
     setFormData((prev) => ({
       ...prev,
       questions: [
@@ -215,6 +254,7 @@ export default function QuizForm({ initialData }: QuizFormProps) {
         },
       ],
     }));
+    jumpToQuestion(nextIndex);
   };
 
   const handleUpdateQuestion = (index: number, question: Question) => {
@@ -235,6 +275,12 @@ export default function QuizForm({ initialData }: QuizFormProps) {
       ...prev,
       questions: prev.questions.filter((_, i) => i !== index).map((q, i) => ({ ...q, order: i })),
     }));
+    setOpenQuestionIndex((current) => {
+      if (current == null) return null;
+      if (current === index) return null;
+      if (current > index) return current - 1;
+      return current;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -665,16 +711,72 @@ export default function QuizForm({ initialData }: QuizFormProps) {
             <p>No questions. Click "Add Question" to get started.</p>
           </div>
         ) : (
-          <div className="space-y-6">
-            {formData.questions.map((question, index) => (
-              <QuestionEditor
-                key={question.id || index}
-                question={question}
-                index={index}
-                onUpdate={(q) => handleUpdateQuestion(index, q)}
-                onDelete={() => handleDeleteQuestion(index)}
-              />
-            ))}
+          <div className="space-y-4">
+            <input
+              type="search"
+              value={questionQuery}
+              onChange={(event) => setQuestionQuery(event.target.value)}
+              placeholder="Rechercher une question"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+            {formData.questions.length > 6 && (
+              <div className="flex flex-wrap gap-1">
+                {formData.questions.map((_, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => jumpToQuestion(index)}
+                    className={`h-8 min-w-8 rounded-md px-2 text-sm font-medium ${
+                      openQuestionIndex === index
+                        ? 'bg-indigo-600 text-white'
+                        : 'border border-gray-300'
+                    }`}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+              </div>
+            )}
+            {(() => {
+              const query = questionQuery.trim().toLowerCase();
+              const visible = formData.questions
+                .map((question, index) => ({ question, index }))
+                .filter(({ question }) => {
+                  if (!query) return true;
+                  const haystack = stripHtml(
+                    [
+                      question.text,
+                      question.explanation,
+                      ...question.answers.map((answer) => `${answer.text} ${answer.explanation}`),
+                    ].join(' ')
+                  ).toLowerCase();
+                  return haystack.includes(query);
+                });
+              if (visible.length === 0) {
+                return (
+                  <p className="py-8 text-center text-sm text-gray-500">
+                    Aucune question ne correspond.
+                  </p>
+                );
+              }
+              return (
+                <div className="space-y-4">
+                  {visible.map(({ question, index }) => (
+                    <QuestionEditor
+                      key={question.id || index}
+                      question={question}
+                      index={index}
+                      expanded={openQuestionIndex === index}
+                      onToggle={() =>
+                        setOpenQuestionIndex((current) => (current === index ? null : index))
+                      }
+                      onUpdate={(q) => handleUpdateQuestion(index, q)}
+                      onDelete={() => handleDeleteQuestion(index)}
+                    />
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         )}
       </div>

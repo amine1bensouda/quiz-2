@@ -3,6 +3,7 @@ import { unstable_cache } from 'next/cache';
 import { prisma } from './db';
 import type { Quiz, Question, Category } from './types';
 import { getPublishedQuizListData, QUIZZES_CACHE_TAG } from './cache';
+import { restoreQuestionMarkup } from './utils';
 
 /**
  * Service pour gérer les quiz avec Prisma
@@ -457,17 +458,17 @@ export function convertPrismaQuizToQuiz(prismaQuiz: any): Quiz {
 
     return {
       id: q.id,
-      texte_question: q.text || '',
+      texte_question: restoreQuestionMarkup(q.text || ''),
       type_question: typeQuestion,
-      explication: q.explanation || '',
+      explication: restoreQuestionMarkup(q.explanation || ''),
       points: q.points,
       temps_limite: q.timeLimit || undefined,
       reponses: answers
         .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
         .map((a: any) => ({
-          texte: a.text || '',
+          texte: restoreQuestionMarkup(a.text || ''),
           correcte: a.isCorrect || false,
-          explication: a.explanation || '',
+          explication: restoreQuestionMarkup(a.explanation || ''),
           imageUrl: a.imageUrl && String(a.imageUrl).trim() ? a.imageUrl : undefined,
         })),
     };

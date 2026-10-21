@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import 'katex/dist/katex.min.css';
 import {
   latexInDoubleDollarsShouldUseBlockDisplay,
   inlineLatexShouldUseBlockDisplay,

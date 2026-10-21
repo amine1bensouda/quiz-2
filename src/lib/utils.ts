@@ -248,16 +248,117 @@ export function inlineLatexShouldUseBlockDisplay(formula: string): boolean {
   return false;
 }
 
+const INLINE_MARKUP_TAGS = 'em|i|b|strong|span|u|sub|sup|a|mark|small|label';
+
+/** Applique une transformation uniquement au texte hors balises HTML. */
+function replaceOutsideTags(html: string, transform: (text: string) => string): string {
+  let out = '';
+  let cursor = 0;
+  while (cursor < html.length) {
+    if (html[cursor] === '<') {
+      const end = html.indexOf('>', cursor);
+      if (end === -1) {
+        out += transform(html.slice(cursor));
+        break;
+      }
+      out += html.slice(cursor, end + 1);
+      cursor = end + 1;
+    } else {
+      const next = html.indexOf('<', cursor);
+      const end = next === -1 ? html.length : next;
+      out += transform(html.slice(cursor, end));
+      cursor = end;
+    }
+  }
+  return out;
+}
+
+/**
+ * Répare le HTML importé (WordPress/Tutor) sans casser le LaTeX.
+ * Les formules sont mises de côté : `String.replace` traite `$$` dans une
+ * chaîne de remplacement comme un seul `$`, donc on les réinjecte via une fonction.
+ */
+export function restoreQuestionMarkup(html: string): string {
+  if (!html || typeof html !== 'string') return '';
+
+  const placeholders: string[] = [];
+  const parts: string[] = [];
+
+  // Parcours gauche → droite : un `$` suivi d'un autre `$` ouvre un bloc,
+  // sinon une formule inline. Ainsi $$0.68$$ n'est jamais réduit à $0.68$.
+  let cursor = 0;
+  while (cursor < html.length) {
+    if (html[cursor] !== '$') {
+      const next = html.indexOf('$', cursor);
+      const end = next === -1 ? html.length : next;
+      parts.push(html.slice(cursor, end));
+      cursor = end;
+      continue;
+    }
+
+    const isBlock = html[cursor + 1] === '$';
+    const delimiter = isBlock ? '$$' : '$';
+    const closeAt = html.indexOf(delimiter, cursor + delimiter.length);
+    if (closeAt === -1) {
+      parts.push('$');
+      cursor += 1;
+      continue;
+    }
+
+    const body = html.slice(cursor + delimiter.length, closeAt);
+    const currencySpan = !isBlock && !/\\/.test(body) && /^\s*\d/.test(body) && /\s/.test(body);
+    if (!isBlock && (/[\n\r]/.test(body) || currencySpan)) {
+      parts.push('$');
+      cursor += 1;
+      continue;
+    }
+
+    const token = `__MATH_${placeholders.length}__`;
+    placeholders.push(html.slice(cursor, closeAt + delimiter.length));
+    parts.push(token);
+    cursor = closeAt + delimiter.length;
+  }
+
+  let out = parts.join('');
+
+  const openTag = new RegExp(`(\\p{L}|\\p{N})(<(?:${INLINE_MARKUP_TAGS})\\b)`, 'giu');
+  const closeTag = new RegExp(`(</(?:${INLINE_MARKUP_TAGS})>)(\\p{L}|\\p{N})`, 'giu');
+  out = out.replace(openTag, '$1 $2');
+  out = out.replace(closeTag, '$1 $2');
+
+  out = out.replace(/(\p{L}|\p{N})(__MATH_\d+__)/gu, '$1 $2');
+  out = out.replace(/(__MATH_\d+__)(\p{L}|\p{N})/gu, '$1 $2');
+  out = out.replace(
+    new RegExp(`(</(?:${INLINE_MARKUP_TAGS})>)(__MATH_\\d+__)`, 'gi'),
+    '$1 $2'
+  );
+  out = out.replace(
+    new RegExp(`(__MATH_\\d+__)(<(?:${INLINE_MARKUP_TAGS})\\b)`, 'gi'),
+    '$1 $2'
+  );
+
+  // long.Cross-sectional → long. Cross-sectional (pas dans les URL des attributs)
+  out = replaceOutsideTags(out, (text) => text.replace(/\.([A-Z])/g, '. $1'));
+
+  for (let index = placeholders.length - 1; index >= 0; index -= 1) {
+    const token = `__MATH_${index}__`;
+    out = out.replace(token, () => placeholders[index]);
+  }
+
+  return out;
+}
+
 /** Plain text from HTML */
 export function stripHtml(html: string): string {
   if (!html || typeof html !== 'string') return '';
   return html
-    .replace(/<[^>]*>/g, '')
+    .replace(/<[^>]*>/g, ' ')
     .replace(/&nbsp;/g, ' ')
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
+    .replace(/\s+/g, ' ')
     .trim();
 }
 

@@ -3,9 +3,13 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { checkAdminResponse } from '@/lib/admin-session-client';
+import { restoreQuestionMarkup } from '@/lib/utils';
+import HtmlWithMathRenderer from '@/components/Common/HtmlWithMathRenderer';
 
 // Import dynamique pour éviter les erreurs SSR
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+
+type EditorMode = 'visual' | 'source' | 'latex';
 
 interface RichTextEditorProps {
   value: string;
@@ -14,6 +18,12 @@ interface RichTextEditorProps {
   className?: string;
   /** Hauteur réduite pour réponses / explications */
   compact?: boolean;
+  /** Aperçu KaTeX sous l'éditeur quand le texte contient des maths */
+  showMathPreview?: boolean;
+}
+
+function contentHasMath(value: string): boolean {
+  return /\$|\\begin\{|\\frac|\\text\{/.test(value);
 }
 
 async function uploadImageFile(file: File): Promise<string> {
@@ -38,12 +48,20 @@ export default function RichTextEditor({
   placeholder = 'Enter text...',
   className = '',
   compact = false,
+  showMathPreview = false,
 }: RichTextEditorProps) {
   const [localValue, setLocalValue] = useState(value);
+  const [mode, setMode] = useState<EditorMode>(() =>
+    (value || '').includes('$') ? 'source' : 'visual'
+  );
   const [uploading, setUploading] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const uploadingRef = useRef(setUploading);
   uploadingRef.current = setUploading;
+  const localValueRef = useRef(localValue);
+  localValueRef.current = localValue;
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
   useEffect(() => {
     setLocalValue(value);
@@ -65,6 +83,8 @@ export default function RichTextEditor({
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+        onChangeRef.current(localValueRef.current);
       }
     };
   }, []);
@@ -158,8 +178,29 @@ export default function RichTextEditor({
   ];
 
   const minHeight = compact ? 100 : 200;
+  const modes: { id: EditorMode; label: string }[] = [
+    { id: 'visual', label: 'Visuel' },
+    { id: 'source', label: 'Source' },
+    { id: 'latex', label: 'LaTeX' },
+  ];
+  const sourceMode = mode === 'source' || mode === 'latex';
+
   return (
     <div className={`rich-text-editor ${compact ? 'rich-text-editor-compact' : ''} ${className}`}>
+      <div className="mb-2 flex w-fit rounded-lg bg-gray-100 p-0.5">
+        {modes.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => setMode(item.id)}
+            className={`rounded-md px-2.5 py-1 text-xs font-medium ${
+              mode === item.id ? 'bg-white' : ''
+            }`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
       {uploading && (
         <p className="mb-2 text-xs font-medium text-amber-200">Uploading image…</p>
       )}
@@ -225,14 +266,41 @@ export default function RichTextEditor({
           height: auto;
         }
       `}</style>
-      <ReactQuill
-        theme="snow"
-        value={localValue}
-        onChange={handleChange}
-        modules={modules}
-        formats={formats}
-        placeholder={placeholder}
-      />
+      {mode === 'latex' && (
+        <p className="mb-2 text-xs text-gray-500">
+          Inline : <span className="font-mono">$...$</span> — bloc :{' '}
+          <span className="font-mono">$$...$$</span>
+        </p>
+      )}
+      {sourceMode ? (
+        <textarea
+          value={localValue}
+          onChange={(event) => handleChange(event.target.value)}
+          placeholder={placeholder}
+          spellCheck={false}
+          autoCorrect="off"
+          autoCapitalize="off"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 font-mono text-sm focus:border-transparent focus:ring-2 focus:ring-indigo-500"
+          style={{ minHeight }}
+        />
+      ) : (
+        <ReactQuill
+          theme="snow"
+          value={localValue}
+          onChange={handleChange}
+          modules={modules}
+          formats={formats}
+          placeholder={placeholder}
+        />
+      )}
+      {showMathPreview && contentHasMath(localValue) && (
+        <div className="mt-2 rounded-lg border border-gray-300 bg-gray-50 p-3 text-sm">
+          <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+            Aperçu
+          </p>
+          <HtmlWithMathRenderer html={restoreQuestionMarkup(localValue)} />
+        </div>
+      )}
     </div>
   );
 }
