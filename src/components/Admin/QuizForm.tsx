@@ -105,7 +105,6 @@ export default function QuizForm({ initialData }: QuizFormProps) {
     randomizeOrder: false,
     maxQuestions: undefined,
     featuredImageUrl: '',
-    questions: [],
     ...initialData,
     questions: (initialData?.questions ?? []).map(normalizeQuestion),
   });
