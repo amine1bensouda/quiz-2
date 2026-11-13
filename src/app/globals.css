@@ -777,10 +777,10 @@ html.light .admin-app .admin-theme-toggle:hover {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   text-align: center;
-  padding: 120px 5vw 80px;
+  padding: 108px 5vw 80px;
   overflow: hidden;
 }
 .ctc-home .top-nav {
@@ -848,16 +848,17 @@ html.light .admin-app .admin-theme-toggle:hover {
 
 .ctc-home .hero-badge {
   font-family: 'Space Grotesk', sans-serif;
-  font-weight: 500;
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  border: 1px solid rgba(245, 193, 74, 0.3);
-  background: rgba(245, 193, 74, 0.06);
+  border: 1.5px solid rgba(245, 193, 74, 0.45);
+  background: rgba(245, 193, 74, 0.1);
   border-radius: var(--r-pill);
-  padding: 8px 20px;
+  padding: 12px 28px;
   color: var(--amber);
-  margin-bottom: 36px;
+  margin-top: 12px;
+  margin-bottom: 28px;
 }
 
 .ctc-home .hero-h1 {
@@ -1275,6 +1276,17 @@ html.light .admin-app .admin-theme-toggle:hover {
   .ctc-home .logo { font-size: 1.2rem; }
   .ctc-home .nav-btn { padding: 7px 14px; font-size: 0.84rem; }
   .ctc-home .mission-pillars { grid-template-columns: 1fr; }
+  .ctc-home .hero {
+    justify-content: flex-start;
+    padding: 88px 5vw 64px;
+  }
+  .ctc-home .hero-badge {
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+    padding: 11px 22px;
+    margin-top: 8px;
+    margin-bottom: 22px;
+  }
   .ctc-home .hero-highlights {
     flex-direction: column;
     max-width: 340px;
