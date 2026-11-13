@@ -19,9 +19,13 @@ interface CourseUnlockHeroProps {
 
 function CheckIcon() {
   return (
-    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#f5c14a]/15 text-[11px] font-bold text-[#f5c14a]">
-      ✓
-    </span>
+    <svg className="mt-0.5 h-5 w-5 shrink-0 text-[#f5c14a]" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+      <path
+        fillRule="evenodd"
+        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+        clipRule="evenodd"
+      />
+    </svg>
   );
 }
 
@@ -37,7 +41,7 @@ function trialBadgeLabel(trialEligible: boolean, trialShortLabel: string): strin
 }
 
 function ctaLabel(trialEligible: boolean, trialShortLabel: string): string {
-  if (!trialEligible) return 'Continue to checkout';
+  if (!trialEligible) return 'Continue to checkout →';
   const minutesMatch = trialShortLabel.match(/^(\d+)\s*min/i);
   if (minutesMatch) return `Start My Free ${minutesMatch[1]}-Minute Trial →`;
   const hoursMatch = trialShortLabel.match(/^(\d+)\s*h/i);
@@ -52,18 +56,20 @@ function footerCopy(trialEligible: boolean, trialShortLabel: string): string {
     return 'Billed immediately. Manage or cancel from your dashboard.';
   }
   const minutesMatch = trialShortLabel.match(/^(\d+)\s*min/i);
-  if (minutesMatch) {
-    return `No charge for the first ${minutesMatch[1]} minutes. Cancel anytime.`;
-  }
+  if (minutesMatch) return `No charge for the first ${minutesMatch[1]} minutes. Cancel anytime.`;
   const hoursMatch = trialShortLabel.match(/^(\d+)\s*h/i);
-  if (hoursMatch) {
-    return `No charge for the first ${hoursMatch[1]} hours. Cancel anytime.`;
-  }
+  if (hoursMatch) return `No charge for the first ${hoursMatch[1]} hours. Cancel anytime.`;
   const daysMatch = trialShortLabel.match(/^(\d+)\s*d/i);
-  if (daysMatch) {
-    return `No charge for the first ${daysMatch[1]} days. Cancel anytime.`;
-  }
+  if (daysMatch) return `No charge for the first ${daysMatch[1]} days. Cancel anytime.`;
   return 'No charge during the free trial. Cancel anytime.';
+}
+
+function shortSubject(courseTitle: string): string {
+  return courseTitle
+    .replace(/\s*Q-?bank\s*/gi, ' ')
+    .replace(/\s*Question\s*Bank\s*/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 export default function CourseUnlockHero({
@@ -76,16 +82,15 @@ export default function CourseUnlockHero({
   questionCount,
   totalQuizzes,
 }: CourseUnlockHeroProps) {
-  const coverageTitle = courseTitle.trim()
-    ? `Comprehensive ${courseTitle.trim()} Coverage`
-    : 'Comprehensive exam coverage';
+  const subject = shortSubject(courseTitle) || 'exam';
+  const coverageTitle = `Comprehensive ${subject} Coverage`;
 
   const featureList =
     highlights.length > 0
       ? highlights
       : [
-          `Full access to all ${courseTitle || 'course'} modules`,
-          'Coverage across every major problem type',
+          `Full access to all ${subject} modules`,
+          `Coverage across every major ${subject} problem type`,
           'Track your progress and identify weak areas',
           'Practice at your own pace, anytime',
           'Cancel anytime',
@@ -95,31 +100,31 @@ export default function CourseUnlockHero({
   const leftFeatures = featureList.slice(0, mid);
   const rightFeatures = featureList.slice(mid);
 
-  return (
-    <div className="course-unlock-hero mt-8 animate-fade-in">
-      <div className="course-unlock-hero__shell relative overflow-hidden rounded-[1.75rem] border border-[#7c5cff]/35 bg-gradient-to-br from-[#12122a] via-[#0e0e1c] to-[#0a0a16] p-5 shadow-[0_0_0_1px_rgba(124,92,255,0.12),0_24px_80px_rgba(0,0,0,0.45)] sm:p-7 md:p-9">
-        <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[#7c5cff]/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 left-10 h-48 w-48 rounded-full bg-[#2be4c8]/10 blur-3xl" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#b388ff]/50 to-transparent" />
+  const [priceMain, priceSuffix] = priceLabel.includes('/')
+    ? [priceLabel.split('/')[0], `/${priceLabel.split('/').slice(1).join('/')}`]
+    : [priceLabel, ''];
 
-        <div className="relative grid gap-7 lg:grid-cols-[1.35fr_0.85fr] lg:items-stretch lg:gap-8">
+  return (
+    <div className="course-unlock-hero mt-8 animate-fade-in md:mt-10">
+      <div className="course-unlock-hero__shell relative overflow-hidden rounded-[1.6rem] border border-[#8b6cff]/45 bg-[#0c0c1c]/95 p-5 sm:rounded-[1.85rem] sm:p-7 md:p-8 lg:p-9">
+        <div className="pointer-events-none absolute -right-20 top-1/2 h-64 w-64 -translate-y-1/2 rounded-full bg-[#7c5cff]/25 blur-3xl" />
+        <div className="pointer-events-none absolute -left-16 -top-16 h-40 w-40 rounded-full bg-[#2be4c8]/10 blur-3xl" />
+
+        <div className="relative grid items-stretch gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(260px,0.78fr)] lg:gap-10">
           <div className="min-w-0">
-            <div className="course-unlock-hero__badge mb-4 inline-flex items-center gap-2 rounded-full border border-[#f5c14a]/40 bg-[#f5c14a]/10 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#f5c14a]">
+            <div className="course-unlock-hero__badge mb-4 inline-flex items-center gap-2 rounded-full border border-[#f5c14a]/45 bg-[#120f08]/70 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#f5c14a]">
               <span className="course-unlock-hero__dot h-2 w-2 rounded-full bg-[#f5c14a]" />
               {trialBadgeLabel(trialEligible, trialShortLabel)}
             </div>
 
-            <h2 className="mb-5 text-2xl font-bold leading-tight tracking-tight text-[#f5f2ff] sm:text-3xl md:text-[2rem]">
+            <h2 className="mb-5 text-[1.65rem] font-bold leading-[1.15] tracking-tight text-white sm:text-3xl md:text-[2.05rem]">
               {coverageTitle}
             </h2>
 
-            <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-              <div
-                className="course-unlock-hero__stat flex items-center gap-4 rounded-2xl border border-[#b388ff]/30 bg-gradient-to-br from-[#5b3fd4]/35 via-[#3a2a7a]/40 to-[#1a1438]/80 p-4 sm:p-5"
-                style={{ animationDelay: '0ms' }}
-              >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#b388ff]/20 text-[#d2b8ff]">
-                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5">
+              <div className="course-unlock-hero__stat flex items-center gap-3.5 rounded-2xl border border-[#9b7cff]/35 bg-gradient-to-br from-[#6b4dff] via-[#4b35b8] to-[#2a1c6e] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] sm:p-[1.15rem]">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white">
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -129,19 +134,16 @@ export default function CourseUnlockHero({
                   </svg>
                 </span>
                 <div>
-                  <p className="text-2xl font-bold tracking-tight text-[#eeeaf4] sm:text-3xl">
+                  <p className="text-[1.75rem] font-bold leading-none tracking-tight text-white sm:text-[2rem]">
                     {formatNumber(questionCount)}
                   </p>
-                  <p className="mt-0.5 text-sm font-medium text-[#c4b0ff]">Practice Questions</p>
+                  <p className="mt-1.5 text-sm font-medium text-white/85">Practice Questions</p>
                 </div>
               </div>
 
-              <div
-                className="course-unlock-hero__stat flex items-center gap-4 rounded-2xl border border-[#2be4c8]/30 bg-gradient-to-br from-[#0f6f66]/45 via-[#0d4a48]/50 to-[#0a1f24]/90 p-4 sm:p-5"
-                style={{ animationDelay: '120ms' }}
-              >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#2be4c8]/15 text-[#7df0db]">
-                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="course-unlock-hero__stat flex items-center gap-3.5 rounded-2xl border border-[#2be4c8]/35 bg-gradient-to-br from-[#1aa896] via-[#0f7468] to-[#0a3d42] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] sm:p-[1.15rem]">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white">
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -151,34 +153,26 @@ export default function CourseUnlockHero({
                   </svg>
                 </span>
                 <div>
-                  <p className="text-2xl font-bold tracking-tight text-[#eeeaf4] sm:text-3xl">
+                  <p className="text-[1.75rem] font-bold leading-none tracking-tight text-white sm:text-[2rem]">
                     {formatNumber(totalQuizzes)}
                   </p>
-                  <p className="mt-0.5 text-sm font-medium text-[#7df0db]">Practice Quizzes</p>
+                  <p className="mt-1.5 text-sm font-medium text-white/85">Practice Quizzes</p>
                 </div>
               </div>
             </div>
 
             <div className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
               <ul className="space-y-3">
-                {leftFeatures.map((item, index) => (
-                  <li
-                    key={`left-${item}`}
-                    className="course-unlock-hero__feature flex items-start gap-3 text-sm leading-snug text-[#d4d0dc] sm:text-[15px]"
-                    style={{ animationDelay: `${200 + index * 80}ms` }}
-                  >
+                {leftFeatures.map((item) => (
+                  <li key={`left-${item}`} className="course-unlock-hero__feature flex items-start gap-2.5 text-[15px] leading-snug text-[#ece8f5]">
                     <CheckIcon />
                     <span>{item}</span>
                   </li>
                 ))}
               </ul>
               <ul className="space-y-3">
-                {rightFeatures.map((item, index) => (
-                  <li
-                    key={`right-${item}`}
-                    className="course-unlock-hero__feature flex items-start gap-3 text-sm leading-snug text-[#d4d0dc] sm:text-[15px]"
-                    style={{ animationDelay: `${280 + index * 80}ms` }}
-                  >
+                {rightFeatures.map((item) => (
+                  <li key={`right-${item}`} className="course-unlock-hero__feature flex items-start gap-2.5 text-[15px] leading-snug text-[#ece8f5]">
                     <CheckIcon />
                     <span>{item}</span>
                   </li>
@@ -187,28 +181,27 @@ export default function CourseUnlockHero({
             </div>
           </div>
 
-          <div className="course-unlock-hero__pricing relative flex flex-col justify-center overflow-hidden rounded-2xl border border-[#8b6cff]/45 bg-gradient-to-b from-[#1a1438] via-[#14102c] to-[#0d0b1c] p-6 shadow-[0_0_40px_rgba(124,92,255,0.22)] sm:p-7">
-            <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#7c5cff]/25 blur-2xl" />
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#b388ff]/60 to-transparent" />
-
+          <div className="course-unlock-hero__pricing relative flex flex-col justify-center overflow-hidden rounded-[1.35rem] border border-[#9b7cff]/55 bg-gradient-to-b from-[#3a2a8a] via-[#22165a] to-[#120c2e] px-6 py-7 shadow-[0_0_50px_rgba(124,92,255,0.35)] sm:px-7 sm:py-8">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(179,136,255,0.28),transparent_55%)]" />
             <div className="relative text-center">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c8c2d6]">
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/80">
                 {trialEligible ? 'Start free, then' : 'Subscribe for'}
               </p>
-              <p className="mb-1 text-4xl font-bold tracking-tight text-white sm:text-5xl">
-                {priceLabel}
+              <p className="mb-1 leading-none tracking-tight text-white">
+                <span className="text-5xl font-bold sm:text-[3.4rem]">{priceMain}</span>
+                {priceSuffix ? <span className="text-2xl font-semibold text-white/90 sm:text-3xl">{priceSuffix}</span> : null}
               </p>
-              <p className="mb-6 text-sm text-[#a29cb0]">Per course · Cancel anytime</p>
+              <p className="mb-7 mt-3 text-sm text-white/65">Per course · Cancel anytime</p>
 
               <Link
                 href={`/checkout?courseId=${courseId}`}
-                className="course-unlock-hero__cta group relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-[#f5c14a] px-5 py-4 text-[15px] font-bold text-[#080810] shadow-[0_10px_30px_rgba(245,193,74,0.35)] transition hover:scale-[1.02] hover:bg-[#f9d06a] hover:shadow-[0_12px_36px_rgba(245,193,74,0.45)]"
+                className="course-unlock-hero__cta group relative inline-flex w-full items-center justify-center overflow-hidden rounded-xl bg-[#f5c14a] px-5 py-4 text-[15px] font-bold text-[#0c0a00] shadow-[0_12px_32px_rgba(245,193,74,0.4)] transition hover:scale-[1.02] hover:bg-[#f9d06a]"
               >
                 <span className="course-unlock-hero__cta-shine pointer-events-none absolute inset-0 opacity-0 transition group-hover:opacity-100" />
                 <span className="relative">{ctaLabel(trialEligible, trialShortLabel)}</span>
               </Link>
 
-              <p className="mt-4 text-center text-xs leading-relaxed text-[#9d98ab]">
+              <p className="mt-4 text-center text-xs leading-relaxed text-white/60">
                 {footerCopy(trialEligible, trialShortLabel)}
               </p>
             </div>
