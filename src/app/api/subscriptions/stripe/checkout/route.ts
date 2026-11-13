@@ -11,6 +11,7 @@ import {
   buildStripePaymentLinkUrl,
   getStripePaymentLinkBaseUrl,
 } from '@/lib/stripe-payment-link';
+import { createUniqueOrderNumber } from '@/lib/order-number';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -131,6 +132,7 @@ export async function POST(request: NextRequest) {
         courseId,
         provider: 'stripe',
         status: 'incomplete',
+        orderNumber: await createUniqueOrderNumber(user.name || user.email),
       },
     });
 

@@ -6,6 +6,7 @@ import { getPurchasablePlan, getTrialSeconds, type PlanId } from '@/lib/plans';
 import { getUserActiveSubscription } from '@/lib/subscription-access';
 import { canUserStartFreeTrial } from '@/lib/trial-eligibility';
 import { addResponseObservability } from '@/lib/traffic-guard';
+import { createUniqueOrderNumber } from '@/lib/order-number';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -104,6 +105,7 @@ export async function POST(request: NextRequest) {
         courseId,
         provider: 'stripe',
         status: 'incomplete',
+        orderNumber: await createUniqueOrderNumber(user.name || user.email),
       },
     });
 

@@ -261,6 +261,8 @@ model QuizAttempt {
 
 model Subscription {
   id                     String    @id @default(cuid())
+  /** ID commande affiché (ex. AM482917) : 2 lettres + 6 chiffres */
+  orderNumber            String?   @unique
   userId                 String
   user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   plan                   String

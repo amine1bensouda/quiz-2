@@ -2,9 +2,11 @@ import { prisma } from '@/lib/db';
 import { sendTransactionalEmail } from '@/lib/email';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
 import { formatPlanPrice, getPlan, getTrialLongLabel } from '@/lib/plans';
+import { createUniqueOrderNumber } from '@/lib/order-number';
 
 type SubscriptionWithUser = {
   id: string;
+  orderNumber: string | null;
   plan: string;
   provider: string;
   trialEndsAt: Date | null;
@@ -35,13 +37,33 @@ async function claimPaymentEmailDedupe(dedupeKey: string): Promise<boolean> {
 async function loadSubscriptionForEmail(
   subscriptionId: string
 ): Promise<SubscriptionWithUser | null> {
-  return prisma.subscription.findUnique({
+  const sub = await prisma.subscription.findUnique({
     where: { id: subscriptionId },
     include: {
       user: { select: { email: true, name: true } },
       course: { select: { title: true } },
     },
   });
+  if (!sub) return null;
+
+  if (!sub.orderNumber) {
+    const orderNumber = await createUniqueOrderNumber(sub.user.name || sub.user.email);
+    try {
+      await prisma.subscription.update({
+        where: { id: sub.id },
+        data: { orderNumber },
+      });
+      return { ...sub, orderNumber };
+    } catch {
+      // Collision rare : on laisse orderNumber null, fallback sur id en affichage
+    }
+  }
+
+  return sub;
+}
+
+function displayOrderId(sub: SubscriptionWithUser): string {
+  return sub.orderNumber || sub.id;
 }
 
 function escapeHtml(value: string): string {
@@ -84,7 +106,7 @@ function orderDetailsHtml(sub: SubscriptionWithUser): string {
 
   return `
     <table style="width:100%;border-collapse:collapse;margin:16px 0;">
-      <tr><td style="padding:8px 0;color:#666;">Order ID</td><td style="padding:8px 0;font-weight:600;">${escapeHtml(sub.id)}</td></tr>
+      <tr><td style="padding:8px 0;color:#666;">Order ID</td><td style="padding:8px 0;font-weight:600;">${escapeHtml(displayOrderId(sub))}</td></tr>
       <tr><td style="padding:8px 0;color:#666;">Plan</td><td style="padding:8px 0;font-weight:600;">${escapeHtml(planLabel(sub.plan))}</td></tr>
       ${courseLine}
       <tr><td style="padding:8px 0;color:#666;">Billing</td><td style="padding:8px 0;font-weight:600;">${escapeHtml(planPriceLabel(sub.plan))}</td></tr>
@@ -151,7 +173,7 @@ export async function sendSubscriptionCheckoutEmail(params: {
     '',
     `Thank you for subscribing to ${SITE_NAME}.`,
     '',
-    `Order ID: ${sub.id}`,
+    `Order ID: ${displayOrderId(sub)}`,
     `Plan: ${planLabel(sub.plan)}`,
     sub.course ? `Course: ${sub.course.title}` : '',
     `Billing: ${planPriceLabel(sub.plan)}`,
@@ -224,7 +246,7 @@ export async function sendSubscriptionInvoiceEmail(params: {
     `Invoice: ${params.invoiceNumber}`,
     `Date: ${formatDate(params.paidAt ?? new Date())}`,
     '',
-    `Order ID: ${sub.id}`,
+    `Order ID: ${displayOrderId(sub)}`,
     `Plan: ${planLabel(sub.plan)}`,
     sub.course ? `Course: ${sub.course.title}` : '',
     params.invoiceUrl ? `Invoice: ${params.invoiceUrl}` : '',
