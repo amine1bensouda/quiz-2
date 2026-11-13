@@ -1,9 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_DESCRIPTION } from '@/lib/constants';
-import { getStats } from '@/lib/wordpress';
 import { getAllPublishedCourses } from '@/lib/course-service';
-import { getFeaturedQuiz } from '@/lib/quiz-service';
 import {
   PLANS,
   formatPlanPrice,
@@ -28,13 +26,6 @@ const CARD_THEMES = [
 ];
 
 export default async function HomePage() {
-  const defaultStats = {
-    total_quiz: 0,
-    total_questions: 0,
-    total_categories: 0,
-    quiz_par_categorie: {},
-  };
-
   const withTimeout = async <T,>(promise: Promise<T>, fallback: T, ms = 2500): Promise<T> => {
     const safePromise = promise.catch(() => fallback);
     return Promise.race([
@@ -43,18 +34,7 @@ export default async function HomePage() {
     ]);
   };
 
-  const [stats, publishedCourses, featuredQuiz] = await Promise.all([
-    withTimeout(getStats(), defaultStats),
-    withTimeout(getAllPublishedCourses(), []),
-    withTimeout(getFeaturedQuiz(), []),
-  ]);
-
-  const questionsFromFeatured = featuredQuiz.reduce(
-    (sum, quiz) => sum + (quiz.acf?.nombre_questions ?? 0),
-    0
-  );
-  const totalQuestions =
-    stats.total_questions > 0 ? stats.total_questions : questionsFromFeatured;
+  const publishedCourses = await withTimeout(getAllPublishedCourses(), []);
   const examBanks = publishedCourses.length;
 
   const singleCoursePlan = PLANS.SINGLE_COURSE;
@@ -109,10 +89,6 @@ export default async function HomePage() {
               48h
             </div>
             <div className="hstat-label">Free trial</div>
-          </div>
-          <div className="hero-stat">
-            <div className="hstat-val">{formatNumber(totalQuestions)}</div>
-            <div className="hstat-label">Practice questions</div>
           </div>
         </div>
       </section>
