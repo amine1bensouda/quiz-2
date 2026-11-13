@@ -11,7 +11,7 @@ import QuizCard from '@/components/Quiz/QuizCard';
 import SafeHtmlRenderer from '@/components/Common/SafeHtmlRenderer';
 import CourseSchema from '@/components/SEO/CourseSchema';
 import { getCourseBySlug } from '@/lib/course-service';
-import { formatPlanPrice, PLANS, getTrialLongLabel, getTrialShortLabel, planHighlightsForTrial } from '@/lib/plans';
+import { formatPlanPrice, PLANS, getTrialLongLabel, getTrialShortLabel } from '@/lib/plans';
 import { SITE_NAME, SITE_URL } from '@/lib/constants';
 import { excerptFromHtml, stripHtml } from '@/lib/utils';
 import { getCurrentUserFromSession } from '@/lib/auth-server';
@@ -215,19 +215,27 @@ export default async function CoursePage({ params, searchParams }: PageProps) {
                 </div>
               )}
               <div className="mb-4 flex flex-wrap items-center gap-2 sm:gap-3">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-[#b388ff]">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#b388ff]/35 bg-[#b388ff]/10 px-3 py-1.5 text-xs font-semibold text-[#c4b0ff]">
                   <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
-                  {course.modules.length} module{course.modules.length !== 1 ? 's' : ''}
+                  {course.modules.length} Module{course.modules.length !== 1 ? 's' : ''}
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-[#2be4c8]">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#2be4c8]/35 bg-[#2be4c8]/10 px-3 py-1.5 text-xs font-semibold text-[#7df0db]">
                   <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
-                  {totalQuizzes} quiz{totalQuizzes !== 1 ? 'zes' : ''}
+                  {totalQuizzes} Practice Quiz{totalQuizzes !== 1 ? 'zes' : ''}
                 </span>
-                {totalLessons > 0 && (
+                {showLockedLanding && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[#7c5cff]/40 bg-[#7c5cff]/10 px-3 py-1.5 text-xs font-semibold text-[#d2b8ff]">
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    700 tutors across the US
+                  </span>
+                )}
+                {!showLockedLanding && totalLessons > 0 && (
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-emerald-300">
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -239,22 +247,35 @@ export default async function CoursePage({ params, searchParams }: PageProps) {
               <h1 className="mb-3 font-['Instrument_Serif',serif] text-2xl font-bold leading-tight tracking-tight text-[#f5f2ff] min-[400px]:text-3xl sm:mb-4 sm:text-4xl md:text-5xl">
                 {course.title}
               </h1>
-              {course.description && (
+              {showLockedLanding ? (
+                <p className="mb-2 max-w-2xl text-base leading-relaxed text-[#d4d0dc] sm:text-lg">
+                  Every type of {course.title.replace(/\s*Qbank\s*/i, ' ').trim() || 'exam'} problem.{' '}
+                  <span className="font-semibold text-[#f5c14a]">One Question Bank.</span>
+                </p>
+              ) : course.description ? (
                 <div className="prose prose-sm prose-invert sm:prose-base max-w-none">
                   <SafeHtmlRenderer html={course.description} className="leading-relaxed text-[#a29cb0]" />
                 </div>
-              )}
+              ) : null}
 
               {showLockedLanding && (
                 <CourseUnlockHero
                   courseId={course.id}
+                  courseTitle={course.title}
                   priceLabel={formatPlanPrice(plan)}
                   trialEligible={trialEligible}
                   trialShortLabel={getTrialShortLabel()}
                   trialLongLabel={getTrialLongLabel()}
-                  highlights={planHighlightsForTrial(plan, trialEligible)}
+                  highlights={[
+                    `Full access to all ${course.title} modules`,
+                    `Coverage across every major ${course.title.replace(/\s*Qbank\s*/i, ' ').trim() || 'exam'} problem type`,
+                    'Track your progress and identify weak areas',
+                    'Practice at your own pace, anytime',
+                    'Cancel anytime',
+                  ]}
                   questionCount={totalQuestions}
                   totalQuizzes={totalQuizzes}
+                  totalModules={course.modules.length}
                   totalLessons={totalLessons}
                 />
               )}

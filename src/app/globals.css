@@ -2156,26 +2156,18 @@ html.light .paywall-page select {
   position: relative;
 }
 
-.course-unlock-hero__glow {
-  background: linear-gradient(
-    120deg,
-    rgba(245, 193, 74, 0.35),
-    rgba(179, 136, 255, 0.2),
-    rgba(43, 228, 200, 0.2),
-    rgba(245, 193, 74, 0.35)
-  );
-  background-size: 300% 300%;
-  animation: course-unlock-shimmer 6s ease infinite;
+.course-unlock-hero__shell {
+  box-shadow:
+    0 0 0 1px rgba(124, 92, 255, 0.18),
+    0 0 60px rgba(124, 92, 255, 0.12),
+    0 24px 80px rgba(0, 0, 0, 0.45);
 }
 
-@keyframes course-unlock-shimmer {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
+.course-unlock-hero__pricing {
+  box-shadow:
+    0 0 0 1px rgba(139, 108, 255, 0.28),
+    0 0 48px rgba(124, 92, 255, 0.22);
+  animation: course-unlock-rise 0.7s ease-out 0.15s both;
 }
 
 .course-unlock-hero__dot {
@@ -2210,10 +2202,6 @@ html.light .paywall-page select {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.course-unlock-hero__pricing {
-  animation: course-unlock-rise 0.7s ease-out 0.15s both;
 }
 
 .course-unlock-hero__cta-shine {
